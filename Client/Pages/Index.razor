@@ -1,0 +1,16 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>Index</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Home</MudText>
+<MudText Class="mb-8">Welcome to Concerto</MudText>
+
+<AuthorizeView>
+	<Authorized>
+		<MudAlert Severity="Severity.Info">Hello, @context.User.Identity.Name!</MudAlert>
+	</Authorized>
+	<NotAuthorized>
+		<MudAlert Severity="Severity.Warning">Please log in.</MudAlert>
+	</NotAuthorized>
+</AuthorizeView>
