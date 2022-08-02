@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿global using Dto = Concerto.Shared.Models.Dto;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.ResponseCompression;
 using Concerto.Shared.Extensions;
-using Concerto.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Concerto.Shared.Models;
+using Concerto.Server.Services;
+using Concerto.Server.Data.DatabaseContext;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,18 +34,32 @@ builder.Services.AddAuthentication(options =>
        }
 
        options.RequireHttpsMetadata = builder.Environment.IsProduction();
-       options.MetadataAddress = "http://keycloak:8080/realms/concerto/.well-known/openid-configuration";
-       options.Authority = "http://keycloak:8080/realms/concerto";
+
+       if (EnvironmentHelper.GetVariable("ASPNETCORE_DOCKER").Equals("true"))
+       {
+           options.MetadataAddress = "http://keycloak:8080/realms/concerto/.well-known/openid-configuration";
+           options.Authority = "http://keycloak:8080/realms/concerto";
+       }
+       else
+       {
+           options.MetadataAddress = "http://localhost:7200/realms/concerto/.well-known/openid-configuration";
+           options.Authority = "http://localhost:7200/realms/concerto";
+       }
        options.Audience = "account";
+
+
    });
 
 builder.Services.AddAuthorization();
 
 // Configure database context
 builder.Services.AddDbContext<AppDataContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("ConcertoDb"))
+    options.UseNpgsql(EnvironmentHelper.GetVariable("DB_STRING"))
 );
 builder.Services.AddScoped<AppDataContext>();
+
+// Add Services
+builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 

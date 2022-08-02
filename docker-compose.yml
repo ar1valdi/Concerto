@@ -13,6 +13,9 @@ services:
     ports:
       - 7000:80
       - 7001:443
+    environment:
+      ASPNETCORE_DOCKER: "true"
+      DB_STRING: "Host=postgres;Port=5432;Database=ConcertoDb;username=admin;Password=admin"
 
   postgres:
       image: postgres

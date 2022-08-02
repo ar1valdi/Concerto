@@ -1,50 +1,51 @@
 ﻿@page "/contacts"
 @using Microsoft.AspNetCore.Authorization
-@using System.Security.Claims
-@using Microsoft.AspNetCore.Components.Authorization
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
-<PageTitle>Counter</PageTitle>
+@inject HttpClient Http
 
-<h1>Counter</h1>
+<PageTitle>Contacts</PageTitle>
 
-<p role="status">Profile Info</p>
-
-<p>@authMessage</p>
-
-	@if (claims.Count() > 0)
+@if (contacts == null)
 {
-	<ul>
-		@foreach (var claim in claims)
-		{
-			<li>@claim.Type: @claim.Value</li>
-		}
-	</ul>
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+    <MudStack Row="true">
+       <MudTable Items="contacts" Hover="true" SortLabel="Sort By" Elevation="0">
+        <HeaderContent>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Dto.User, object>(x=>x.Username)">Username</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Dto.User, object>(x=>x.FirstName)">First name</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Dto.User, object>(x=>x.LastName)">Last name</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Dto.User, object>(x=>x.UserId!)">User ID</MudTableSortLabel></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Username">@context.Username</MudTd>
+            <MudTd DataLabel="First name">@context.FirstName</MudTd>
+            <MudTd DataLabel="Last name">@context.LastName</MudTd>
+            <MudTd DataLabel="User ID">@context.UserId</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+        </PagerContent>
+    </MudTable>
+
+    
+    <MudStack>
+
+    </MudStack>
+
+    </MudStack>
+
 }
 
+
 @code {
-	[CascadingParameter]
-	private Task<AuthenticationState> authenticationStateTask { get; set; }
-	private IEnumerable<Claim> claims = Enumerable.Empty<Claim>();
-	private string authMessage;
-	private string surnameMessage;
+	private Dto.User[]? contacts;
 
-	protected override async Task OnInitializedAsync()
-	{
-		var authState = await authenticationStateTask;
-		var user = authState.User;
-
-		if (user.Identity.IsAuthenticated)
-		{
-			authMessage = $"{user.Identity.Name} is authenticated.";
-			claims = user.Claims;
-			surnameMessage =
-				$"Surname: {user.FindFirst(c => c.Type == ClaimTypes.Surname)?.Value}";
-		}
-		else
-		{
-			authMessage = "The user is NOT authenticated.";
-		}
-	}
+    protected override async Task OnInitializedAsync()
+    {
+        contacts = await Http.GetFromJsonAsync<Dto.User[]>("User/GetCurrentUserContacts");
+    }
 }

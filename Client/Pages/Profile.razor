@@ -1,50 +1,63 @@
 ﻿@page "/profile"
+@using Concerto.Shared.Models
 @using Microsoft.AspNetCore.Authorization
-@using System.Security.Claims
-@using Microsoft.AspNetCore.Components.Authorization
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
+
 @attribute [Authorize]
 
-<PageTitle>Counter</PageTitle>
+<PageTitle>Profile</PageTitle>
 
-<h1>Counter</h1>
+<h1>Your profile</h1>
 
-<p role="status">Profile Info</p>
-
-<p>@authMessage</p>
-
-	@if (claims.Count() > 0)
+@if (userData == null)
 {
-	<ul>
-		@foreach (var claim in claims)
-		{
-			<li>@claim.Type: @claim.Value</li>
-		}
-	</ul>
+	<MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+
+	<MudStack>
+		<MudPaper Class="pa-4">
+			<MudStack Row="true">
+				<MudIcon Icon="@Icons.Material.Filled.Person" />
+				<MudStack Justify="Justify.Center" Spacing="0">
+					<MudText Typo="Typo.body1">@userData.Username</MudText>
+					<MudText Typo="Typo.body2">Placeholder</MudText>
+				</MudStack>
+			</MudStack>
+		</MudPaper>
+
+		<MudPaper Class="pa-4">
+			<MudStack Row="true">
+				<MudIcon Icon="@Icons.Material.Filled.TableRows" Title="Details" />
+
+				<MudStack Justify="Justify.Center" Spacing="4">
+					<MudStack Justify="Justify.Center" Spacing="0">
+						<MudText Typo="Typo.body1">User Id</MudText>
+						<MudText Class="pl-2" Typo="Typo.body2">@userData.UserId</MudText>
+					</MudStack>
+
+					<MudStack Justify="Justify.Center" Spacing="0">
+						<MudText Typo="Typo.body1">First name</MudText>
+						<MudText Class="pl-2" Typo="Typo.body2">@userData.FirstName</MudText>
+					</MudStack>
+
+					<MudStack Justify="Justify.Center" Spacing="0">
+						<MudText Typo="Typo.body1">Last name</MudText>
+						<MudText Class="pl-2" Typo="Typo.body2">@userData.LastName</MudText>
+					</MudStack>
+				</MudStack>
+			</MudStack>
+		</MudPaper>
+	</MudStack>
 }
 
+
 @code {
-	[CascadingParameter]
-	private Task<AuthenticationState> authenticationStateTask { get; set; }
-	private IEnumerable<Claim> claims = Enumerable.Empty<Claim>();
-	private string authMessage;
-	private string surnameMessage;
+	private Dto.User? userData;
 
 	protected override async Task OnInitializedAsync()
 	{
-		var authState = await authenticationStateTask;
-		var user = authState.User;
-
-		if (user.Identity.IsAuthenticated)
-		{
-			authMessage = $"{user.Identity.Name} is authenticated.";
-			claims = user.Claims;
-			surnameMessage =
-				$"Surname: {user.FindFirst(c => c.Type == ClaimTypes.Surname)?.Value}";
-		}
-		else
-		{
-			authMessage = "The user is NOT authenticated.";
-		}
+		userData = await Http.GetFromJsonAsync<Dto.User?>("User/GetCurrentUser");
 	}
 }

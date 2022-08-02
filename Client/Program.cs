@@ -1,3 +1,5 @@
+global using Dto = Concerto.Shared.Models.Dto;
+
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;

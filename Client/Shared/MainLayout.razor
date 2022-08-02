@@ -13,6 +13,7 @@
 <MudLayout>
 	<MudAppBar Elevation="0">
 		<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+		<MudText Typo="Typo.h4">Concerto</MudText>
 		<MudSpacer />
 		<AuthorizeView>
 			<Authorized>
@@ -34,7 +35,7 @@
 	</MudAppBar>
 	<MudDrawer @bind-Open="_drawerOpen" Elevation="1">
 		<MudDrawerHeader>
-			<MudText Typo="Typo.h6">Concerto</MudText>
+			<MudText Typo="Typo.h6">Menu</MudText>
 		</MudDrawerHeader>
 		<NavMenu />
 	</MudDrawer>

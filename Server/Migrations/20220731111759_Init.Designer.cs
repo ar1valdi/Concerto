@@ -3,6 +3,7 @@ using System;
 using Concerto.Server.Data.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Concerto.Server.Migrations
 {
     [DbContext(typeof(AppDataContext))]
-    partial class AppDataContextModelSnapshot : ModelSnapshot
+    [Migration("20220731111759_Init")]
+    partial class Init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +24,7 @@ namespace Concerto.Server.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Concerto.Server.Data.Models.User", b =>
+            modelBuilder.Entity("Concerto.Shared.Models.User", b =>
                 {
                     b.Property<long>("UserId")
                         .ValueGeneratedOnAdd()
@@ -86,7 +88,7 @@ namespace Concerto.Server.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Concerto.Server.Data.Models.UserContact", b =>
+            modelBuilder.Entity("Concerto.Shared.Models.UserContact", b =>
                 {
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
@@ -98,7 +100,7 @@ namespace Concerto.Server.Migrations
 
                     b.HasIndex("ContactId");
 
-                    b.ToTable("UserContacts");
+                    b.ToTable("UserContact");
 
                     b.HasData(
                         new
@@ -123,15 +125,15 @@ namespace Concerto.Server.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Concerto.Server.Data.Models.UserContact", b =>
+            modelBuilder.Entity("Concerto.Shared.Models.UserContact", b =>
                 {
-                    b.HasOne("Concerto.Server.Data.Models.User", "Contact")
+                    b.HasOne("Concerto.Shared.Models.User", "Contact")
                         .WithMany("ContactOf")
                         .HasForeignKey("ContactId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Concerto.Server.Data.Models.User", "User")
+                    b.HasOne("Concerto.Shared.Models.User", "User")
                         .WithMany("Contacts")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -142,7 +144,7 @@ namespace Concerto.Server.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Concerto.Server.Data.Models.User", b =>
+            modelBuilder.Entity("Concerto.Shared.Models.User", b =>
                 {
                     b.Navigation("ContactOf");
 
