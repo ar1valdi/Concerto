@@ -5,11 +5,14 @@ using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.ResponseCompression;
 using Concerto.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Concerto.Shared.Models;
 using Concerto.Server.Services;
 using Concerto.Server.Data.DatabaseContext;
+using Concerto.Server.Hubs;
+using Concerto.Server.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger("Concerto.Server Builder");
 
 StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 
@@ -17,6 +20,13 @@ StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configurat
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddSignalR();
+
+//builder.Services.AddResponseCompression(opts =>
+//{
+//    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+//        new[] { "application/octet-stream" });
+//});
 
 builder.Services.AddAuthentication(options =>
 {
@@ -35,7 +45,7 @@ builder.Services.AddAuthentication(options =>
 
        options.RequireHttpsMetadata = builder.Environment.IsProduction();
 
-       if (EnvironmentHelper.GetVariable("ASPNETCORE_DOCKER").Equals("true"))
+       if (builder.Environment.IsDocker())
        {
            options.MetadataAddress = "http://keycloak:8080/realms/concerto/.well-known/openid-configuration";
            options.Authority = "http://keycloak:8080/realms/concerto";
@@ -47,7 +57,23 @@ builder.Services.AddAuthentication(options =>
        }
        options.Audience = "account";
 
-
+       options.Events = new JwtBearerEvents
+       {
+           OnMessageReceived = context =>
+           {
+               if (string.IsNullOrEmpty(context.Token))
+               {
+                   logger.LogDebug("Token empty, attempting to get token from query");
+                    var accessToken = context.Request.Query["access_token"];
+                   if (!string.IsNullOrEmpty(accessToken))
+                   {
+                       logger.LogDebug("Token set from query");
+                       context.Token = accessToken;
+                   }
+               }
+               return Task.CompletedTask;
+           }
+       };
    });
 
 builder.Services.AddAuthorization();
@@ -87,6 +113,7 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapControllers();
+app.MapHub<ChatHub>("/chathub");
 app.MapFallbackToFile("index.html");
 
 

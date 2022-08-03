@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace Concerto.Shared.Extensions;
+namespace Concerto.Server.Extensions;
 
 public static class EnvironmentHelper
 {

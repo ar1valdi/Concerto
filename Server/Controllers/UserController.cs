@@ -1,4 +1,5 @@
-﻿using Concerto.Server.Services;
+﻿using Concerto.Server.Extensions;
+using Concerto.Server.Services;
 using Concerto.Shared.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,7 +32,7 @@ namespace Concerto.Server.Controllers
         public async Task<Dto.User?> GetCurrentUser()
         {
             // Todo add app identity claim in middleware
-            long? userId = User.FindFirst("user_id")?.Value.ToUserId();
+            long? userId = User.GetUserId();
             if (userId == null) return null;
             return await _userService.GetUser(userId.Value);
         }
@@ -40,7 +41,7 @@ namespace Concerto.Server.Controllers
         public async Task<IEnumerable<Dto.User>> GetCurrentUserContacts()
         {
             // Todo add app identity claim in middleware
-            long? userId = User.FindFirst("user_id")?.Value.ToUserId();
+            long? userId = User.GetUserId();
             if (userId == null) return Enumerable.Empty<Dto.User>();
             return await _userService.GetUserContacts(userId.Value);
         }

@@ -1,5 +1,5 @@
 ﻿using Concerto.Server.Data.DatabaseContext;
-using Concerto.Server.Data.Entities;
+using Concerto.Server.Data.Models;
 using Concerto.Server.Extensions;
 using Microsoft.EntityFrameworkCore;
 

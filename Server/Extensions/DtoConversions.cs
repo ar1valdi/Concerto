@@ -1,4 +1,4 @@
-﻿using Concerto.Server.Data.Entities;
+﻿using Concerto.Server.Data.Models;
 
 namespace Concerto.Server.Extensions
 {
@@ -27,5 +27,27 @@ namespace Concerto.Server.Extensions
                 LastName = user.LastName
             };
         }
+
+        public static Dto.ChatMessage ToDto(this ChatMessage message)
+        {
+            return new Dto.ChatMessage
+            {
+                SendTimestamp = message.SendTimestamp,
+                RecipientId = message.RecipientId,
+                Content = message.Content
+            };
+        }
+        public static ChatMessage ToModel(this Dto.ChatMessage message, long senderId, DateTime sendTimestamp)
+        {
+            return new ChatMessage
+            {
+                SendTimestamp = sendTimestamp,
+                SenderId = senderId,
+                RecipientId = message.RecipientId,
+                Content = message.Content,
+            };
+        }
+
+
     }
 }
