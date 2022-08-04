@@ -19,24 +19,24 @@ public class ChatService
     public async Task SaveMessageAsync(Dto.ChatMessage message, long senderId)
     {
         ChatMessage messageModel = message.ToModel(senderId, DateTime.UtcNow);
+        await _context.ChatMessages.AddAsync(messageModel);
         await _context.SaveChangesAsync();
     }
-    public async Task<IEnumerable<Dto.ChatMessage>> GetLastMessagesAsync(long senderId, long recipientId, int numberOfMessages)
+    public async Task<IEnumerable<Dto.ChatMessage>> GetLastMessagesAsync(long userId, long recipientId, int numberOfMessages)
     {
         IEnumerable<Dto.ChatMessage>? messages = await _context.ChatMessages
-            .Where(uc => uc.SenderId == senderId && uc.RecipientId == recipientId)
+            .Where(cm => (cm.SenderId == userId && cm.RecipientId == recipientId) || (cm.SenderId == recipientId && cm.RecipientId == userId))
+            .OrderByDescending(cm => cm.SendTimestamp)
             .Take(numberOfMessages)
-            .Select(uc => uc.ToDto())
+            .Select(cm => cm.ToDto())
             .ToListAsync();
         return messages ?? Enumerable.Empty<Dto.ChatMessage>();
     }
 
-    public async Task<IEnumerable<Dto.ChatMessage>> GetLastMessagesBeforeAsync(long senderId, long recipientId, DateTime startingMessageTimestamp, int numberOfMessages)
+    public async Task<IEnumerable<Dto.ChatMessage>> GetLastMessagesBeforeAsync(long userId, long recipientId, DateTime startingMessageTimestamp, int numberOfMessages)
     {
         IEnumerable<Dto.ChatMessage>? messages = await _context.ChatMessages
-            .Where(cm => cm.SendTimestamp <= startingMessageTimestamp
-                         && cm.SenderId == senderId
-                         && cm.RecipientId == recipientId)
+            .Where(cm => (cm.SendTimestamp <= startingMessageTimestamp) && (cm.SenderId == userId && cm.RecipientId == recipientId) || (cm.SenderId == recipientId && cm.RecipientId == userId))
             .OrderByDescending(cm => cm.SendTimestamp)
             .Take(numberOfMessages)
             .Select(cm => cm.ToDto())

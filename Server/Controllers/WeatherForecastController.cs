@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Concerto.Shared;
+﻿using Concerto.Shared;
 using Microsoft.AspNetCore.Authorization;
-using Concerto.Server.Data;
-using Concerto.Shared.Models;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Concerto.Server.Controllers
 {

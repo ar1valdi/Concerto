@@ -1,14 +1,12 @@
 ﻿global using Dto = Concerto.Shared.Models.Dto;
-
+using Concerto.Server.Data.DatabaseContext;
+using Concerto.Server.Extensions;
+using Concerto.Server.Hubs;
+using Concerto.Server.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
-using Microsoft.AspNetCore.ResponseCompression;
-using Concerto.Shared.Extensions;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Concerto.Server.Services;
-using Concerto.Server.Data.DatabaseContext;
-using Concerto.Server.Hubs;
-using Concerto.Server.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +19,7 @@ StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configurat
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
 
 //builder.Services.AddResponseCompression(opts =>
 //{
@@ -61,10 +60,9 @@ builder.Services.AddAuthentication(options =>
        {
            OnMessageReceived = context =>
            {
-               if (string.IsNullOrEmpty(context.Token))
+               if (context.HttpContext.Request.Path.StartsWithSegments("/chat"))
                {
-                   logger.LogDebug("Token empty, attempting to get token from query");
-                    var accessToken = context.Request.Query["access_token"];
+                   var accessToken = context.Request.Query["access_token"];
                    if (!string.IsNullOrEmpty(accessToken))
                    {
                        logger.LogDebug("Token set from query");
@@ -86,6 +84,7 @@ builder.Services.AddScoped<AppDataContext>();
 
 // Add Services
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ChatService>();
 
 var app = builder.Build();
 
@@ -113,7 +112,7 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapControllers();
-app.MapHub<ChatHub>("/chathub");
+app.MapHub<ChatHub>("/chat");
 app.MapFallbackToFile("index.html");
 
 

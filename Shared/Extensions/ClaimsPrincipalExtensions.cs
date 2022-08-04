@@ -1,7 +1,6 @@
-﻿using Concerto.Shared.Extensions;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 
-namespace Concerto.Server.Extensions;
+namespace Concerto.Shared.Extensions;
 
 public static class ClaimsPrincipalExtensions
 {

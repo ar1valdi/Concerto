@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Concerto.Server.Migrations
 {
-    public partial class init : Migration
+    public partial class Init : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -94,9 +94,11 @@ namespace Concerto.Server.Migrations
                 columns: new[] { "ChatMessageId", "Content", "RecipientId", "SendTimestamp", "SenderId" },
                 values: new object[,]
                 {
-                    { 1L, "Test message 1", 2L, new DateTime(2022, 8, 3, 0, 38, 29, 10, DateTimeKind.Utc).AddTicks(5666), 1L },
-                    { 2L, "Test message 2", 2L, new DateTime(2022, 8, 3, 0, 40, 29, 10, DateTimeKind.Utc).AddTicks(5670), 1L },
-                    { 3L, "Test message 3", 2L, new DateTime(2022, 8, 3, 0, 42, 29, 10, DateTimeKind.Utc).AddTicks(5671), 3L }
+                    { 1L, "Test message 1", 2L, new DateTime(2022, 8, 3, 19, 14, 44, 934, DateTimeKind.Utc).AddTicks(8505), 1L },
+                    { 2L, "Test message 2", 2L, new DateTime(2022, 8, 3, 19, 16, 44, 934, DateTimeKind.Utc).AddTicks(8509), 1L },
+                    { 3L, "Test reply 1", 1L, new DateTime(2022, 8, 3, 19, 17, 44, 934, DateTimeKind.Utc).AddTicks(8509), 2L },
+                    { 4L, "Test reply 2", 1L, new DateTime(2022, 8, 3, 19, 18, 44, 934, DateTimeKind.Utc).AddTicks(8510), 2L },
+                    { 5L, "Test message 3", 2L, new DateTime(2022, 8, 3, 19, 18, 44, 934, DateTimeKind.Utc).AddTicks(8511), 3L }
                 });
 
             migrationBuilder.InsertData(

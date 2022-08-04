@@ -57,7 +57,7 @@ namespace Concerto.Server.Migrations
                             ChatMessageId = 1L,
                             Content = "Test message 1",
                             RecipientId = 2L,
-                            SendTimestamp = new DateTime(2022, 8, 3, 0, 38, 29, 10, DateTimeKind.Utc).AddTicks(5666),
+                            SendTimestamp = new DateTime(2022, 8, 3, 19, 14, 44, 934, DateTimeKind.Utc).AddTicks(8505),
                             SenderId = 1L
                         },
                         new
@@ -65,15 +65,31 @@ namespace Concerto.Server.Migrations
                             ChatMessageId = 2L,
                             Content = "Test message 2",
                             RecipientId = 2L,
-                            SendTimestamp = new DateTime(2022, 8, 3, 0, 40, 29, 10, DateTimeKind.Utc).AddTicks(5670),
+                            SendTimestamp = new DateTime(2022, 8, 3, 19, 16, 44, 934, DateTimeKind.Utc).AddTicks(8509),
                             SenderId = 1L
                         },
                         new
                         {
                             ChatMessageId = 3L,
+                            Content = "Test reply 1",
+                            RecipientId = 1L,
+                            SendTimestamp = new DateTime(2022, 8, 3, 19, 17, 44, 934, DateTimeKind.Utc).AddTicks(8509),
+                            SenderId = 2L
+                        },
+                        new
+                        {
+                            ChatMessageId = 4L,
+                            Content = "Test reply 2",
+                            RecipientId = 1L,
+                            SendTimestamp = new DateTime(2022, 8, 3, 19, 18, 44, 934, DateTimeKind.Utc).AddTicks(8510),
+                            SenderId = 2L
+                        },
+                        new
+                        {
+                            ChatMessageId = 5L,
                             Content = "Test message 3",
                             RecipientId = 2L,
-                            SendTimestamp = new DateTime(2022, 8, 3, 0, 42, 29, 10, DateTimeKind.Utc).AddTicks(5671),
+                            SendTimestamp = new DateTime(2022, 8, 3, 19, 18, 44, 934, DateTimeKind.Utc).AddTicks(8511),
                             SenderId = 3L
                         });
                 });

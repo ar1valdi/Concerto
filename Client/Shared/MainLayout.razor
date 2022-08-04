@@ -31,7 +31,6 @@
 
 			</NotAuthorized>
 		</AuthorizeView>
-		<MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Color="Color.Inherit" Link="https://mudblazor.com/" Target="_blank" />
 	</MudAppBar>
 	<MudDrawer @bind-Open="_drawerOpen" Elevation="1">
 		<MudDrawerHeader>
@@ -40,7 +39,7 @@
 		<NavMenu />
 	</MudDrawer>
 	<MudMainContent>
-		<MudContainer MaxWidth="MaxWidth.Large" Class="my-16 pt-16">
+		<MudContainer MaxWidth="MaxWidth.Large" Class="my-8 pt-8">
 			@Body
 		</MudContainer>
 	</MudMainContent>
