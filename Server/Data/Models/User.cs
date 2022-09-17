@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace Concerto.Server.Data.Entities;
+namespace Concerto.Server.Data.Models;
 
 [Index(nameof(SubjectId), IsUnique = true)]
 public class User

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Concerto.Server.Migrations
 {
     [DbContext(typeof(AppDataContext))]
-    [Migration("20220731213101_Contacts")]
-    partial class Contacts
+    [Migration("20220803191945_Init")]
+    partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -23,6 +23,78 @@ namespace Concerto.Server.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.ChatMessage", b =>
+                {
+                    b.Property<long>("ChatMessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ChatMessageId"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("RecipientId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("SendTimestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("SenderId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ChatMessageId");
+
+                    b.HasIndex("RecipientId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("ChatMessages");
+
+                    b.HasData(
+                        new
+                        {
+                            ChatMessageId = 1L,
+                            Content = "Test message 1",
+                            RecipientId = 2L,
+                            SendTimestamp = new DateTime(2022, 8, 3, 19, 14, 44, 934, DateTimeKind.Utc).AddTicks(8505),
+                            SenderId = 1L
+                        },
+                        new
+                        {
+                            ChatMessageId = 2L,
+                            Content = "Test message 2",
+                            RecipientId = 2L,
+                            SendTimestamp = new DateTime(2022, 8, 3, 19, 16, 44, 934, DateTimeKind.Utc).AddTicks(8509),
+                            SenderId = 1L
+                        },
+                        new
+                        {
+                            ChatMessageId = 3L,
+                            Content = "Test reply 1",
+                            RecipientId = 1L,
+                            SendTimestamp = new DateTime(2022, 8, 3, 19, 17, 44, 934, DateTimeKind.Utc).AddTicks(8509),
+                            SenderId = 2L
+                        },
+                        new
+                        {
+                            ChatMessageId = 4L,
+                            Content = "Test reply 2",
+                            RecipientId = 1L,
+                            SendTimestamp = new DateTime(2022, 8, 3, 19, 18, 44, 934, DateTimeKind.Utc).AddTicks(8510),
+                            SenderId = 2L
+                        },
+                        new
+                        {
+                            ChatMessageId = 5L,
+                            Content = "Test message 3",
+                            RecipientId = 2L,
+                            SendTimestamp = new DateTime(2022, 8, 3, 19, 18, 44, 934, DateTimeKind.Utc).AddTicks(8511),
+                            SenderId = 3L
+                        });
+                });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.User", b =>
                 {
@@ -68,23 +140,24 @@ namespace Concerto.Server.Migrations
                             UserId = 2L,
                             FirstName = "Piotr",
                             LastName = "Testowy",
-                            SubjectId = new Guid("9bb46cbd-c04c-4c1c-b129-8401d59c878d"),
-                            Username = "user"
+                            SubjectId = new Guid("954af482-22dd-483f-ac99-975144f85a04"),
+                            Username = "user2"
                         },
                         new
                         {
                             UserId = 3L,
                             FirstName = "Jacek",
                             LastName = "Testowy",
-                            SubjectId = new Guid("71e82c06-a4d5-4c48-a8d3-8a9c8916790e"),
-                            Username = "user1"
+                            SubjectId = new Guid("c786cbc3-9924-410f-bcdb-75a2469107be"),
+                            Username = "user3"
                         },
                         new
                         {
                             UserId = 4L,
                             FirstName = "John",
                             LastName = "Smith",
-                            Username = "jsmith"
+                            SubjectId = new Guid("f2c0a648-82bb-44a9-908e-8006577cb276"),
+                            Username = "user4"
                         });
                 });
 
@@ -123,6 +196,25 @@ namespace Concerto.Server.Migrations
                             UserId = 1L,
                             ContactId = 4L
                         });
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.ChatMessage", b =>
+                {
+                    b.HasOne("Concerto.Server.Data.Models.User", "Recipient")
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Concerto.Server.Data.Models.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Recipient");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.UserContact", b =>

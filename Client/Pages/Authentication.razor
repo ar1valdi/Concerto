@@ -1,9 +1,17 @@
 ﻿@page "/authentication/{action}"
+@using Concerto.Client.Chat
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 
-<RemoteAuthenticatorView Action="@Action" />
+@inject IChatManager ChatManager
+
+<RemoteAuthenticatorView Action="@Action" OnLogInSucceeded="OnLogInSucceeded" />
 
 @code {
+
 	[Parameter]
 	public string? Action { get; set; }
+
+	async Task OnLogInSucceeded() {
+		await ChatManager.ConnectToChatAsync();
+	}
 }

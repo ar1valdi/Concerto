@@ -1,5 +1,5 @@
 ﻿using Concerto.Server.Data.DatabaseContext;
-using Concerto.Server.Data.Entities;
+using Concerto.Server.Data.Models;
 using Concerto.Server.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,7 +30,7 @@ public class UserService
 
     public async Task<IEnumerable<Dto.User>> GetUserContacts(long userId)
     {
-        IEnumerable<Dto.User>? contacts = await _context.UserContacts.Where(uc => uc.UserId == userId).Include(uc=> uc.Contact).Select(uc => uc.Contact.ToDto()).ToListAsync();
+        IEnumerable<Dto.User>? contacts = await _context.UserContacts.Where(uc => uc.UserId == userId).Include(uc => uc.Contact).Select(uc => uc.Contact.ToDto()).ToListAsync();
         contacts ??= Enumerable.Empty<Dto.User>();
         return contacts;
     }

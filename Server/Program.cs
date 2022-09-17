@@ -1,15 +1,16 @@
 ﻿global using Dto = Concerto.Shared.Models.Dto;
-
+using Concerto.Server.Data.DatabaseContext;
+using Concerto.Server.Extensions;
+using Concerto.Server.Hubs;
+using Concerto.Server.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
-using Microsoft.AspNetCore.ResponseCompression;
-using Concerto.Shared.Extensions;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Concerto.Shared.Models;
-using Concerto.Server.Services;
-using Concerto.Server.Data.DatabaseContext;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger("Concerto.Server Builder");
 
 StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 
@@ -17,6 +18,14 @@ StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configurat
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
+
+//builder.Services.AddResponseCompression(opts =>
+//{
+//    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+//        new[] { "application/octet-stream" });
+//});
 
 builder.Services.AddAuthentication(options =>
 {
@@ -35,7 +44,7 @@ builder.Services.AddAuthentication(options =>
 
        options.RequireHttpsMetadata = builder.Environment.IsProduction();
 
-       if (EnvironmentHelper.GetVariable("ASPNETCORE_DOCKER").Equals("true"))
+       if (builder.Environment.IsDocker())
        {
            options.MetadataAddress = "http://keycloak:8080/realms/concerto/.well-known/openid-configuration";
            options.Authority = "http://keycloak:8080/realms/concerto";
@@ -47,7 +56,22 @@ builder.Services.AddAuthentication(options =>
        }
        options.Audience = "account";
 
-
+       options.Events = new JwtBearerEvents
+       {
+           OnMessageReceived = context =>
+           {
+               if (context.HttpContext.Request.Path.StartsWithSegments("/chat"))
+               {
+                   var accessToken = context.Request.Query["access_token"];
+                   if (!string.IsNullOrEmpty(accessToken))
+                   {
+                       logger.LogDebug("Token set from query");
+                       context.Token = accessToken;
+                   }
+               }
+               return Task.CompletedTask;
+           }
+       };
    });
 
 builder.Services.AddAuthorization();
@@ -60,6 +84,7 @@ builder.Services.AddScoped<AppDataContext>();
 
 // Add Services
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ChatService>();
 
 var app = builder.Build();
 
@@ -87,6 +112,7 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapControllers();
+app.MapHub<ChatHub>("/chat");
 app.MapFallbackToFile("index.html");
 
 

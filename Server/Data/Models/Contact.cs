@@ -1,4 +1,4 @@
-﻿namespace Concerto.Server.Data.Entities;
+﻿namespace Concerto.Server.Data.Models;
 
 public class UserContact
 {
