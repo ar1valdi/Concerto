@@ -1,10 +1,10 @@
 global using Dto = Concerto.Shared.Models.Dto;
-
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
-using Microsoft.Extensions.DependencyInjection;
 using Concerto.Client;
+using Concerto.Client.Chat;
+using Concerto.Client.Contacts;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -17,6 +17,9 @@ builder.Services.AddHttpClient("WebAPI",
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>()
     .CreateClient("WebAPI"));
+
+builder.Services.AddScoped<IChatManager, CachedChatManager>();
+builder.Services.AddScoped<IContactsManager, CachedContactsManager>();
 
 builder.Services.AddMudServices();
 

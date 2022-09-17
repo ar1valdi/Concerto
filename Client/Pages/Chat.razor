@@ -1,0 +1,172 @@
+﻿@attribute [Authorize]
+@page "/chat/{SelectedContactId:long}"
+@page "/chat"
+
+@using Concerto.Client.Chat
+@using Concerto.Client.Contacts
+@using Concerto.Shared.Extensions
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+@inject IChatManager ChatManager
+@inject IContactsManager ContactsManager
+
+<PageTitle>Chat</PageTitle>
+
+@if (loading)
+{
+	<MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+	<MudPaper Class="d-flex flex-wrap pa-4 ma-2" Width="100%" Elevation="0">
+
+		<MudPaper Class="d-flex justify-space-between flex-column flex-grow-1 ma-2" Width="50%">
+
+			<MudPaper Class="pa-2 mb-2 mud-theme-primary">
+				@if (CurrentContact != null)
+				{
+					<MudText Align="Align.Center">@CurrentContact.Username - @CurrentContact.FirstName @CurrentContact.LastName</MudText>
+				}
+
+			</MudPaper>
+
+			<MudPaper Class="d-flex flex-column-reverse mx-1" Elevation="0" Style="max-height:65vh;min-height:65vh; overflow:scroll;" id="messagesContainer">
+				@if (ChatManager.Messages.ContainsKey(SelectedContactId))
+				{
+					foreach (var message in ChatManager.Messages[SelectedContactId])
+					{
+						if (message.RecipientId == SelectedContactId)
+						{
+							<MudPaper Class="d-inline-flex mt-1 justify-end ps-2" Elevation="0">
+								<MudPaper Class="pa-2 mud-theme-secondary" Elevation="0">
+									@message.Content
+								</MudPaper>
+							</MudPaper>
+						}
+						else
+						{
+							<MudPaper Class="d-inline-flex mt-1 ps-2" Elevation="0">
+								<MudPaper Class="pa-2 mud-theme-tertiary" Elevation="0">
+									@message.Content
+								</MudPaper>
+							</MudPaper>
+						}
+
+
+					}
+				}
+			</MudPaper>
+
+			<MudPaper Class="d-flex flex-row align-stretch pa-2 mx-4" Elevation="0">
+				<MudTextField @bind-Value="MessageContent" Immediate="true" OnKeyPress="Enter" Label="Message" Variant="Variant.Filled">></MudTextField>
+				<MudButton OnClick="Send" StartIcon="@Icons.Material.Filled.Send" Color="Color.Primary" ButtonType="ButtonType.Button">Send</MudButton>
+			</MudPaper>
+
+		</MudPaper>
+
+		<MudPaper Class="flex-grow-0">
+
+			<MudTable Items="ContactsManager.Contacts" Hover="true" SortLabel="Sort By" Elevation="0">
+				<HeaderContent>
+					<MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Dto.User, object>(x=>x.Username)">Username</MudTableSortLabel></MudTh>
+					<MudTh><MudTableSortLabel SortBy="new Func<Dto.User, object>(x=>x.FirstName)">First name</MudTableSortLabel></MudTh>
+					<MudTh><MudTableSortLabel SortBy="new Func<Dto.User, object>(x=>x.LastName)">Last name</MudTableSortLabel></MudTh>
+					@*				<MudTh><MudTableSortLabel SortBy="new Func<Dto.User, object>(x=>x.UserId!)">User ID</MudTableSortLabel></MudTh>*@
+				</HeaderContent>
+				<RowTemplate>
+					<MudTd DataLabel="Username">@context.Username</MudTd>
+					<MudTd DataLabel="First name">@context.FirstName</MudTd>
+					<MudTd DataLabel="Last name">@context.LastName</MudTd>
+					@*				<MudTd DataLabel="User ID">@context.UserId</MudTd>*@
+					<MudTd DataLabel="">
+						<MudFab OnClick="@(() => ChangeContact(@context))" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ChatBubble" />
+					</MudTd>
+				</RowTemplate>
+				<PagerContent>
+					<MudTablePager PageSizeOptions="new int[]{50, 100}" />
+				</PagerContent>
+			</MudTable>
+
+		</MudPaper>
+
+	</MudPaper>
+
+
+}
+
+
+@code {
+	[Parameter]
+	public long SelectedContactId { get; set; } = 0;
+	public string MessageContent { get; set; } = string.Empty;
+
+	bool loading = true;
+
+	private Dto.User? CurrentContact { get; set; }
+	private long? UserId { get; set; }
+	private AuthenticationState AuthenticationState { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		loading = true;
+		ChatManager.onMessageReceivedCallback = (message) => InvokeAsync(StateHasChanged);
+		await ContactsManager.LoadContactsAsync();
+		try
+		{
+			CurrentContact = ContactsManager.Contacts.First(x => x.UserId == SelectedContactId);
+			await ChatManager.LoadChatMessagesAsync(SelectedContactId);
+		}
+		catch (InvalidOperationException)
+		{
+			if (ContactsManager.Contacts.Any())
+			{
+				await ChangeContact(ContactsManager.Contacts.First());
+			}
+			else
+			{
+				CurrentContact = null;
+			}
+		}
+		loading = false;
+		// UserId = AuthenticationState.User.GetUserId();
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await JsRuntime.InvokeAsync<string>("console.log", "onafterrender");
+		await JsRuntime.InvokeAsync<string>("scrollToBottom", "messagesContainer");
+	}
+
+	private async Task Send()
+	{
+		if (ChatManager.IsConnected && !string.IsNullOrEmpty(MessageContent) && SelectedContactId != 0)
+		{
+			Dto.ChatMessage message = new Dto.ChatMessage { RecipientId = CurrentContact!.UserId, SendTimestamp = DateTime.UtcNow, Content = MessageContent };
+			await ChatManager.SendChatMessageAsync(message);
+			MessageContent = string.Empty;
+			ShouldRender();
+		}
+	}
+
+	private async Task Enter(KeyboardEventArgs e)
+	{
+		if (e.Code == "Enter" || e.Code == "NumpadEnter")
+		{
+			await Send();
+		}
+	}
+
+	private async Task ChangeContact(Dto.User contact)
+	{
+		CurrentContact = contact;
+		SelectedContactId = contact.UserId;
+		NavigationManager.NavigateTo($"chat/{contact.UserId}");
+		await ChatManager.LoadChatMessagesAsync(contact.UserId);
+	}
+
+}
