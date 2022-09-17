@@ -16,9 +16,9 @@ public class ChatService
         _logger = logger;
     }
 
-    public async Task SaveMessageAsync(Dto.ChatMessage message, long senderId)
+    public async Task SaveMessageAsync(Dto.ChatMessage message)
     {
-        ChatMessage messageModel = message.ToModel(senderId, DateTime.UtcNow);
+        ChatMessage messageModel = message.ToModel(DateTime.UtcNow);
         await _context.ChatMessages.AddAsync(messageModel);
         await _context.SaveChangesAsync();
     }

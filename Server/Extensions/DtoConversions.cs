@@ -32,16 +32,17 @@ public static class DtoConversions
         return new Dto.ChatMessage
         {
             SendTimestamp = message.SendTimestamp,
+            SenderId = message.SenderId,
             RecipientId = message.RecipientId,
             Content = message.Content
         };
     }
-    public static ChatMessage ToModel(this Dto.ChatMessage message, long senderId, DateTime sendTimestamp)
+    public static ChatMessage ToModel(this Dto.ChatMessage message, DateTime sendTimestamp)
     {
         return new ChatMessage
         {
             SendTimestamp = sendTimestamp,
-            SenderId = senderId,
+            SenderId = message.SenderId,
             RecipientId = message.RecipientId,
             Content = message.Content,
         };

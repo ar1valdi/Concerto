@@ -38,17 +38,18 @@ public class ChatHub : Hub
 
     public async Task SendMessage(long recipientId, string content)
     {
-        var message = new Dto.ChatMessage
-        {
-            RecipientId = recipientId,
-            SendTimestamp = DateTime.UtcNow,
-            Content = content
-        };
-
         long? senderId = Context.GetUserId();
 		if (senderId.HasValue)
 		{
-            Task saveMessageTask = _chatService.SaveMessageAsync(message, senderId!.Value);
+            var message = new Dto.ChatMessage
+            {
+                SenderId = senderId.Value,
+                RecipientId = recipientId,
+                SendTimestamp = DateTime.UtcNow,
+                Content = content
+            };
+
+            Task saveMessageTask = _chatService.SaveMessageAsync(message);
             Task sendMessageTask = Clients.Group($"{recipientId}").SendAsync("ReceiveMessage", message);
             await Task.WhenAll(saveMessageTask, sendMessageTask);
         }

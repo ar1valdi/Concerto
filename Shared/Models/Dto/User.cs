@@ -1,11 +1,11 @@
 ﻿namespace Concerto.Shared.Models.Dto;
 
-public class User
+public record User
 {
-    public long UserId { get; set; }
-    public string Username { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
+    public long UserId { get; init; }
+    public string Username { get; init; }
+    public string FirstName { get; init; }
+    public string LastName { get; init; }
 
-    public virtual ICollection<User>? Contacts { get; set; }
+
 }

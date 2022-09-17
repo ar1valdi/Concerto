@@ -1,4 +1,10 @@
 ﻿function scrollToBottom(containerId) {
     container = document.getElementById(containerId);
-    container.scrollTop = container.scrollHeight;
+    console.log(container)
+
+
+    if (container) {
+        container.scrollIntoView(false);
+    }
+        
 }
