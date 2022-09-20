@@ -1,11 +1,17 @@
 ﻿namespace Concerto.Server.Data.Models;
 
-public class UserContact
+public class Contact
 {
-    public long UserId { get; set; }
-    public User User { get; set; }
-
-    public long ContactId { get; set; }
-    public User Contact { get; set; }
+    public User User1 { get; set; }
+    public long User1Id { get; set; }
+    public User User2 { get; set; }
+    public long User2Id { get; set; }
+    public ContactStatus Status { get; set; }
 }
 
+public enum ContactStatus
+{
+    Pending = 0,
+    Accepted = 1,
+    Rejected = 2,
+}
