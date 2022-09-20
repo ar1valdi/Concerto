@@ -1,5 +1,6 @@
 ﻿using Concerto.Client.Contacts;
 using Concerto.Client.Pages;
+using Concerto.Shared.Extensions;
 using Concerto.Shared.Models.Dto;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -33,6 +34,17 @@ public class CachedChatManager : IChatManager
     }
     
     private SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+
+    private bool conversationCacheInvalidated = true;
+    private Dictionary<long, Dto.Conversation> conversationsCache = new Dictionary<long, Dto.Conversation>();
+    public Dictionary<long, Dto.Conversation> Conversations
+    {
+        get
+        {
+            return conversationsCache;
+        }
+    }
+
     private Dictionary<long, List<Dto.ChatMessage>> messagesCache = new Dictionary<long, List<Dto.ChatMessage>>();
     public Dictionary<long, List<Dto.ChatMessage>> Messages
     {
@@ -65,11 +77,14 @@ public class CachedChatManager : IChatManager
 
         ChatHubConnection.On("ReceiveMessage", async (Dto.ChatMessage message) =>
         {
-            messagesCache[message.SenderId].Insert(0, message);
+            if (messagesCache.ContainsKey(message.ConversationId))
+            {
+                messagesCache[message.ConversationId].Insert(0, message);
+            }
             string name = await _contactsManager.GetContactNameAsync(message.SenderId);
             if (!_navigationManager.Uri.Contains("chat"))
             {
-                _snackbar.Add($"New message from {name}", Severity.Info);
+                _snackbar.Add($"{name}: {message.Content.Truncate(20)}", Severity.Info);
             }
             else if (onMessageReceivedCallback != null)
             {
@@ -88,28 +103,41 @@ public class CachedChatManager : IChatManager
         }
     }
 
-    public async Task LoadChatMessagesAsync(long contactId)
+    public async Task LoadConversationsAsync()
     {
         await semaphore.WaitAsync();
-        if (!messagesCache.ContainsKey(contactId))
+        if (conversationCacheInvalidated)
         {
-            var messagesResponse = await _http.GetFromJsonAsync<Dto.ChatMessage[]>($"Chat/GetCurrentUserLastMessages?recipientId={contactId}");
+            var conversationsResponse = await _http.GetFromJsonAsync<Dto.Conversation[]>($"Chat/GetCurrentUserPrivateConversations");
+            var conversations = conversationsResponse?.ToDictionary(c => c.ConversationId, c => c) ?? new Dictionary<long, Dto.Conversation>();
+            conversationsCache = conversations;
+            conversationCacheInvalidated = false;
+        }
+        semaphore.Release();
+    }
+    public async Task LoadChatMessagesAsync(long conversationId)
+    {
+        await semaphore.WaitAsync();
+        if (!messagesCache.ContainsKey(conversationId))
+        {
+            var messagesResponse = await _http.GetFromJsonAsync<Dto.ChatMessage[]>($"Chat/GetCurrentUserLastMessages?conversationId={conversationId}");
             var messages = messagesResponse?.ToList() ?? new List<Dto.ChatMessage>();
             messages.Sort((x, y) => DateTime.Compare(y.SendTimestamp, x.SendTimestamp));
-            messagesCache.Add(contactId, messages);
+            messagesCache.Add(conversationId, messages);
         }
         semaphore.Release();
     }
 
     public async Task SendChatMessageAsync(Dto.ChatMessage message)
     {
-        var list = messagesCache[message.RecipientId];
-        list.Insert(0, message);
-        await ChatHubConnection.SendAsync("SendMessage", message.RecipientId, message.Content);
+        conversationsCache[message.ConversationId].LastMessage = message;
+        messagesCache[message.ConversationId].Insert(0, message);
+        await ChatHubConnection.SendAsync("SendMessage", message.ConversationId, message.Content);
     }
 
     public void InvalidateCache()
     {
+        conversationCacheInvalidated = true;
         messagesCache.Clear();
     }
 
