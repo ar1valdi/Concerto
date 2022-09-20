@@ -7,15 +7,15 @@ public class ChatMessage
     public long ChatMessageId { get; set; }
 
     [Required]
-    public DateTime SendTimestamp { get; set; }
-
-    [Required]
     public long SenderId { get; set; }
     public User Sender { get; set; }
 
     [Required]
-    public long RecipientId { get; set; }
-    public User Recipient { get; set; }
+    public long ConversationId { get; set; }
+    public Conversation Conversation { get; set; }
+    
+    [Required]
+    public DateTime SendTimestamp { get; set; }
 
     [Required]
     public string Content { get; set; }

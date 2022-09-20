@@ -1,5 +1,8 @@
 ﻿using Concerto.Server.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Microsoft.VisualBasic;
+using System.Reflection.Metadata;
 
 namespace Concerto.Server.Data.DatabaseContext;
 
@@ -7,7 +10,8 @@ public class AppDataContext : DbContext
 {
 
     public DbSet<User> Users { get; set; }
-    public DbSet<UserContact> UserContacts { get; set; }
+    public DbSet<Contact> Contacts { get; set; }
+    public DbSet<Conversation> Conversations { get; set; }
     public DbSet<ChatMessage> ChatMessages { get; set; }
 
     public AppDataContext(DbContextOptions<AppDataContext> options) : base(options) { }
@@ -23,33 +27,80 @@ public class AppDataContext : DbContext
             new User { UserId = 4, FirstName = "John", LastName = "Smith", Username = "user4", SubjectId = Guid.Parse("f2c0a648-82bb-44a9-908e-8006577cb276") }
             );
 
-        modelBuilder.Entity<UserContact>().HasKey(uc => new { uc.UserId, uc.ContactId });
+        modelBuilder.Entity<Contact>().HasKey(uc => new { uc.User1Id, uc.User2Id });
 
-        modelBuilder.Entity<UserContact>()
-            .HasOne(uc => uc.User)
-            .WithMany(u => u.Contacts)
-            .HasForeignKey(uc => uc.ContactId)
+        modelBuilder.Entity<Contact>()
+            .HasOne(c => c.User1)
+            .WithMany(u => u.InvitedContacts)
+            .HasForeignKey(c => c.User1Id)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<UserContact>()
-            .HasOne(uc => uc.Contact)
-            .WithMany(u => u.ContactOf)
-            .HasForeignKey(uc => uc.ContactId)
+        modelBuilder.Entity<Contact>()
+            .HasOne(c => c.User2)
+            .WithMany(u => u.InvitingContacts)
+            .HasForeignKey(c => c.User2Id)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<UserContact>().HasData(
-                new UserContact { UserId = 1, ContactId = 2 },
-                new UserContact { UserId = 2, ContactId = 1 },
-                new UserContact { UserId = 1, ContactId = 3 },
-                new UserContact { UserId = 1, ContactId = 4 }
+        modelBuilder
+            .Entity<ConversationUser>()
+            .HasKey(cu => new { cu.ConversationId, cu.UserId });
+
+        modelBuilder
+            .Entity<ConversationUser>()
+            .HasOne(cu => cu.Conversation)
+            .WithMany(c => c.ConversationUsers)
+            .HasForeignKey(cu => cu.ConversationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.
+            Entity<ConversationUser>()
+            .HasOne(cu => cu.User)
+            .WithMany(u => u.ConversationsUser)
+            .HasForeignKey(cu => cu.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Contact>().HasData(
+                new Contact { User1Id = 1, User2Id = 2, Status = ContactStatus.Accepted },
+                new Contact { User1Id = 1, User2Id = 3, Status = ContactStatus.Accepted },
+                new Contact { User1Id = 1, User2Id = 4, Status = ContactStatus.Accepted },
+                new Contact { User1Id = 2, User2Id = 3, Status = ContactStatus.Accepted },
+                new Contact { User1Id = 2, User2Id = 4, Status = ContactStatus.Accepted },
+                new Contact { User1Id = 3, User2Id = 4, Status = ContactStatus.Accepted }
             );
 
+
+        modelBuilder
+            .Entity<ConversationUser>()
+            .HasData(new ConversationUser { ConversationId = 1, UserId = 1 },
+                     new ConversationUser { ConversationId = 1, UserId = 2 },
+                     new ConversationUser { ConversationId = 2, UserId = 1 },
+                     new ConversationUser { ConversationId = 2, UserId = 3 },
+                     new ConversationUser { ConversationId = 3, UserId = 1 },
+                     new ConversationUser { ConversationId = 3, UserId = 4 },
+                     new ConversationUser { ConversationId = 4, UserId = 2 },
+                     new ConversationUser { ConversationId = 4, UserId = 3 },
+                     new ConversationUser { ConversationId = 5, UserId = 2 },
+                     new ConversationUser { ConversationId = 5, UserId = 4 },
+                     new ConversationUser { ConversationId = 6, UserId = 3 },
+                     new ConversationUser { ConversationId = 6, UserId = 4 }
+            );
+
+        modelBuilder.Entity<Conversation>().HasData(
+            new Conversation { ConversationId = 1, IsPrivate = true },
+            new Conversation { ConversationId = 2, IsPrivate = true },
+            new Conversation { ConversationId = 3, IsPrivate = true },
+            new Conversation { ConversationId = 4, IsPrivate = true },
+            new Conversation { ConversationId = 5, IsPrivate = true },
+            new Conversation { ConversationId = 6, IsPrivate = true }
+            );
+            
+
         modelBuilder.Entity<ChatMessage>().HasData(
-            new ChatMessage { ChatMessageId = 1, SenderId = 1, RecipientId = 2, Content = "Test message 1", SendTimestamp = DateTime.UtcNow.AddMinutes(-5) },
-            new ChatMessage { ChatMessageId = 2, SenderId = 1, RecipientId = 2, Content = "Test message 2", SendTimestamp = DateTime.UtcNow.AddMinutes(-3) },
-            new ChatMessage { ChatMessageId = 3, SenderId = 2, RecipientId = 1, Content = "Test reply 1", SendTimestamp = DateTime.UtcNow.AddMinutes(-2) },
-            new ChatMessage { ChatMessageId = 4, SenderId = 2, RecipientId = 1, Content = "Test reply 2", SendTimestamp = DateTime.UtcNow.AddMinutes(-1) },
-            new ChatMessage { ChatMessageId = 5, SenderId = 3, RecipientId = 2, Content = "Test message 3", SendTimestamp = DateTime.UtcNow.AddMinutes(-1) }
+            new ChatMessage { ChatMessageId = 1, SenderId = 1, ConversationId = 1, Content = "Test message 1", SendTimestamp = DateTime.UtcNow.AddMinutes(-5) },
+            new ChatMessage { ChatMessageId = 2, SenderId = 1, ConversationId = 1, Content = "Test message 2", SendTimestamp = DateTime.UtcNow.AddMinutes(-3) },
+            new ChatMessage { ChatMessageId = 3, SenderId = 2, ConversationId = 1, Content = "Test reply 1", SendTimestamp = DateTime.UtcNow.AddMinutes(-2) },
+            new ChatMessage { ChatMessageId = 4, SenderId = 2, ConversationId = 1, Content = "Test reply 2", SendTimestamp = DateTime.UtcNow.AddMinutes(-1) },
+            new ChatMessage { ChatMessageId = 5, SenderId = 1, ConversationId = 1, Content = "Test message 3", SendTimestamp = DateTime.UtcNow.AddMinutes(-1) }
             );
     }
 }

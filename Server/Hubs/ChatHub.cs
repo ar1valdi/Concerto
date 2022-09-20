@@ -36,23 +36,30 @@ public class ChatHub : Hub
         return base.OnConnectedAsync();
     }
 
-    public async Task SendMessage(long recipientId, string content)
+    public async Task SendMessage(long conversationId, string content)
     {
         long? senderId = Context.GetUserId();
-		if (senderId.HasValue)
-		{
-            var message = new Dto.ChatMessage
-            {
-                SenderId = senderId.Value,
-                RecipientId = recipientId,
-                SendTimestamp = DateTime.UtcNow,
-                Content = content
-            };
+        if (!senderId.HasValue)
+            return;
 
-            Task saveMessageTask = _chatService.SaveMessageAsync(message);
-            Task sendMessageTask = Clients.Group($"{recipientId}").SendAsync("ReceiveMessage", message);
-            await Task.WhenAll(saveMessageTask, sendMessageTask);
+        if (!await _chatService.IsUserInCoversationAsync(senderId.Value, conversationId))
+            return;
+        
+        var message = new Dto.ChatMessage
+        {
+            SenderId = senderId.Value,
+            ConversationId = conversationId,
+            SendTimestamp = DateTime.UtcNow,
+            Content = content
+        };
+
+        List<Task> tasks = new List<Task>();
+        await _chatService.SaveMessageAsync(message);
+        var receipents = await _chatService.GetReceipentsInConversationAsync(senderId.Value, conversationId);
+        foreach (var user in receipents)
+        {
+            tasks.Add(Clients.Group($"{user.UserId}").SendAsync("ReceiveMessage", message));
         }
-
+        await Task.WhenAll(tasks);
     }
 }

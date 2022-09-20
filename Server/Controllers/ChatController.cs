@@ -20,27 +20,41 @@ public class ChatController : ControllerBase
 		_chatService = chatService;
 	}
 
-	[HttpGet]
-    public async Task<IEnumerable<Dto.ChatMessage>> GetCurrentUserLastMessages([FromQuery] long recipientId)
+    [HttpGet]
+    public async Task<IEnumerable<Dto.Conversation>> GetCurrentUserPrivateConversations()
     {
-		// TODO move this to config
+        long? userId = User.GetUserId();
+        if (userId == null) return Enumerable.Empty<Dto.Conversation>();
+        return await _chatService.GetPrivateConversationsAsync(userId.Value);
+
+    }
+
+    [HttpGet]
+    public async Task<IEnumerable<Dto.ChatMessage>> GetCurrentUserLastMessages([FromQuery] long conversationId)
+    {
+
 		const int numberOfMessages = 100;
 
 		long? userId = User.GetUserId();
-		if (userId == null) return Enumerable.Empty<Dto.ChatMessage>();
-		return await _chatService.GetLastMessagesAsync(userId!.Value, recipientId, numberOfMessages);
+        // TODO
+        // Check if user is in conversation
 
+        if (userId == null) return Enumerable.Empty<Dto.ChatMessage>();
+		return await _chatService.GetLastMessagesAsync(conversationId, numberOfMessages);
+ 
 	}
 
 	[HttpGet]
-	public async Task<IEnumerable<Dto.ChatMessage>> GetCurrentUserLastMessagesBefore([FromQuery] long recipientId, [FromQuery] DateTime startingMessageTimestamp)
+	public async Task<IEnumerable<Dto.ChatMessage>> GetCurrentUserLastMessagesBefore([FromQuery]long conversationId, [FromQuery] DateTime startingMessageTimestamp)
 	{
 		// TODO move this to config
 		const int numberOfMessages = 100;
-
 		long? userId = User.GetUserId();
-		if (userId == null) return Enumerable.Empty<Dto.ChatMessage>();
-		return await _chatService.GetLastMessagesBeforeAsync(userId!.Value, recipientId, startingMessageTimestamp, numberOfMessages);
+        // TODO
+        // Check if user is in conversation
+
+        if (userId == null) return Enumerable.Empty<Dto.ChatMessage>();
+		return await _chatService.GetLastMessagesBeforeAsync(conversationId, startingMessageTimestamp, numberOfMessages);
 	}
 
 }

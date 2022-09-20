@@ -34,7 +34,7 @@ namespace Concerto.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("RecipientId")
+                    b.Property<long>("ConversationId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("SendTimestamp")
@@ -45,7 +45,7 @@ namespace Concerto.Server.Migrations
 
                     b.HasKey("ChatMessageId");
 
-                    b.HasIndex("RecipientId");
+                    b.HasIndex("ConversationId");
 
                     b.HasIndex("SenderId");
 
@@ -56,41 +56,222 @@ namespace Concerto.Server.Migrations
                         {
                             ChatMessageId = 1L,
                             Content = "Test message 1",
-                            RecipientId = 2L,
-                            SendTimestamp = new DateTime(2022, 8, 3, 19, 14, 44, 934, DateTimeKind.Utc).AddTicks(8505),
+                            ConversationId = 1L,
+                            SendTimestamp = new DateTime(2022, 9, 19, 12, 6, 44, 218, DateTimeKind.Utc).AddTicks(9779),
                             SenderId = 1L
                         },
                         new
                         {
                             ChatMessageId = 2L,
                             Content = "Test message 2",
-                            RecipientId = 2L,
-                            SendTimestamp = new DateTime(2022, 8, 3, 19, 16, 44, 934, DateTimeKind.Utc).AddTicks(8509),
+                            ConversationId = 1L,
+                            SendTimestamp = new DateTime(2022, 9, 19, 12, 8, 44, 218, DateTimeKind.Utc).AddTicks(9782),
                             SenderId = 1L
                         },
                         new
                         {
                             ChatMessageId = 3L,
                             Content = "Test reply 1",
-                            RecipientId = 1L,
-                            SendTimestamp = new DateTime(2022, 8, 3, 19, 17, 44, 934, DateTimeKind.Utc).AddTicks(8509),
+                            ConversationId = 1L,
+                            SendTimestamp = new DateTime(2022, 9, 19, 12, 9, 44, 218, DateTimeKind.Utc).AddTicks(9783),
                             SenderId = 2L
                         },
                         new
                         {
                             ChatMessageId = 4L,
                             Content = "Test reply 2",
-                            RecipientId = 1L,
-                            SendTimestamp = new DateTime(2022, 8, 3, 19, 18, 44, 934, DateTimeKind.Utc).AddTicks(8510),
+                            ConversationId = 1L,
+                            SendTimestamp = new DateTime(2022, 9, 19, 12, 10, 44, 218, DateTimeKind.Utc).AddTicks(9783),
                             SenderId = 2L
                         },
                         new
                         {
                             ChatMessageId = 5L,
                             Content = "Test message 3",
-                            RecipientId = 2L,
-                            SendTimestamp = new DateTime(2022, 8, 3, 19, 18, 44, 934, DateTimeKind.Utc).AddTicks(8511),
-                            SenderId = 3L
+                            ConversationId = 1L,
+                            SendTimestamp = new DateTime(2022, 9, 19, 12, 10, 44, 218, DateTimeKind.Utc).AddTicks(9784),
+                            SenderId = 1L
+                        });
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.Contact", b =>
+                {
+                    b.Property<long>("User1Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("User2Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("User1Id", "User2Id");
+
+                    b.HasIndex("User2Id");
+
+                    b.ToTable("Contacts");
+
+                    b.HasData(
+                        new
+                        {
+                            User1Id = 1L,
+                            User2Id = 2L,
+                            Status = 1
+                        },
+                        new
+                        {
+                            User1Id = 1L,
+                            User2Id = 3L,
+                            Status = 1
+                        },
+                        new
+                        {
+                            User1Id = 1L,
+                            User2Id = 4L,
+                            Status = 1
+                        },
+                        new
+                        {
+                            User1Id = 2L,
+                            User2Id = 3L,
+                            Status = 1
+                        },
+                        new
+                        {
+                            User1Id = 2L,
+                            User2Id = 4L,
+                            Status = 1
+                        },
+                        new
+                        {
+                            User1Id = 3L,
+                            User2Id = 4L,
+                            Status = 1
+                        });
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.Conversation", b =>
+                {
+                    b.Property<long>("ConversationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ConversationId"));
+
+                    b.Property<bool>("IsPrivate")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("ConversationId");
+
+                    b.ToTable("Conversations");
+
+                    b.HasData(
+                        new
+                        {
+                            ConversationId = 1L,
+                            IsPrivate = true
+                        },
+                        new
+                        {
+                            ConversationId = 2L,
+                            IsPrivate = true
+                        },
+                        new
+                        {
+                            ConversationId = 3L,
+                            IsPrivate = true
+                        },
+                        new
+                        {
+                            ConversationId = 4L,
+                            IsPrivate = true
+                        },
+                        new
+                        {
+                            ConversationId = 5L,
+                            IsPrivate = true
+                        },
+                        new
+                        {
+                            ConversationId = 6L,
+                            IsPrivate = true
+                        });
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.ConversationUser", b =>
+                {
+                    b.Property<long>("ConversationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ConversationId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ConversationUser");
+
+                    b.HasData(
+                        new
+                        {
+                            ConversationId = 1L,
+                            UserId = 1L
+                        },
+                        new
+                        {
+                            ConversationId = 1L,
+                            UserId = 2L
+                        },
+                        new
+                        {
+                            ConversationId = 2L,
+                            UserId = 1L
+                        },
+                        new
+                        {
+                            ConversationId = 2L,
+                            UserId = 3L
+                        },
+                        new
+                        {
+                            ConversationId = 3L,
+                            UserId = 1L
+                        },
+                        new
+                        {
+                            ConversationId = 3L,
+                            UserId = 4L
+                        },
+                        new
+                        {
+                            ConversationId = 4L,
+                            UserId = 2L
+                        },
+                        new
+                        {
+                            ConversationId = 4L,
+                            UserId = 3L
+                        },
+                        new
+                        {
+                            ConversationId = 5L,
+                            UserId = 2L
+                        },
+                        new
+                        {
+                            ConversationId = 5L,
+                            UserId = 4L
+                        },
+                        new
+                        {
+                            ConversationId = 6L,
+                            UserId = 3L
+                        },
+                        new
+                        {
+                            ConversationId = 6L,
+                            UserId = 4L
                         });
                 });
 
@@ -159,48 +340,11 @@ namespace Concerto.Server.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Concerto.Server.Data.Models.UserContact", b =>
-                {
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("ContactId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("UserId", "ContactId");
-
-                    b.HasIndex("ContactId");
-
-                    b.ToTable("UserContacts");
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = 1L,
-                            ContactId = 2L
-                        },
-                        new
-                        {
-                            UserId = 2L,
-                            ContactId = 1L
-                        },
-                        new
-                        {
-                            UserId = 1L,
-                            ContactId = 3L
-                        },
-                        new
-                        {
-                            UserId = 1L,
-                            ContactId = 4L
-                        });
-                });
-
             modelBuilder.Entity("Concerto.Server.Data.Models.ChatMessage", b =>
                 {
-                    b.HasOne("Concerto.Server.Data.Models.User", "Recipient")
-                        .WithMany()
-                        .HasForeignKey("RecipientId")
+                    b.HasOne("Concerto.Server.Data.Models.Conversation", "Conversation")
+                        .WithMany("ChatMessages")
+                        .HasForeignKey("ConversationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -210,35 +354,63 @@ namespace Concerto.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Recipient");
+                    b.Navigation("Conversation");
 
                     b.Navigation("Sender");
                 });
 
-            modelBuilder.Entity("Concerto.Server.Data.Models.UserContact", b =>
+            modelBuilder.Entity("Concerto.Server.Data.Models.Contact", b =>
                 {
-                    b.HasOne("Concerto.Server.Data.Models.User", "Contact")
-                        .WithMany("ContactOf")
-                        .HasForeignKey("ContactId")
+                    b.HasOne("Concerto.Server.Data.Models.User", "User1")
+                        .WithMany("InvitedContacts")
+                        .HasForeignKey("User1Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Concerto.Server.Data.Models.User", "User2")
+                        .WithMany("InvitingContacts")
+                        .HasForeignKey("User2Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User1");
+
+                    b.Navigation("User2");
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.ConversationUser", b =>
+                {
+                    b.HasOne("Concerto.Server.Data.Models.Conversation", "Conversation")
+                        .WithMany("ConversationUsers")
+                        .HasForeignKey("ConversationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Concerto.Server.Data.Models.User", "User")
-                        .WithMany("Contacts")
+                        .WithMany("ConversationsUser")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Contact");
+                    b.Navigation("Conversation");
 
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Concerto.Server.Data.Models.Conversation", b =>
+                {
+                    b.Navigation("ChatMessages");
+
+                    b.Navigation("ConversationUsers");
+                });
+
             modelBuilder.Entity("Concerto.Server.Data.Models.User", b =>
                 {
-                    b.Navigation("ContactOf");
+                    b.Navigation("ConversationsUser");
 
-                    b.Navigation("Contacts");
+                    b.Navigation("InvitedContacts");
+
+                    b.Navigation("InvitingContacts");
                 });
 #pragma warning restore 612, 618
         }
