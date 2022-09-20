@@ -8,9 +8,12 @@ public interface IChatManager
 
     public delegate void OnMessageReceivedCallback(Dto.ChatMessage message);
     public OnMessageReceivedCallback onMessageReceivedCallback { get; set; }
-
+    
+    public Dictionary<long, Dto.Conversation> Conversations { get; }
     public Dictionary<long, List<Dto.ChatMessage>> Messages { get; }
+
     public Task LoadChatMessagesAsync(long contactId);
+    public Task LoadConversationsAsync();
     public void InvalidateCache();
 
 

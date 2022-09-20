@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace Concerto.Server.Data.Models;
@@ -15,6 +16,8 @@ public class User
     public string Username { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }
-    public virtual ICollection<UserContact>? Contacts { get; set; }
-    public virtual ICollection<UserContact>? ContactOf { get; set; }
+    public virtual ICollection<Contact>? InvitedContacts { get; set; }
+    public virtual ICollection<Contact>? InvitingContacts { get; set; }
+    public virtual ICollection<ConversationUser>? ConversationsUser { get; set; }
+
 }

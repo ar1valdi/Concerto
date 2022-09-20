@@ -3,17 +3,11 @@
 namespace Concerto.Server.Extensions;
 public static class DtoConversions
 {
-    public static IEnumerable<Dto.User> ToDto(this ICollection<UserContact>? userContacts)
+    public static IEnumerable<Dto.User> ToDto(this IEnumerable<User>? contacts)
     {
-        if (userContacts == null)
+        if (contacts == null)
             return Enumerable.Empty<Dto.User>();
-        return userContacts.Select(uc => new Dto.User
-        {
-            UserId = uc.Contact.UserId,
-            Username = uc.Contact.Username,
-            FirstName = uc.Contact.FirstName,
-            LastName = uc.Contact.LastName
-        });
+        return contacts.Select(c => c.ToDto());
     }
 
     public static Dto.User ToDto(this User user)
@@ -26,6 +20,26 @@ public static class DtoConversions
             LastName = user.LastName
         };
     }
+    public static Dto.Conversation ToDto(this Conversation conversation)
+    {
+        return new Dto.Conversation
+        {
+            ConversationId = conversation.ConversationId,
+            IsPrivate = conversation.IsPrivate,
+            Users = conversation.ConversationUsers.Select(cu => cu.User).ToDto(),
+            LastMessage = conversation.ChatMessages.FirstOrDefault()?.ToDto()
+        };
+    }
+    public static Dto.Conversation ToDto(this Conversation conversation, long userId)
+    {
+        return new Dto.Conversation
+        {
+            ConversationId = conversation.ConversationId,
+            IsPrivate = conversation.IsPrivate,
+            Users = conversation.ConversationUsers.Select(cu => cu.User).Where(u => u.UserId != userId).ToDto(),
+            LastMessage = conversation.ChatMessages.FirstOrDefault()?.ToDto()
+        };
+    }
 
     public static Dto.ChatMessage ToDto(this ChatMessage message)
     {
@@ -33,7 +47,7 @@ public static class DtoConversions
         {
             SendTimestamp = message.SendTimestamp,
             SenderId = message.SenderId,
-            RecipientId = message.RecipientId,
+            ConversationId = message.ConversationId,
             Content = message.Content
         };
     }
@@ -43,7 +57,7 @@ public static class DtoConversions
         {
             SendTimestamp = sendTimestamp,
             SenderId = message.SenderId,
-            RecipientId = message.RecipientId,
+            ConversationId = message.ConversationId,
             Content = message.Content,
         };
     }
