@@ -4,7 +4,7 @@
 @attribute [Authorize]
 
 @inject HttpClient Http
-@inject IChatManager ChatManager
+@inject IChatService ChatService
 
 <PageTitle>Contacts</PageTitle>
 
@@ -75,7 +75,6 @@ else
 
 			</MudPaper>
 		</MudStack>
-
 	}
 }
 

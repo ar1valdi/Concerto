@@ -22,13 +22,65 @@ namespace Concerto.Server.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Concerto.Server.Data.Models.ChatMessage", b =>
+            modelBuilder.Entity("CatalogSession", b =>
                 {
-                    b.Property<long>("ChatMessageId")
+                    b.Property<long>("SharedCatalogsId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SharedInSessionsId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("SharedCatalogsId", "SharedInSessionsId");
+
+                    b.HasIndex("SharedInSessionsId");
+
+                    b.ToTable("CatalogSession");
+                });
+
+            modelBuilder.Entity("CatalogUser", b =>
+                {
+                    b.Property<long>("CatalogsSharedToId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UsersSharedToId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("CatalogsSharedToId", "UsersSharedToId");
+
+                    b.HasIndex("UsersSharedToId");
+
+                    b.ToTable("CatalogUser", (string)null);
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.Catalog", b =>
+                {
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ChatMessageId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Catalogs");
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.ChatMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -43,7 +95,7 @@ namespace Concerto.Server.Migrations
                     b.Property<long>("SenderId")
                         .HasColumnType("bigint");
 
-                    b.HasKey("ChatMessageId");
+                    b.HasKey("Id");
 
                     b.HasIndex("ConversationId");
 
@@ -54,42 +106,42 @@ namespace Concerto.Server.Migrations
                     b.HasData(
                         new
                         {
-                            ChatMessageId = 1L,
+                            Id = 1L,
                             Content = "Test message 1",
                             ConversationId = 1L,
-                            SendTimestamp = new DateTime(2022, 10, 2, 23, 9, 8, 351, DateTimeKind.Utc).AddTicks(421),
+                            SendTimestamp = new DateTime(2022, 10, 10, 17, 11, 28, 18, DateTimeKind.Utc).AddTicks(7480),
                             SenderId = 1L
                         },
                         new
                         {
-                            ChatMessageId = 2L,
+                            Id = 2L,
                             Content = "Test message 2",
                             ConversationId = 1L,
-                            SendTimestamp = new DateTime(2022, 10, 2, 23, 11, 8, 351, DateTimeKind.Utc).AddTicks(424),
+                            SendTimestamp = new DateTime(2022, 10, 10, 17, 13, 28, 18, DateTimeKind.Utc).AddTicks(7483),
                             SenderId = 1L
                         },
                         new
                         {
-                            ChatMessageId = 3L,
+                            Id = 3L,
                             Content = "Test reply 1",
                             ConversationId = 1L,
-                            SendTimestamp = new DateTime(2022, 10, 2, 23, 12, 8, 351, DateTimeKind.Utc).AddTicks(425),
+                            SendTimestamp = new DateTime(2022, 10, 10, 17, 14, 28, 18, DateTimeKind.Utc).AddTicks(7484),
                             SenderId = 2L
                         },
                         new
                         {
-                            ChatMessageId = 4L,
+                            Id = 4L,
                             Content = "Test reply 2",
                             ConversationId = 1L,
-                            SendTimestamp = new DateTime(2022, 10, 2, 23, 13, 8, 351, DateTimeKind.Utc).AddTicks(426),
+                            SendTimestamp = new DateTime(2022, 10, 10, 17, 15, 28, 18, DateTimeKind.Utc).AddTicks(7485),
                             SenderId = 2L
                         },
                         new
                         {
-                            ChatMessageId = 5L,
+                            Id = 5L,
                             Content = "Test message 3",
                             ConversationId = 1L,
-                            SendTimestamp = new DateTime(2022, 10, 2, 23, 13, 8, 351, DateTimeKind.Utc).AddTicks(426),
+                            SendTimestamp = new DateTime(2022, 10, 10, 17, 15, 28, 18, DateTimeKind.Utc).AddTicks(7486),
                             SenderId = 1L
                         });
                 });
@@ -152,58 +204,58 @@ namespace Concerto.Server.Migrations
 
             modelBuilder.Entity("Concerto.Server.Data.Models.Conversation", b =>
                 {
-                    b.Property<long>("ConversationId")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ConversationId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<bool>("IsPrivate")
                         .HasColumnType("boolean");
 
-                    b.HasKey("ConversationId");
+                    b.HasKey("Id");
 
                     b.ToTable("Conversations");
 
                     b.HasData(
                         new
                         {
-                            ConversationId = 1L,
+                            Id = 1L,
                             IsPrivate = true
                         },
                         new
                         {
-                            ConversationId = 2L,
+                            Id = 2L,
                             IsPrivate = true
                         },
                         new
                         {
-                            ConversationId = 3L,
+                            Id = 3L,
                             IsPrivate = true
                         },
                         new
                         {
-                            ConversationId = 4L,
+                            Id = 4L,
                             IsPrivate = true
                         },
                         new
                         {
-                            ConversationId = 5L,
+                            Id = 5L,
                             IsPrivate = true
                         },
                         new
                         {
-                            ConversationId = 6L,
+                            Id = 6L,
                             IsPrivate = true
                         },
                         new
                         {
-                            ConversationId = 7L,
+                            Id = 7L,
                             IsPrivate = false
                         },
                         new
                         {
-                            ConversationId = 8L,
+                            Id = 8L,
                             IsPrivate = false
                         });
                 });
@@ -312,11 +364,11 @@ namespace Concerto.Server.Migrations
 
             modelBuilder.Entity("Concerto.Server.Data.Models.Room", b =>
                 {
-                    b.Property<long>("RoomId")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("RoomId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<long>("ConversationId")
                         .HasColumnType("bigint");
@@ -325,7 +377,7 @@ namespace Concerto.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("RoomId");
+                    b.HasKey("Id");
 
                     b.HasIndex("ConversationId");
 
@@ -334,13 +386,13 @@ namespace Concerto.Server.Migrations
                     b.HasData(
                         new
                         {
-                            RoomId = 1L,
+                            Id = 1L,
                             ConversationId = 7L,
                             Name = "Room 1"
                         },
                         new
                         {
-                            RoomId = 2L,
+                            Id = 2L,
                             ConversationId = 8L,
                             Name = "Room 2"
                         });
@@ -398,11 +450,11 @@ namespace Concerto.Server.Migrations
 
             modelBuilder.Entity("Concerto.Server.Data.Models.Session", b =>
                 {
-                    b.Property<long>("SessionId")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SessionId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<long>("ConversationId")
                         .HasColumnType("bigint");
@@ -417,7 +469,7 @@ namespace Concerto.Server.Migrations
                     b.Property<DateTime>("ScheduledDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("SessionId");
+                    b.HasKey("Id");
 
                     b.HasIndex("ConversationId");
 
@@ -434,11 +486,14 @@ namespace Concerto.Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<long>("CatalogId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("SessionId")
+                    b.Property<long?>("SessionId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("StorageName")
@@ -447,6 +502,8 @@ namespace Concerto.Server.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CatalogId");
+
                     b.HasIndex("SessionId");
 
                     b.ToTable("UploadedFiles");
@@ -454,11 +511,11 @@ namespace Concerto.Server.Migrations
 
             modelBuilder.Entity("Concerto.Server.Data.Models.User", b =>
                 {
-                    b.Property<long>("UserId")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("UserId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -475,7 +532,7 @@ namespace Concerto.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("UserId");
+                    b.HasKey("Id");
 
                     b.HasIndex("SubjectId")
                         .IsUnique();
@@ -485,7 +542,7 @@ namespace Concerto.Server.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = 1L,
+                            Id = 1L,
                             FirstName = "Jan",
                             LastName = "Administracyjny",
                             SubjectId = new Guid("95f418ac-e38f-41ec-a2ad-828bdd3895d0"),
@@ -493,7 +550,7 @@ namespace Concerto.Server.Migrations
                         },
                         new
                         {
-                            UserId = 2L,
+                            Id = 2L,
                             FirstName = "Piotr",
                             LastName = "Testowy",
                             SubjectId = new Guid("954af482-22dd-483f-ac99-975144f85a04"),
@@ -501,7 +558,7 @@ namespace Concerto.Server.Migrations
                         },
                         new
                         {
-                            UserId = 3L,
+                            Id = 3L,
                             FirstName = "Jacek",
                             LastName = "Testowy",
                             SubjectId = new Guid("c786cbc3-9924-410f-bcdb-75a2469107be"),
@@ -509,12 +566,53 @@ namespace Concerto.Server.Migrations
                         },
                         new
                         {
-                            UserId = 4L,
+                            Id = 4L,
                             FirstName = "John",
                             LastName = "Smith",
                             SubjectId = new Guid("f2c0a648-82bb-44a9-908e-8006577cb276"),
                             Username = "user4"
                         });
+                });
+
+            modelBuilder.Entity("CatalogSession", b =>
+                {
+                    b.HasOne("Concerto.Server.Data.Models.Catalog", null)
+                        .WithMany()
+                        .HasForeignKey("SharedCatalogsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Concerto.Server.Data.Models.Session", null)
+                        .WithMany()
+                        .HasForeignKey("SharedInSessionsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CatalogUser", b =>
+                {
+                    b.HasOne("Concerto.Server.Data.Models.Catalog", null)
+                        .WithMany()
+                        .HasForeignKey("CatalogsSharedToId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Concerto.Server.Data.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UsersSharedToId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.Catalog", b =>
+                {
+                    b.HasOne("Concerto.Server.Data.Models.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.ChatMessage", b =>
@@ -625,13 +723,22 @@ namespace Concerto.Server.Migrations
 
             modelBuilder.Entity("Concerto.Server.Data.Models.UploadedFile", b =>
                 {
-                    b.HasOne("Concerto.Server.Data.Models.Session", "Session")
+                    b.HasOne("Concerto.Server.Data.Models.Catalog", "Catalog")
                         .WithMany("Files")
-                        .HasForeignKey("SessionId")
+                        .HasForeignKey("CatalogId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Session");
+                    b.HasOne("Concerto.Server.Data.Models.Session", null)
+                        .WithMany("Files")
+                        .HasForeignKey("SessionId");
+
+                    b.Navigation("Catalog");
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.Catalog", b =>
+                {
+                    b.Navigation("Files");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.Conversation", b =>

@@ -7,7 +7,7 @@ public static class DtoConversions
     {
         return new Dto.User
         {
-            UserId = user.UserId,
+            Id = user.Id,
             Username = user.Username,
             FirstName = user.FirstName,
             LastName = user.LastName
@@ -25,7 +25,7 @@ public static class DtoConversions
     {
         return new Dto.Conversation
         {
-            ConversationId = conversation.ConversationId,
+            Id = conversation.Id,
             IsPrivate = conversation.IsPrivate,
             Users = conversation.ConversationUsers.Select(cu => cu.User).ToDto(),
             LastMessage = conversation.ChatMessages?.FirstOrDefault()?.ToDto()
@@ -35,9 +35,9 @@ public static class DtoConversions
     {
         return new Dto.Conversation
         {
-            ConversationId = conversation.ConversationId,
+            Id = conversation.Id,
             IsPrivate = conversation.IsPrivate,
-            Users = conversation.ConversationUsers.Select(cu => cu.User).Where(u => u.UserId != userId).ToDto(),
+            Users = conversation.ConversationUsers.Select(cu => cu.User).Where(u => u.Id != userId).ToDto(),
             LastMessage = conversation.ChatMessages.FirstOrDefault()?.ToDto()
         };
     }
@@ -69,7 +69,7 @@ public static class DtoConversions
     {
         return new Dto.Room
         {
-            RoomId = room.RoomId,
+            Id = room.Id,
             Name = room.Name,
             Users = room.RoomUsers.Select(ru => ru.User.ToDto()),
             Conversation = room.Conversation.ToDto(),
@@ -81,10 +81,10 @@ public static class DtoConversions
     {
         return new Dto.Session
         {
-            SessionId = session.SessionId,
+            Id = session.Id,
             Name = session.Name,
             ScheduledDateTime = session.ScheduledDate,
-            Conversation = session.Conversation.ToDto()
+            Conversation = session.Conversation?.ToDto()
         };
     }
 
@@ -133,7 +133,18 @@ public static class DtoConversions
     {
         return fileUploadResults.Select(u => u.ToDto());
     }
-
-
+    
+    public static Dto.Catalog ToDto(this Catalog catalog, bool writeAccess = false, bool includeFiles = false)
+    {
+        return new Dto.Catalog
+        {
+            Id = catalog.Id,
+            Name = catalog.Name,
+            OwnerId = catalog.OwnerId,
+            WriteAccess = writeAccess,
+            Files = includeFiles ? catalog.Files.Select(f => f.ToDto())
+                                 : null
+        };
+    }
 
 }

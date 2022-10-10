@@ -16,6 +16,7 @@ StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configurat
 
 // Add services to the container.
 
+builder.Services.AddSwaggerGen();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
@@ -61,7 +62,7 @@ builder.Services.AddAuthentication(options =>
        {
            OnMessageReceived = context =>
            {
-               if (context.HttpContext.Request.Path.StartsWithSegments("/chat"))
+               if (string.IsNullOrEmpty(context.Token))
                {
                    var accessToken = context.Request.Query["access_token"];
                    if (!string.IsNullOrEmpty(accessToken))
@@ -89,10 +90,17 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped<RoomService>();
 builder.Services.AddScoped<SessionService>();
-builder.Services.AddScoped<FileService>();
+builder.Services.AddScoped<StorageService>();
 
 var app = builder.Build();
 app.Logger.LogInformation($"IsDocker = {builder.Environment.IsDocker()}");
+app.UsePathBase("/Concerto");
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Blazor API V1");
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

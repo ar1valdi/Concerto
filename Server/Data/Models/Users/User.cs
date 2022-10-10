@@ -4,11 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace Concerto.Server.Data.Models;
 
 [Index(nameof(SubjectId), IsUnique = true)]
-public class User
+public class User : Entity
 {
-    [Key]
-    public long UserId { get; set; }
-
     public Guid? SubjectId { get; set; }
 
     [Required]
@@ -19,5 +16,5 @@ public class User
     public virtual ICollection<Contact>? InvitingContacts { get; set; }
     public virtual ICollection<ConversationUser>? ConversationsUser { get; set; }
     public virtual ICollection<RoomUser>? RoomsUser { get; set; }
-
+    public virtual ICollection<Catalog> CatalogsSharedTo { get; set; } = null!;
 }

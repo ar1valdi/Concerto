@@ -2,10 +2,8 @@
 
 namespace Concerto.Server.Data.Models;
 
-public class Session
+public class Session : Entity
 {
-    [Key]
-    public long SessionId { get; set; }
     public string Name { get; set; }
     public DateTime ScheduledDate { get; set; }
     public long RoomId { get; set; }
@@ -13,4 +11,6 @@ public class Session
     public long ConversationId { get; set; }
     public Conversation Conversation { get; set; }
     public virtual ICollection<UploadedFile>? Files { get; set; }
+
+    public virtual ICollection<Catalog> SharedCatalogs { get; set; } = null!;
 }
