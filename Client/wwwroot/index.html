@@ -8,12 +8,13 @@
     <base href="/Concerto/" />
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-        <link href="manifest.json" rel="manifest" />
-        <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <link href="StyleSheet.css" rel="stylesheet" />
+    <link href="manifest.json" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
 </head>
 
 <body>
-    <div id="app">Loading...</div>
+    <div id="app" class="border-box vh100">Loading...</div>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
@@ -25,6 +26,7 @@
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="js/scrollToBottom.js"></script>
     <script src="js/downloadFile.js"></script>
+    <script src='https://meet.jit.si/external_api.js'></script>
     <script>navigator.serviceWorker.register('service-worker.js');</script>
 </body>
 

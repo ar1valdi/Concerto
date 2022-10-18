@@ -1,6 +1,5 @@
 ﻿using Concerto.Server.Data.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 
 namespace Concerto.Server.Data.DatabaseContext;
 
@@ -22,7 +21,7 @@ public class AppDataContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Ignore<Entity>();
-  
+
         // Contact entity configuration
         modelBuilder.Entity<Contact>().HasKey(uc => new { uc.User1Id, uc.User2Id });
 
@@ -39,19 +38,16 @@ public class AppDataContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         // ConversationUser entity configuration
-        modelBuilder
-            .Entity<ConversationUser>()
+        modelBuilder.Entity<ConversationUser>()
             .HasKey(cu => new { cu.ConversationId, cu.UserId });
 
-        modelBuilder
-            .Entity<ConversationUser>()
+        modelBuilder.Entity<ConversationUser>()
             .HasOne(cu => cu.Conversation)
             .WithMany(c => c.ConversationUsers)
             .HasForeignKey(cu => cu.ConversationId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder
-            .Entity<ConversationUser>()
+        modelBuilder.Entity<ConversationUser>()
             .HasOne(cu => cu.User)
             .WithMany(u => u.ConversationsUser)
             .HasForeignKey(cu => cu.UserId)
@@ -75,6 +71,11 @@ public class AppDataContext : DbContext
             .HasForeignKey(ru => ru.RoomId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Session entity configuration
+        modelBuilder.Entity<Session>()
+            .Property(p => p.MeetingGuid)
+            .HasDefaultValueSql("gen_random_uuid()");
+
         // Catalog entity configuration
         modelBuilder.Entity<Catalog>()
             .HasOne(c => c.Owner)
@@ -83,15 +84,14 @@ public class AppDataContext : DbContext
             .HasForeignKey(c => c.OwnerId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder
-            .Entity<Catalog>()
+        modelBuilder.Entity<Catalog>()
             .HasMany(c => c.UsersSharedTo)
             .WithMany(u => u.CatalogsSharedTo)
             .UsingEntity(j => j.ToTable("CatalogUser"));
 
+
         // Data seed
-        modelBuilder
-            .Entity<User>()
+        modelBuilder.Entity<User>()
             .HasData(
                 new User { Id = 1, FirstName = "Jan", LastName = "Administracyjny", Username = "admin", SubjectId = Guid.Parse("95f418ac-e38f-41ec-a2ad-828bdd3895d0") },
                 new User { Id = 2, FirstName = "Piotr", LastName = "Testowy", Username = "user2", SubjectId = Guid.Parse("954af482-22dd-483f-ac99-975144f85a04") },
@@ -99,8 +99,7 @@ public class AppDataContext : DbContext
                 new User { Id = 4, FirstName = "John", LastName = "Smith", Username = "user4", SubjectId = Guid.Parse("f2c0a648-82bb-44a9-908e-8006577cb276") }
             );
 
-        modelBuilder
-            .Entity<Contact>()
+        modelBuilder.Entity<Contact>()
             .HasData(
                 new Contact { User1Id = 1, User2Id = 2, Status = ContactStatus.Accepted },
                 new Contact { User1Id = 1, User2Id = 3, Status = ContactStatus.Accepted },
@@ -111,8 +110,7 @@ public class AppDataContext : DbContext
             );
 
 
-        modelBuilder
-            .Entity<ConversationUser>()
+        modelBuilder.Entity<ConversationUser>()
             .HasData(
                 new ConversationUser { ConversationId = 1, UserId = 1 },
                 new ConversationUser { ConversationId = 1, UserId = 2 },
