@@ -1,12 +1,16 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
+﻿@using Concerto.Client.Services;
+@using Concerto.Shared.Models.Dto;
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IJSRuntime JSRuntime
+@inject ICourseService CourseService
+@inject IUserService UserService
+
 <MudNavMenu>
 	<MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
 	<AuthorizeView>
-		<MudNavLink Href="profile" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
-		<MudNavLink Href="catalogs" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Folder">Catalogs</MudNavLink>
-		<MudNavLink Href="contacts" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Book">Contacts</MudNavLink>
-		<MudNavLink Href="chat" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Chat">Chat</MudNavLink>
-		<MudNavLink Href="rooms" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.MeetingRoom">Rooms</MudNavLink>
+
+		<MudNavLink Href="courses" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.MenuBook">Courses</MudNavLink>
+		<CoursesNavGroup />
 	</AuthorizeView>
 
 </MudNavMenu>

@@ -1,4 +1,5 @@
 ﻿using Concerto.Shared.Extensions;
+using Concerto.Shared.Models.Dto;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 
@@ -8,8 +9,10 @@ public interface IUserService
 {
 	public bool IsLoggedIn { get; }
 	public long? UserId { get; }
-	public void SetAuthenticationState(AuthenticationState authenticationState);
+	public void SetAuthenticationState(AuthenticationState? authenticationState);
 	public Task FetchUserId();
+	public Task<IEnumerable<User>> GetUsers();
+	public Task<User?> GetUser(long userId);
 }
 
 public class UserService : IUserService
@@ -27,7 +30,7 @@ public class UserService : IUserService
 	public bool IsLoggedIn => _authenticationState?.User.Identity?.IsAuthenticated ?? false;
 	public long? UserId { get; private set; }
 
-	public void SetAuthenticationState(AuthenticationState authenticationState)
+	public void SetAuthenticationState(AuthenticationState? authenticationState)
 	{
 		_authenticationState = authenticationState;
 	}
@@ -39,4 +42,8 @@ public class UserService : IUserService
 			UserId = await _userClient.GetCurrentUserIdAsync();
 		}
 	}
+    
+    public async Task<IEnumerable<User>> GetUsers() => await _userClient.GetUsersAsync();
+
+    public async Task<User?> GetUser(long userId) => await _userClient.GetUserAsync(userId);
 }

@@ -1,6 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 @using Blazored.LocalStorage
+@using Concerto.Client.Components
 @using Concerto.Client.Services
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
@@ -8,30 +9,51 @@
 @inject NavigationManager Navigation
 @inject SignOutSessionStateManager SignOutManager
 @inject IChatService ChatService
-@inject IContactService ContactsManager
+@inject IBreadcrumbsService BreadcrumbsService
 @inject IUserService UserService
 @inject ISnackbar Snackbar
 @inject ISyncLocalStorageService LocalStorage
 
 <MudThemeProvider @bind-IsDarkMode="@DarkMode" />
-<MudDialogProvider />
+<MudDialogProvider CloseOnEscapeKey="true" DisableBackdropClick="true" MaxWidth="MaxWidth.Large" CloseButton="true" />
 <MudSnackbarProvider />
+<CustomStyleProvider DarkMode="@DarkMode" />
 
 <MudLayout Style="height:100vh;">
-	<MudAppBar Elevation="0">
+	<MudAppBar Elevation="0" Dense="true">
 		<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
 		<MudText Typo="Typo.h4">Concerto</MudText>
 		<MudSpacer />
-		<MudSwitch T="bool" Checked="@DarkMode" CheckedChanged="@(async (b) => await toggleDarkMode(b))" ThumbIcon="@(DarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)">Toggle theme</MudSwitch>
 		<AuthorizeView>
 			<Authorized>
-				<MudText Class="mx-4">Welcome, @context.User.Identity.Name!</MudText>
-				<MudStack Row="true">
-					<MudButton Variant="Variant.Text" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Person" OnClick="BeginLogout">Log out</MudButton>
-				</MudStack>
+				<MudMenu Dense="true" AnchorOrigin="Origin.BottomRight">
+					<ActivatorContent>
+						<MudButton>
+							<ChildContent>
+								<MudIcon Style="color: var(--mud-palette-appbar-text)" Icon="@Icons.Material.Sharp.Person" Size="Size.Large" />
+								<MudIcon Style="color: var(--mud-palette-appbar-text)" Icon="@Icons.Material.Filled.ArrowDropDown" Size="Size.Large" />
+							</ChildContent>
+						</MudButton>
+					</ActivatorContent>
+					<ChildContent>
+						<MudMenuItem Style="pointer-events: none;" Icon="@Icons.Material.Filled.PermIdentity">
+							@context.User.Identity?.Name
+						</MudMenuItem>
+						<MudMenuItem Icon="@Icons.Material.Filled.ManageAccounts">
+							<MudLink Color="Color.Default" Underline="Underline.None" Target="_blank" Href="http://localhost:7200/Concerto/Keycloak/realms/concerto/account/">
+								<MudStack Row="true" Class="">
+									<MudText Typo="Typo.body2">Manage account</MudText>
+									<MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.OpenInNew" />
+								</MudStack>
+							</MudLink>
+						</MudMenuItem>
+						<MudMenuItem Icon="@(DarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" OnClick="() => toggleDarkMode(!DarkMode)">Toggle theme</MudMenuItem>
+						<MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error" OnClick="BeginLogout" >Log out</MudMenuItem>
+					</ChildContent>
+				</MudMenu>
 			</Authorized>
 			<NotAuthorized>
-				<MudAlert Class="mx-4" Variant="Variant.Filled" Severity="Severity.Info">Please log in.</MudAlert>
+				<MudSwitch T="bool" Checked="@DarkMode" CheckedChanged="@(b => toggleDarkMode(b))" ThumbIconColor="Color.Dark" ThumbIcon="@(DarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)">Theme</MudSwitch>
 				<MudStack Row="true">
 					<MudButton Href="authentication/login" Variant="Variant.Text" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Login">Sign in</MudButton>
 				</MudStack>
@@ -44,11 +66,10 @@
 		</MudDrawerHeader>
 		<NavMenu />
 	</MudDrawer>
-	<MudMainContent Style="height: 100%">
-		<MudContainer MaxWidth="@(Navigation.Uri.Contains("session") ? MaxWidth.ExtraLarge : MaxWidth.Large)" Class="pa-16" Style="height: 100%;">
-			<CascadingValue TValue="bool" Value="DarkMode">
-				@Body
-			</CascadingValue>
+	<MudMainContent Class="d-flex flex-column pb-2" Style="height: 100%">
+		<NavigationToolbar />
+		<MudContainer MaxWidth="@(Navigation.Uri.Contains("session") || Navigation.Uri.Contains("course") ? MaxWidth.Large : MaxWidth.Large)" Style="overflow:auto"Class="flex-grow-1">
+			@Body
 		</MudContainer>
 	</MudMainContent>
 </MudLayout>
@@ -56,6 +77,7 @@
 @code {
 	[CascadingParameter]
 	private Task<AuthenticationState>? authenticationStateTask { get; set; }
+
 
 	bool DarkMode { get; set; } = false;
 	bool _drawerOpen = true;
@@ -76,7 +98,7 @@
 		Navigation.NavigateTo("authentication/login");
 	}
 
-	private async Task toggleDarkMode(bool darkMode)
+	private void toggleDarkMode(bool darkMode)
 	{
 		DarkMode = darkMode;
 		LocalStorage.SetItem("darkMode", DarkMode);
