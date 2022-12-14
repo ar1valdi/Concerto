@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 namespace Concerto.Shared.Models.Dto;
 
 public record FolderContent
@@ -18,6 +17,19 @@ public record FolderContentItem(
 	bool CanEdit,
 	bool CanDelete
 ) : EntityModel(Id);
+
+public class FolderContentItemIdEqualityComparer : IEqualityComparer<FolderContentItem>
+{
+	public bool Equals(FolderContentItem? x, FolderContentItem? y)
+	{
+		return x is FolderItem && y is FolderItem && x?.Id == y?.Id;
+	}
+
+	public int GetHashCode([DisallowNull] FolderContentItem obj)
+	{
+		return obj.Id.GetHashCode() + (obj is FolderItem).GetHashCode();
+	}
+}
 
 public record FolderItem(
 	long Id,
