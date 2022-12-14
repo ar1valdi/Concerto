@@ -1,6 +1,5 @@
 ﻿using Concerto.Server.Middlewares;
 using Concerto.Server.Services;
-using Concerto.Shared.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,7 +12,8 @@ public class UserController : ControllerBase
 {
 	private readonly ILogger<UserController> _logger;
 	private readonly UserService _userService;
-    
+	private long UserId => HttpContext.UserId();
+
 
 	public UserController(ILogger<UserController> logger, UserService userService)
 	{
@@ -42,21 +42,18 @@ public class UserController : ControllerBase
     [HttpGet]
 	public async Task<Dto.User?> GetCurrentUser()
 	{
-        long userId = HttpContext.UserId();
-        return await _userService.GetUser(userId);
+        return await _userService.GetUser(UserId);
 	}
 
     [HttpGet]
     public async Task<IEnumerable<Dto.User>> GetUsers()
     {
-        long userId = HttpContext.UserId();
-        return await _userService.GetUsers(userId);
+        return await _userService.GetUsers(UserId);
     }
     
 	[HttpGet]
 	public async Task<IEnumerable<Dto.User>> Search([FromQuery] string searchString)
 	{
-        long userId = HttpContext.UserId();
-		return await _userService.SearchWithoutUser(userId, searchString);
+		return await _userService.SearchWithoutUser(UserId, searchString);
 	}
 }
