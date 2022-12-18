@@ -19,6 +19,15 @@
 
 @code {
 
+	protected override void OnInitialized()
+	{
+		BreadcrumbsService.Set(
+			Icons.Material.Filled.List,
+			"Courses",
+			new BreadcrumbItem("Courses", null, true)
+			);
+	}
+
 	private void SelectCourse(long courseId)
 	{
 		NavigationManager.NavigateTo($"courses/{courseId}");

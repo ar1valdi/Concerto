@@ -1,13 +1,41 @@
 ﻿@page "/"
+@using Concerto.Shared.Client.Services;
+
+@inject IBreadcrumbsService BreadcrumbsService
 
 <PageTitle>Index</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Home</MudText>
-<MudText Class="mb-8">Welcome to Concerto</MudText>
+<div class="pa-4">
+	<MudText Typo="Typo.h3" GutterBottom="true">Home</MudText>
+	<MudText Class="mb-8">Welcome to Concerto</MudText>
+
+	<div class="d-flex justify-center">
+		@if (DarkMode)
+		{
+			<MudImage Src="modena_white.png" Style="margin-left:auto; margin-right:auto; max-width: 75%; height:auto" Alt="Modena" Elevation="0" Class="rounded-lg" />
+		}
+		else
+		{
+			<MudImage Src="modena_black.png" Style="margin-left:auto; margin-right:auto; max-width: 75%; height:auto" Alt="Modena" Elevation="0" Class="rounded-lg" />
+		}
+	</div>
+
+	<div class="d-flex justify-center">
+		<MudImage Src="homepage.jpeg" Style="margin-left:auto; margin-right:auto; max-width: 75%; height:auto" Alt="Homepage image" Elevation="5" Class="rounded-lg" />
+	</div>
+</div>
 
 @code {
 
 	[CascadingParameter]
 	public bool DarkMode { get; set; }
 
+	protected override void OnInitialized()
+	{
+		BreadcrumbsService.Set(
+			Icons.Material.Filled.List,
+			"Courses",
+			new BreadcrumbItem("Home", null, true)
+			);
+	}
 }

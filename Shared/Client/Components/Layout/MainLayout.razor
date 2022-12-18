@@ -59,13 +59,19 @@
 	</MudAppBar>
 	<MudDrawer @bind-Open="_drawerOpen" Elevation="1">
 		<MudDrawerHeader>
-			<MudText Typo="Typo.h4">Concerto</MudText>
+			<MudStack Row="true" AlignItems="AlignItems.Center">
+				<img style="height:50px" src="@(DarkMode ? "modena_white_small.png" : "modena_black_small.png")" />
+				<MudText Typo="Typo.h4">Concerto</MudText>
+			</MudStack>
+
 		</MudDrawerHeader>
 		<NavMenu/>
 	</MudDrawer>
 	<MudMainContent Class="pt-12 d-flex" Style="height: 100%">
 		<MudContainer MaxWidth="MaxWidth.ExtraLarge" Style="overflow: auto" Class="px-0 flex-grow-1">
-			@Body
+			<CascadingValue Value="@DarkMode">
+				@Body
+			</CascadingValue>
 		</MudContainer>
 	</MudMainContent>
 </MudLayout>
