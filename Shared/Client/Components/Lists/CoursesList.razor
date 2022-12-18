@@ -7,8 +7,6 @@
 @inject IDialogService DialogService
 @inject IJSRuntime JsRuntime
 @inject ISnackbar Snackbar
-
-@inject IBreadcrumbsService BreadcrumbsService
 @inject ICourseService CourseService
 
 @if (Loading)
@@ -124,14 +122,6 @@ else
 
 	private IEnumerable<CourseListItem>? Courses { get; set; }
 
-	protected override void OnInitialized()
-	{
-		BreadcrumbsService.Set(
-			Icons.Material.Filled.List,
-			"Courses",
-			new BreadcrumbItem("Courses", null, true)
-			);
-	}
 
 	protected async Task Initialize()
 	{
