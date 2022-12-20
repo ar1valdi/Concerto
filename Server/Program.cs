@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger("Concerto.Server Builder");
@@ -87,7 +88,8 @@ builder.Services.AddScoped<AppDataContext>();
 
 var app = builder.Build();
 
-app.UsePathBase("/Concerto");
+var basePath = "/concerto/app";
+app.UsePathBase(basePath);
 
 app.UseSwagger();
 app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Blazor API V1"); });
