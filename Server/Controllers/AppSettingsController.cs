@@ -11,12 +11,15 @@ public class AppSettingsController : ControllerBase
 	[HttpGet]
 	public ActionResult<ClientAppSettings> GetClientAppSettings()
 	{
-		return new ClientAppSettings
+		var x = new ClientAppSettings
 		{
 			AuthorityUrl = AppSettings.Oidc.ClientAuthority,
 			AccountManagementUrl = AppSettings.IdentityProvider.AccountConsoleUrl,
-			PostLogoutUrl = AppSettings.Oidc.ClientPostLogoutRedirectUrl
+			PostLogoutUrl = AppSettings.Oidc.ClientPostLogoutRedirectUrl,
+			FileSizeLimit = AppSettings.Storage.FileSizeLimit,
+			MaxAllowedFiles = AppSettings.Storage.MaxAllowedFiles,
 		};
+		return Ok(x);
 	}
 }
 

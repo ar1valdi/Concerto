@@ -3,24 +3,56 @@
 
 <style>
 
-	.row-modified { background-color: @Blue; }
+	.row-colored {
+		border-color: rgba(0, 0, 0, 0.9) !important;
+	}
+	.row-colored > td {background: inherit;}
+
+	.row-colored.row-modified { background-color: @Blue; }
 
 
-	.row-modified:hover { background-color: @BlueAccent !important; }
+	.row-colored.row-modified:hover { background-color: @BlueAccent !important; }
 
-	.row-new { background-color: @Green; }
+	.row-colored.row-new { background-color: @Green; }
 
-	.row-new:hover { background-color: @GreenAccent !important; }
+	.row-colored.row-new:hover { background-color: @GreenAccent !important; }
 
-	.row-deleted { background-color: @Red; }
+	.row-colored.row-deleted { background-color: @Red; }
 
-	.row-deleted:hover { background-color: @RedAccent !important; }
+	.row-colored.row-deleted:hover { background-color: @RedAccent !important; }
 
-	.row-edited { background-color: @Orange; }
+	.row-colored.row-edited { background-color: @Purple; }
 
-	.row-edited:hover { background-color: @OrangeAccent !important; }
+	.row-colored.row-edited:hover { background-color: @PurpleAccent !important; }
 
 	.mud-nav-group.hidden > .mud-expanded { display: none; }
+
+	.color-folder-yellow
+	{
+		color: @FolderYellow !important;
+	}
+
+	.text-line-through {
+		text-decoration: line-through;
+	}
+
+	.z-max {
+		z-index: 9999 !important;
+	}
+
+	.break-word {
+		word-break: break-word !important;
+	}
+
+	.cursor-pointer {
+		cursor: pointer;
+	}
+
+	.text-ellipsis {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
 
 </style>
 
@@ -40,4 +72,9 @@
 
 	string Orange => DarkMode ? Colors.Orange.Darken3 : Colors.Orange.Lighten4;
 	string OrangeAccent => DarkMode ? Colors.Orange.Darken4 : Colors.Orange.Lighten3;
+
+	string FolderYellow => DarkMode ? Colors.Yellow.Darken3 : Colors.Yellow.Darken2;
+
+	string Purple => DarkMode ? Colors.Purple.Darken3 : Colors.Purple.Lighten4;
+	string PurpleAccent => DarkMode ? Colors.Purple.Darken4 : Colors.Purple.Lighten3;
 }
