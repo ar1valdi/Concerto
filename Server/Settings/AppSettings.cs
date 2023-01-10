@@ -15,8 +15,8 @@ public static class AppSettings
 		public static string StoragePath = EnvironmentHelper.GetVariable("CONCERTO_STORAGE_PATH");
 		public static string TempPath = Path.Combine(StoragePath, "tmp");
 		public static TimeSpan TempFileExpirationSpan = TimeSpan.FromMinutes(5);
-		public static long FileSizeLimit = long.Parse(EnvironmentHelper.GetVariable("CONCERTO_FILE_SIZE_LIMIT_MB")) * 1024 * 1024;
-		public static int MaxAllowedFiles = int.Parse(EnvironmentHelper.GetVariable("CONCERTO_MAX_ALLOWED_FILES"));
+		public static long FileSizeLimit = long.MaxValue; // long.Parse(EnvironmentHelper.GetVariable("CONCERTO_FILE_SIZE_LIMIT_MB")) * 1024 * 1024;
+		public static int MaxAllowedFiles = int.MaxValue; // int.Parse(EnvironmentHelper.GetVariable("CONCERTO_MAX_ALLOWED_FILES"));
 	}
 
 	public static class IdentityProvider
