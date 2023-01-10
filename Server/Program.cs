@@ -1,14 +1,18 @@
 global using Dto = Concerto.Shared.Models.Dto;
 using Concerto.Server.Data.DatabaseContext;
+using Concerto.Server.Extensions;
 using Concerto.Server.Hubs;
 using Concerto.Server.Middlewares;
 using Concerto.Server.Services;
 using Concerto.Server.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using System;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger("Concerto.Server Builder");
@@ -16,10 +20,13 @@ var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger("C
 
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllersWithViews();
+
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 
+builder.Services.AddSingleton<OneTimeTokenStore, OneTimeTokenStore>();
+builder.Services.AddHostedService<ScheduledTasksService>();
 builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ForumService>();
@@ -28,11 +35,11 @@ builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<StorageService>();
 builder.Services.AddScoped<IdentityManagerService>();
 
-//builder.Services.AddResponseCompression(opts =>
-//{
-//    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-//        new[] { "application/octet-stream" });
-//});
+// builder.Services.AddResponseCompression(opts =>
+// {
+//     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+//         new[] { "application/octet-stream" });
+// });
 
 builder.Services.AddAuthentication(options =>
 		{
@@ -65,7 +72,7 @@ builder.Services.AddAuthentication(options =>
 						var accessToken = context.Request.Query["access_token"];
 						if (!string.IsNullOrEmpty(accessToken))
 						{
-							logger.LogDebug("Token set from query");
+							// logger.LogDebug("Token set from query");
 							context.Token = accessToken;
 						}
 					}
@@ -85,6 +92,18 @@ builder.Services.AddDbContext<AppDataContext>(options =>
 );
 builder.Services.AddScoped<AppDataContext>();
 
+// Configure the HTTP request pipeline.
+if (builder.Environment.IsDevelopment())	
+{
+	// Allow any origin
+     builder.Services.AddCors(options =>
+     {
+         options.AddPolicy("DevPolicy", builder =>
+          builder.AllowAnyOrigin()
+                 .AllowAnyMethod()
+                 .AllowAnyHeader());
+     });
+}
 
 var app = builder.Build();
 
@@ -99,6 +118,7 @@ app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Blazor AP
 if (app.Environment.IsDevelopment())
 {
 	app.UseWebAssemblyDebugging();
+	app.UseCors("DevPolicy");
 }
 else
 {
@@ -123,22 +143,32 @@ app.MapControllers();
 app.MapHub<NotificationHub>("/notifications");
 app.MapFallbackToFile("index.html");
 
+var diagnosticSource = app.Services.GetRequiredService<DiagnosticListener>();
+using var badRequestListener = new BadRequestEventListener(diagnosticSource, (badRequestExceptionFeature) =>
+{
+    app.Logger.LogError(badRequestExceptionFeature.Error, "Bad request received");
+});
+
 await using var scope = app.Services.CreateAsyncScope();
 await using (var db = scope.ServiceProvider.GetService<AppDataContext>())
 {
 	if (db == null) throw new NullReferenceException("Error while getting database context.");
-	var success = false;
-	while (!success)
+
+	while(true)
+	{
 		try
 		{
 			db.Database.Migrate();
-			success = true;
+			break;
 		}
 		catch (NpgsqlException)
 		{
-			logger.LogError("Can't connect to database, retrying in 5 seconds");
+			app.Logger.LogError("Can't connect to database, retrying in 5 seconds");
 			await Task.Delay(5000);
 		}
+	}
 }
+
+Directory.CreateDirectory(AppSettings.Storage.TempPath);
 
 app.Run();
