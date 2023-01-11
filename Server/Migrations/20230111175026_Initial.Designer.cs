@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Concerto.Server.Migrations
 {
     [DbContext(typeof(AppDataContext))]
-    [Migration("20230107224410_Initial")]
+    [Migration("20230111175026_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -102,6 +102,8 @@ namespace Concerto.Server.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("CourseId", "UserId");
+
+                    b.HasIndex("CourseId");
 
                     b.HasIndex("UserId");
 
@@ -210,21 +212,6 @@ namespace Concerto.Server.Migrations
                     b.ToTable("Sessions");
                 });
 
-            modelBuilder.Entity("Concerto.Server.Data.Models.Storage.OneTimeToken", b =>
-                {
-                    b.Property<Guid>("Token")
-                        .HasColumnType("uuid");
-
-                    b.Property<long>("FileId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Token");
-
-                    b.HasIndex("FileId");
-
-                    b.ToTable("OneTimeTokens");
-                });
-
             modelBuilder.Entity("Concerto.Server.Data.Models.UploadedFile", b =>
                 {
                     b.Property<long>("Id")
@@ -300,6 +287,8 @@ namespace Concerto.Server.Migrations
                     b.HasKey("UserId", "FolderId");
 
                     b.HasIndex("FolderId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserFolderPermissions");
                 });
