@@ -13,18 +13,6 @@ namespace Concerto.Server.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "OneTimeTokens",
-                columns: table => new
-                {
-                    Token = table.Column<Guid>(type: "uuid", nullable: false),
-                    FileId = table.Column<long>(type: "bigint", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OneTimeTokens", x => x.Token);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -259,6 +247,11 @@ namespace Concerto.Server.Migrations
                 column: "RootFolderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CourseUsers_CourseId",
+                table: "CourseUsers",
+                column: "CourseId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CourseUsers_UserId",
                 table: "CourseUsers",
                 column: "UserId");
@@ -277,11 +270,6 @@ namespace Concerto.Server.Migrations
                 name: "IX_Folders_ParentId",
                 table: "Folders",
                 column: "ParentId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OneTimeTokens_FileId",
-                table: "OneTimeTokens",
-                column: "FileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Post_AuthorId",
@@ -307,6 +295,11 @@ namespace Concerto.Server.Migrations
                 name: "IX_UserFolderPermissions_FolderId",
                 table: "UserFolderPermissions",
                 column: "FolderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserFolderPermissions_UserId",
+                table: "UserFolderPermissions",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_SubjectId",
@@ -346,9 +339,6 @@ namespace Concerto.Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "CourseUsers");
-
-            migrationBuilder.DropTable(
-                name: "OneTimeTokens");
 
             migrationBuilder.DropTable(
                 name: "Sessions");
