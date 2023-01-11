@@ -191,9 +191,16 @@ public class CourseService
 	{
 		var course = await _context.Courses.FindAsync(courseId);
 		if (course == null) return false;
+		
+		await _context.Entry(course).Reference(c => c.RootFolder).LoadAsync();
+		var rootFolder = course.RootFolder;
+		
+		if(rootFolder != null)
+			await _storageService.DeleteFolder(rootFolder.Id);
 
 		_context.Remove(course);
 		await _context.SaveChangesAsync();
+	
 		return true;
 	}
 
