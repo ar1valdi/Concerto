@@ -438,12 +438,16 @@ public class StorageService
     internal async Task<Dto.FileUploadResult> SaveUploadedFile(Dto.FileChunkMetadata lastChunk, string fileName, long userId)
     {
         FileUploadResult fileUploadResult = new();
-        var folderId = lastChunk.FolderId;
-        var tempFilePath = GetChunkFilePath(lastChunk);
-        var tempFileInfo = new FileInfo(tempFilePath);
-
+		
         try
         {
+			var folder = await _context.Folders.FindAsync(lastChunk.FolderId);
+			if (folder is null) throw new NullReferenceException("Folder is not present in database");
+			
+            var folderId = folder.Id;
+            var tempFilePath = GetChunkFilePath(lastChunk);
+            var tempFileInfo = new FileInfo(tempFilePath);
+
             if (tempFileInfo.Length != lastChunk.FileSize) throw new IOException("File size mismatch");
 
             var sanitizedFilename = WebUtility.HtmlEncode(fileName);
@@ -451,17 +455,29 @@ public class StorageService
 
             var filename = Path.GetFileNameWithoutExtension(sanitizedFilename);
             var extension = Path.GetExtension(sanitizedFilename).ToLower();
-
+			
             fileUploadResult.DisplayFileName = filename;
             fileUploadResult.Extension = extension;
 
             var storageFileName = string.Format(@$"{sanitizedFilename}.{Guid.NewGuid()}");
+		
             fileUploadResult.StorageFileName = storageFileName;
+            fileUploadResult.StorageDir = folderId.ToString();
 
-            var path = Path.Combine($"{AppSettings.Storage.StoragePath}", $"{folderId}", storageFileName);
-            
-            await FileExtensions.MoveAsync(tempFilePath, path, true);
 
+            var uploadedFile = new UploadedFile
+            {
+                OwnerId = userId,
+                DisplayName = fileUploadResult.DisplayFileName,
+                Extension = fileUploadResult.Extension,
+                StorageName = fileUploadResult.StorageFileName,
+                FolderId = folderId
+            };
+
+		    await FileExtensions.MoveAsync(tempFilePath, uploadedFile.Path, true);
+
+			await _context.AddAsync(uploadedFile);
+            await _context.SaveChangesAsync();
             fileUploadResult.Uploaded = true;
         }
         catch (IOException ex)
@@ -476,23 +492,10 @@ public class StorageService
             fileUploadResult.ErrorCode = 4;
             fileUploadResult.ErrorMessage = "File upload failed";
         }
-
-        if (fileUploadResult.Uploaded)
-        {
-            var uploadedFile = new UploadedFile
-            {
-                OwnerId = userId,
-                DisplayName = fileUploadResult.DisplayFileName,
-                Extension = fileUploadResult.Extension,
-                StorageName = fileUploadResult.StorageFileName,
-                FolderId = folderId
-            };
-            await _context.AddAsync(uploadedFile);
-            await _context.SaveChangesAsync();
-        }
-        else
+        catch
         {
             await AbortFileUpload(lastChunk);
+			throw;
         }
 
         return fileUploadResult.ToViewModel();
@@ -542,10 +545,9 @@ public class StorageService
 
     internal async Task<Folder?> CreateFolderCopy(long folderId, long courseId, bool withFiles, bool withFolderPermissions, long? newOwner = null)
     {
-        var folderCopy = await _context.Folders.FindAsync(folderId);
+        var folderCopy = await _context.Folders.AsNoTracking().SingleOrDefaultAsync(f => f.Id == folderId);
         if (folderCopy == null)
             return null;
-        _context.Entry(folderCopy).State = EntityState.Detached;
 
         await CopyFolderRecursively(folderCopy, courseId, withFiles, withFolderPermissions, newOwner);
         return folderCopy;
@@ -590,7 +592,7 @@ public class StorageService
 
         copiedFolder.SubFolders = subFolders;
         copiedFolder.Id = 0;
-        copiedFolder.ParentId = 0;
+        copiedFolder.ParentId = null;
         copiedFolder.CourseId = courseId;
         if (newOwner.HasValue) copiedFolder.OwnerId = newOwner.Value;
     }

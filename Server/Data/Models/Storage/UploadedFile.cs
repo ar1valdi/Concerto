@@ -1,8 +1,12 @@
 ﻿using Concerto.Server.Settings;
 using Concerto.Shared.Models.Dto;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Concerto.Server.Data.Models;
 
+[Index(nameof(FolderId))]
 public class UploadedFile : Entity
 {
 	public long FolderId { get; set; }
@@ -11,11 +15,9 @@ public class UploadedFile : Entity
 	public long OwnerId { get; set; }
 
 	public string DisplayName { get; set; } = string.Empty;
-
 	public string Extension { get; set; } = string.Empty;
 	public string StorageName { get; set; } = string.Empty;
-
-	public string Path => $"{AppSettings.Storage.StoragePath}/{FolderId}/{StorageName}";
+	public string Path => $"{AppSettings.Storage.StoragePath}/{StorageName}";
 }
 
 public record FileUploadResult
@@ -24,6 +26,7 @@ public record FileUploadResult
 	public string DisplayFileName { get; set; } = string.Empty;
 	public string Extension { get; set; } = string.Empty;
 	public string StorageFileName { get; set; } = string.Empty;
+	public string StorageDir { get; set; } = string.Empty;
 	public int ErrorCode { get; set; } = 0;
 	public string ErrorMessage { get; set; } = string.Empty;
 }

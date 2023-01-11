@@ -7,6 +7,7 @@
 @inject HttpClient Http
 @inject IStorageService StorageService
 @inject IDialogService DialogService
+@inherits DialogAutoFullscreen
 
 <MudDialog>
 	<DialogContent>
@@ -38,10 +39,7 @@
 </MudDialog>
 
 
-	@code {
-
-	[CascadingParameter]
-	MudDialogInstance Dialog { get; set; } = null!;
+@code {
 
 	[Parameter]
 	public IReadOnlyCollection<FolderContentItem>? Items { get; set; }
@@ -128,10 +126,9 @@
 
 	private async Task ChooseCourse()
 	{
-		var options = new DialogOptions { FullScreen = true };
 		var parameters = new DialogParameters { ["WithoutCourseIds"] = new List<long> { InitialCourseId } };
 		var name = "Select course";
-		var result = await DialogService.Show<SelectCourseDialog>(name, parameters, options).Result;
+		var result = await DialogService.Show<SelectCourseDialog>(name, parameters).Result;
 		if (result.Cancelled) return;
 		var courseId = result.Data as long?;
 		if (courseId is null) return;

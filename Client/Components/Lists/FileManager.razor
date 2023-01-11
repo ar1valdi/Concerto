@@ -50,8 +50,8 @@
 				</MudButton>
 			}
 		</MudPaper>
-
-		<MudTable @ref="_table" T="FolderContentItem" Comparer="_comparer" Items="FolderContentItems" @bind-SelectedItems="SelectedItems" MultiSelection="@SelectionMode"
+		
+		<MudTable @ref="_table" T="FolderContentItem" Comparer="_comparer" Items="FolderContentItems" MultiSelection="false"
 			  Loading="_loading" Filter="new Func<FolderContentItem, bool>(FolderContentItemFilter)" SortLabel="Sort By"
 			  Class="" Style="height: calc(100% - 45px)" Outlined="false" Height="@($"calc(100% - {TableContentHeightDiff})")" Hover="true" Elevation="0" FixedHeader="true" FixedFooter="true"
 			  OnRowClick="OnRowClick" RowStyleFunc="RowStyleFunc" RowClassFunc="RowClassFunc" AllowUnsorted="false" Dense="true">
@@ -159,9 +159,15 @@
 			</ColGroup>
 
 			<HeaderContent>
+
+				@if (SelectionMode && !LayoutState.Xs)
+				{
+					<MudTh>
+						<MudCheckBox T="bool?" Dense="true" CheckedChanged="SelectAllClicked" Checked="_selectAllState" />
+					</MudTh>
+				}
+
 				<MudTh>
-
-
 					<MudTableSortLabel @ref="_nameLabel" InitialDirection="SortDirection.Ascending"
 								   SortBy="new Func<FolderContentItem, object>(x => FolderPrecedence(_nameLabel?.SortDirection, x) + x.Name)">
 						Name
@@ -185,6 +191,15 @@
 			</HeaderContent>
 
 			<RowTemplate>
+				
+				@if (SelectionMode)
+				{
+					<MudTd DataLabel="Selected">
+						<MudCheckBox Class="py-2" T="bool" CheckedChanged="() => CheckedChanged(context)" Dense="true" Checked="@SelectedItems.Contains(context)" />
+					</MudTd>
+				}
+
+
 				@if (context is FolderItem folder)
 				{
 					<MudTd DataLabel="Name" Style="">
@@ -340,13 +355,13 @@
 
 
 @code {
-		[CascadingParameter] LayoutState LayoutState { get; set; } = new();
+	[CascadingParameter] LayoutState LayoutState { get; set; } = new();
 
-		[Parameter]
-		public bool ChooseFolderMode { get; set; } = false;
+	[Parameter]
+	public bool ChooseFolderMode { get; set; } = false;
 
-		[Parameter]
-		public EventCallback<FolderSelectedEventArgs> OnFolderLoaded { get; set; }
+	[Parameter]
+	public EventCallback<FolderSelectedEventArgs> OnFolderLoaded { get; set; }
 
 
 	private long? _initialFolderId = null;
@@ -369,7 +384,11 @@
 	private bool CanMoveSelected => SelectionMode && SelectedItems.Any() && SelectedItems.All(i => i.CanDelete);
 	private bool CanCopySelected => SelectionMode && SelectedItems.Any();
 	private bool CanDeleteSelected => SelectionMode && SelectedItems.Any() && SelectedItems.All(i => i.CanDelete);
+
+	private bool? _selectAllState => SelectedItems.Count == FolderContentItems.Count ? true : SelectedItems.Count > 0 ? null : false;
+
 	private bool _selectionMode = false;
+
 
 	private bool SelectionMode
 	{
@@ -377,8 +396,8 @@
 		set
 		{
 			_selectionMode = value;
-			StateHasChanged();
 			SelectedItems.Clear();
+			StateHasChanged();
 		}
 	}
 
@@ -431,7 +450,7 @@
 
 	protected override void OnAfterRender(bool firstRender)
 	{
-			
+
 	}
 
 	protected override async Task OnParametersSetAsync()
@@ -484,9 +503,11 @@
 
 		FolderContent = folderContent;
 
-		var files = FolderContent.Files.Cast<FolderContentItem>();
-		var subFolders = FolderContent.SubFolders.Cast<FolderContentItem>();
-		FolderContentItems = files.Concat(subFolders).ToHashSet(new FolderContentItemIdEqualityComparer());
+		await Task.Run(() =>{
+			var files = FolderContent.Files.Cast<FolderContentItem>();
+			var subFolders = FolderContent.SubFolders.Cast<FolderContentItem>();
+			FolderContentItems = files.Concat(subFolders).ToHashSet(new FolderContentItemIdEqualityComparer());
+		});
 
 		await OnFolderLoaded.InvokeAsync(new FolderSelectedEventArgs(FolderContent.Self, BreadCrumbs));
 		_loading = false;
@@ -555,7 +576,7 @@
 			SelectionMode = false;
 			await Refresh();
 		}
-		
+
 	}
 
 
@@ -605,7 +626,7 @@
 		var parameters = new DialogParameters { ["EditedFileId"] = file.Id };
 		var name = "Edit file";
 		var result = await DialogService.Show<UpdateFileDialog>(name, parameters).Result;
-		if (result.Cancelled) return;
+		if (result.Canceled) return;
 		await Refresh();
 	}
 
@@ -617,8 +638,13 @@
 
 	private async Task OnRowClick(TableRowClickEventArgs<FolderContentItem> tableClick)
 	{
-		if (SelectionMode) return;
 		var item = tableClick.Item;
+		if (SelectionMode)
+		{
+			if (SelectedItems.Contains(item)) SelectedItems.Remove(item);
+			else SelectedItems.Add(item);
+			return;
+		};
 		if (item is FolderItem)
 		{
 			await OpenFolder((FolderItem)item);
@@ -666,4 +692,29 @@
 		FolderItem Folder,
 		IReadOnlyCollection<FolderItem> Breadcrumbs
 	);
+
+
+	private void SelectAllClicked()
+	{
+		switch (_selectAllState)
+		{
+			case true:
+			case null:
+				SelectedItems.ExceptWith(FolderContentItems);
+				break;
+			case false:
+				SelectedItems.UnionWith(FolderContentItems.Where(x => FolderContentItemFilter(x)).ToHashSet(new FolderContentItemIdEqualityComparer()));
+				break;
+		}
+		StateHasChanged();
+	}
+
+	private void CheckedChanged(FolderContentItem item)
+	{
+		if (SelectedItems.Contains(item)) SelectedItems.Remove(item);
+		else SelectedItems.Add(item);
+		StateHasChanged();
+	}
+
+
 }

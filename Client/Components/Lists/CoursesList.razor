@@ -20,7 +20,7 @@ else
 {
 	<MudTable T="CourseListItem" Items="Courses" Hover="true" Elevation="0" Filter="new Func<CourseListItem, bool>(CourseFilter)"
 		  Style="@TableStyle" Class="@Class" Height="100%" FixedHeader="true" FixedFooter="true" Outlined="true"
-	          RowsPerPage="25" OnRowClick="OnRowClick" RowStyle="cursor: pointer;">
+	          RowsPerPage="25" OnRowClick="OnRowClick" RowStyle="cursor: pointer;" AllowUnsorted="false">
 		<ToolBarContent>
 			<MudText Class="mr-2" Typo="Typo.subtitle1">Your courses</MudText>
 			<MudSpacer/>
@@ -175,6 +175,7 @@ else
 		var newCourseId = await DialogService.ShowCreateCourseDialog();
 		if (newCourseId > 0)
 		{
+			CourseService.GetCurrentUserCoursesAsync().AndForget();
 			await OnCourseSelected.InvokeAsync(newCourseId);
 		}
 	}
@@ -184,9 +185,13 @@ else
 		var parameters = new DialogParameters { ["CourseToClone"] = course };
 		var name = $"Clone course {course.Name}";
 		var result = await DialogService.Show<CloneCourseDialog>(name, parameters).Result;
-		if (result.Cancelled) return;
+		if (result.Canceled) return;
 		var clonedCourseId = (long)result.Data;
-		await OnCourseSelected.InvokeAsync(clonedCourseId);
+		if (clonedCourseId > 0)
+		{
+			CourseService.GetCurrentUserCoursesAsync().AndForget();
+			await OnCourseSelected.InvokeAsync(clonedCourseId);
+		}
 	}
 
 	private bool CourseFilter(CourseListItem course)

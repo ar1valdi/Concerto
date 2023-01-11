@@ -19,7 +19,7 @@ public static class DialogServiceExtensions
 		var text = $"Are you sure you want to delete {item}?";
 		var parameters = new DialogParameters { ["Text"] = text, ["Confirmation"] = additionalConfirmation };
 		var result = await dialogService.Show<ConfirmationDialog>(title, parameters).Result;
-		if (result.Cancelled) return false;
+		if (result.Canceled) return false;
 		return true;
 	}
 
@@ -34,7 +34,7 @@ public static class DialogServiceExtensions
 		var text = $"Are you sure you want to delete below {category}?\n\n{items}";
 		var parameters = new DialogParameters { ["Text"] = text, ["Confirmation"] = additionalConfirmation };
 		var result = await dialogService.Show<ConfirmationDialog>(title, parameters).Result;
-		if (result.Cancelled) return false;
+		if (result.Canceled) return false;
 		return true;
 	}
 
@@ -49,7 +49,7 @@ public static class DialogServiceExtensions
 	{
 		// var options = new DialogOptions() { FullScreen = true,  };
 		var result = await dialogService.Show<CreateCourseDialog>("Create new course").Result;
-		if (result.Cancelled) return -1;
+		if (result.Canceled) return -1;
 		return (long)result.Data;
 	}
 
@@ -65,7 +65,7 @@ public static class DialogServiceExtensions
 			["Copy"] = true
 		};
 		var result = await dialogService.Show<MoveOrCopyFolderDialog>("Copy selected items", parameters, options).Result;
-		if (result.Cancelled) return false;
+		if (result.Canceled) return false;
 		return true;
 	}
 
@@ -80,7 +80,7 @@ public static class DialogServiceExtensions
 			["Copy"] = false
 		};
 		var result = await dialogService.Show<MoveOrCopyFolderDialog>("Move selected items", parameters, options).Result;
-		if (result.Cancelled) return false;
+		if (result.Canceled) return false;
 		return true;
 	}
 

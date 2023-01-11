@@ -1,7 +1,9 @@
 ﻿using Concerto.Shared.Models.Dto;
+using Microsoft.EntityFrameworkCore;
 
 namespace Concerto.Server.Data.Models;
 
+[Index(nameof(ParentId))]
 public class Folder : Entity
 {
 	public string Name { get; set; } = null!;

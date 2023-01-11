@@ -237,15 +237,15 @@ public class CourseService
 		if (!request.CopyCourseUsers) request.CopyFoldersPermissions = false;
 		if (request.CopyFolders && course.RootFolderId is not null)
 		{
-			var rootFolderCopy = await _storageService.CreateFolderCopy(course.RootFolderId.Value, request.CourseId, request.CopyFiles,
+			var rootFolderCopy = await _storageService.CreateFolderCopy(course.RootFolderId.Value, newCourse.Id, request.CopyFiles,
 				request.CopyFoldersPermissions
 			);
 			if (rootFolderCopy is not null)
 			{
 				await _context.Entry(newCourse).Reference(c => c.RootFolder).LoadAsync();
 				if (newCourse.RootFolder is not null) _context.Remove(newCourse.RootFolder);
+				await _context.AddAsync(rootFolderCopy);
 
-				rootFolderCopy.ParentId = null;
 				newCourse.RootFolder = rootFolderCopy;
 				newCourse.RootFolder.Name = newCourse.Name;
 			}

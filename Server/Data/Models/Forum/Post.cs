@@ -1,7 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace Concerto.Server.Data.Models;
 
+[Index(nameof(CourseId))]
 public class Post : Entity
 {
 	[Required] public long AuthorId { get; set; }
@@ -23,6 +25,7 @@ public class Post : Entity
 	public virtual ICollection<Comment> Comments { get; set; } = null!;
 }
 
+[Index(nameof(PostId))]
 public class Comment : Entity
 {
 	[Required] public long AuthorId { get; set; }

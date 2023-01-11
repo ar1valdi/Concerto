@@ -2,10 +2,11 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject HttpClient Http
+@inherits DialogAutoFullscreen
 
 <MudDialog Style="">
 	<DialogContent>
-		<MudStack Spacing="4" Style="height: 70vh;">
+		<MudStack Spacing="4" Style="max-height: calc(100vh - 136px);">
 			<CoursesList OnCourseSelected="SelectCourse" ManagementEnabled="false" WithoutCourseIds="WithoutCourseIds"/>
 		</MudStack>
 
@@ -18,9 +19,6 @@
 </MudDialog>
 
 @code {
-
-	[CascadingParameter]
-	MudDialogInstance Dialog { get; set; } = null!;
 
 	[Parameter]
 	public IEnumerable<long> WithoutCourseIds { get; set; } = Enumerable.Empty<long>();

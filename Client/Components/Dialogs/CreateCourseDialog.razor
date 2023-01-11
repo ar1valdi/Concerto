@@ -5,34 +5,22 @@
 @inject ICourseService CourseService
 @inject ISnackbar Snackbar
 @inject HttpClient Http
-
-@*<style>
-	.mud-dialog.flex-dialog > div.outline-none
-	{
-		display: inherit;
-		flex-direction: inherit;ont-size:28%;color:#3498db}
-		flex-grow: 1;
-	}
-</style>*@
+@inherits DialogAutoFullscreen
 
 
 <MudDialog Class="" Style="max-height: 100vh; overflow:auto;" ContentStyle="" ClassContent="d-flex flex-column">
 	<DialogContent>
-		<MudTextField Class="mb-2" @bind-Value="_courseName" T="string" Label="Course name"></MudTextField>
-		<CourseMemberPicker @bind-SelectedUsers="_members" Style="max-height:calc(100vh - 400px);"/>
+		<MudTextField Variant="Variant.Outlined" Class="mb-2" @bind-Value="_courseName" T="string" Label="Course name"></MudTextField>
+		<CourseMemberPicker @bind-SelectedUsers="_members" Style="@(!IsFullScreen ? "max-height:calc(100vh - 210px);" : "height:calc(100vh - 215px);")" />
 	</DialogContent>
 	<DialogActions>
-		<MudButton OnClick="Cancel">Cancel</MudButton>
-		<MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+		<MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+		<MudButton Color="Color.Success" Variant="Variant.Filled" OnClick="Submit">Ok</MudButton>
 	</DialogActions>
 </MudDialog>
 
 
 @code {
-
-	[CascadingParameter]
-	MudDialogInstance Dialog { get; set; } = null!;
-
 	private string? _courseName;
 
 	private HashSet<User> _members = new(new UserIdEqualityComparer());

@@ -1,0 +1,26 @@
+﻿@using Concerto.Client.Components.Layout;
+
+@code {
+
+	[CascadingParameter]
+	protected MudDialogInstance Dialog { get; set; } = null!;
+
+
+	protected LayoutState _layoutState = new();
+	[CascadingParameter]
+	public LayoutState LayoutState
+	{
+		get { return _layoutState; }
+		set
+		{
+			if (value != _layoutState){
+				_layoutState = value;
+
+				Dialog.Options.FullScreen = _layoutState.SmAndDown;
+				Dialog.SetOptions(Dialog.Options);
+			}
+		}
+	}
+
+	protected bool IsFullScreen => Dialog.Options.FullScreen ?? false;
+}
