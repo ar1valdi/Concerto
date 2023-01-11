@@ -8,15 +8,16 @@
 @inject IDialogService DialogService
 @inject IStorageService StorageService
 
-<MudDialog>
+
+<MudDialog Style="max-width: 100vw">
 	<DialogContent>
 		<MudStack Style="width: 100%" Spacing="0">
-			<MudFileUpload Style="overflow: auto;" T="IReadOnlyList<IBrowserFile>" FilesChanged="OnInputFileChanged" MaximumFileCount="1000"
+			<MudFileUpload Style="overflow: auto; overflow-x: hidden;" T="IReadOnlyList<IBrowserFile>" FilesChanged="OnInputFileChanged" MaximumFileCount="1000"
 						   Hidden="false" Class="@DragClass" InputClass="absolute mud-width-full mud-height-full overflow-hidden z-20" InputStyle="opacity:0"
 						   @ondragenter="@SetDragClass" @ondragleave="@ClearDragClass" @ondragend="@ClearDragClass">
 				<ButtonTemplate>
-					<div style="height: 200px" >
-						<MudText Style="position: sticky" Typo="Typo.h6">
+					<div style="height: 200px; overflow: ;">
+						<MudText Style="position: sticky;" Typo="Typo.h6">
 							Click here or drag files
 						</MudText>
 						@foreach (var file in _fileNames)
@@ -30,9 +31,9 @@
 	</DialogContent>
 
 	<DialogActions>
+		<MudButton OnClick="Cancel" Color="Color.Error" Variant="Variant.Filled">Cancel</MudButton>
+		<MudButton OnClick="Clear" Disabled="@(!_fileNames.Any())" Color="Color.Warning" Variant="Variant.Filled">Clear</MudButton>
 		<MudButton OnClick="Upload" Disabled="@(!_fileNames.Any())" Color="Color.Primary" Variant="Variant.Filled">Upload</MudButton>
-		<MudButton OnClick="Clear" Disabled="@(!_fileNames.Any())" Color="Color.Error" Variant="Variant.Filled">Clear</MudButton>
-		<MudButton OnClick="Cancel">Cancel</MudButton>
 	</DialogActions>
 </MudDialog>
 

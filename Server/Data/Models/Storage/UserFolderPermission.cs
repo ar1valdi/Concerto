@@ -1,5 +1,10 @@
-﻿namespace Concerto.Server.Data.Models;
+﻿using Concerto.Shared.Models.Dto;
+using Microsoft.EntityFrameworkCore;
 
+namespace Concerto.Server.Data.Models;
+
+[Index(nameof(UserId))]
+[Index(nameof(FolderId))]
 public class UserFolderPermission
 {
 	public long UserId { get; set; }

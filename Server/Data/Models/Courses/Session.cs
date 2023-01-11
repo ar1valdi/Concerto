@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Concerto.Shared.Models.Dto;
+using Microsoft.EntityFrameworkCore;
 
 namespace Concerto.Server.Data.Models;
 
+[Index(nameof(CourseId))]
 public class Session : Entity
 {
 	public string Name { get; set; } = null!;

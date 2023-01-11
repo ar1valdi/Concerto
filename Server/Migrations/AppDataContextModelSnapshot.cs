@@ -100,6 +100,8 @@ namespace Concerto.Server.Migrations
 
                     b.HasKey("CourseId", "UserId");
 
+                    b.HasIndex("CourseId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("CourseUsers");
@@ -207,21 +209,6 @@ namespace Concerto.Server.Migrations
                     b.ToTable("Sessions");
                 });
 
-            modelBuilder.Entity("Concerto.Server.Data.Models.Storage.OneTimeToken", b =>
-                {
-                    b.Property<Guid>("Token")
-                        .HasColumnType("uuid");
-
-                    b.Property<long>("FileId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Token");
-
-                    b.HasIndex("FileId");
-
-                    b.ToTable("OneTimeTokens");
-                });
-
             modelBuilder.Entity("Concerto.Server.Data.Models.UploadedFile", b =>
                 {
                     b.Property<long>("Id")
@@ -297,6 +284,8 @@ namespace Concerto.Server.Migrations
                     b.HasKey("UserId", "FolderId");
 
                     b.HasIndex("FolderId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserFolderPermissions");
                 });

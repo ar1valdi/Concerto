@@ -1,9 +1,11 @@
-﻿@using Concerto.Client.Services
+﻿@using Concerto.Client.Components.Layout;
+@using Concerto.Client.Services
 @using Concerto.Shared.Models.Dto
 @inject IDialogService DialogService
 @inject ICourseService CourseService
 @inject ISnackbar Snackbar
 @inject HttpClient Http
+@inherits DialogAutoFullscreen
 
 <MudDialog>
 	<DialogContent>
@@ -30,10 +32,6 @@
 </MudDialog>
 
 @code {
-
-	[CascadingParameter]
-	MudDialogInstance Dialog { get; set; } = null!;
-
 	[Parameter]
 	public CourseListItem CourseToClone { get; set; } = null!;
 

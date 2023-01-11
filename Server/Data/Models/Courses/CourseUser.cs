@@ -1,5 +1,9 @@
-﻿namespace Concerto.Server.Data.Models;
+﻿using Microsoft.EntityFrameworkCore;
 
+namespace Concerto.Server.Data.Models;
+
+[Index(nameof(CourseId))]
+[Index(nameof(UserId))]
 public class CourseUser
 {
 	public long CourseId { get; set; }
