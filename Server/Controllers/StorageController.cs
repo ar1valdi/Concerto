@@ -94,7 +94,7 @@ public class StorageController : ControllerBase
 			return Forbid();
 
 		bool lastChunk = await _storageService.SaveChunk(chunkMetadata, file);
-		if(lastChunk && !User.IsAdmin())
+		if(lastChunk)
 		{
 			if (User.IsAdmin() || await _storageService.CanWriteInFolder(UserId, chunkMetadata.FolderId))
 				return Ok(await _storageService.SaveUploadedFile(chunkMetadata, file.FileName, UserId));
