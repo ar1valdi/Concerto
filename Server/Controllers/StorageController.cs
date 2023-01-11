@@ -173,6 +173,14 @@ public class StorageController : ControllerBase
 			foreach (var fileId in fileIds)
 				if (!await _storageService.CanManageFile(UserId, fileId))
 					return Forbid();
+
+			foreach (var folderId in folderIds)
+				if (!await _storageService.CanFolderBeMoved(folderId, request.DestinationFolderId))
+					return BadRequest();
+
+			foreach (var fileId in fileIds)
+				if (!await _storageService.CanFileBeMoved(fileId, request.DestinationFolderId))
+					return BadRequest();
 		}
 
 		await _storageService.MoveFolders(folderIds, request.DestinationFolderId);

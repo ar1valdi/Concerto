@@ -129,7 +129,7 @@
 		var parameters = new DialogParameters { ["WithoutCourseIds"] = new List<long> { InitialCourseId } };
 		var name = "Select course";
 		var result = await DialogService.Show<SelectCourseDialog>(name, parameters).Result;
-		if (result.Cancelled) return;
+		if (result.Canceled) return;
 		var courseId = result.Data as long?;
 		if (courseId is null) return;
 		_toAnotherCourse = true;
@@ -142,9 +142,10 @@
 	private async Task OnFolderChanged(FileManager.FolderSelectedEventArgs args)
 	{
 		var folder = args.Folder;
-		_destinationFolderId = args.Folder.Id;
-		_canChoose = args.Folder.CanWrite
-					 && FromFolderId != args.Folder.Id
+		_destinationFolderId = folder.Id;
+		_canChoose = folder.CanWrite
+					 && FromFolderId != folder.Id
+					 && !ExcludedFromChoose.Contains(folder.Id)
 					 && !args.Breadcrumbs.Any(x => ExcludedFromChoose.Contains(x.Id));
 	}
 
