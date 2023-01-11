@@ -254,16 +254,19 @@
 									  OnClick="() => OpenFolder(folder)" OnTouch="() => OpenFolder(folder)">
 										Open
 									</MudMenuItemW>
-									<MudMenuItemW hidden="@ChooseFolderMode" IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Settings"
+									@if (!ChooseFolderMode)
+									{
+										<MudMenuItemW hidden="@ChooseFolderMode" IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Settings"
 									  OnClick="() => ShowUpdateFolderDialog(folder)" OnTouch="() => ShowUpdateFolderDialog(folder)"
 									  Disabled=@(!folder.CanEdit)>
-										Settings
-									</MudMenuItemW>
-									<MudMenuItemW hidden="@ChooseFolderMode" IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete"
+											Settings
+										</MudMenuItemW>
+										<MudMenuItemW hidden="@ChooseFolderMode" IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete"
 									  OnClick="async () => await DeleteFolder(folder)" OnTouch="async () => await DeleteFolder(folder)"
 									  Disabled=@(!folder.CanDelete)>
-										Delete
-									</MudMenuItemW>
+											Delete
+										</MudMenuItemW>
+									}
 								}
 
 							</ChildContent>
@@ -292,59 +295,60 @@
 						</MudStack>
 					</MudTd>
 					<MudTd Style="text-align: right">
-						<MudMenu Dense="true" hidden="@ChooseFolderMode">
-							<ActivatorContent>
-								@if (LayoutState.Xs)
-								{
-									<MudButton DisableElevation="true" StartIcon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled">Actions</MudButton>
-								}
-								else
-								{
-									<MudIconButton DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
-								}
-							</ActivatorContent>
-							<ChildContent>
-
-
-								@if (SelectionMode)
-								{
-									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.DriveFileMove"
+						@if(!ChooseFolderMode)
+						{
+							<MudMenu Dense="true" hidden="@ChooseFolderMode">
+								<ActivatorContent>
+									@if (LayoutState.Xs)
+									{
+										<MudButton DisableElevation="true" StartIcon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled">Actions</MudButton>
+									}
+									else
+									{
+										<MudIconButton DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+									}
+								</ActivatorContent>
+								<ChildContent>
+									@if (SelectionMode)
+									{
+										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.DriveFileMove"
 									  OnClick="async () => await MoveSelected()" OnTouch="async () => await MoveSelected()"
 									  Disabled="@(!CanMoveSelected)">
-										Move selected to
-									</MudMenuItemW>
+											Move selected to
+										</MudMenuItemW>
 
-									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.ContentCopy"
+										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.ContentCopy"
 									  OnClick="async () => await CopySelected()" OnTouch="async () => await CopySelected()"
 									  Disabled="@(!CanCopySelected)">
-										Copy selected to
-									</MudMenuItemW>
+											Copy selected to
+										</MudMenuItemW>
 
-									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.DeleteSweep"
+										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.DeleteSweep"
 									  OnClick="async () => await DeleteSelected()" OnTouch="async () => await DeleteSelected()"
 									  Disabled="@(!CanCopySelected)">
-										Delete selected
-									</MudMenuItemW>
-								}
-								else
-								{
-									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Download"
+											Delete selected
+										</MudMenuItemW>
+									}
+									else
+									{
+										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Download"
 									  OnClick="() => DownloadFile(file)" OnTouch="() => DownloadFile(file)">
-										Download
-									</MudMenuItemW>
-									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Edit"
+											Download
+										</MudMenuItemW>
+										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Edit"
 									  OnClick="() => ShowUpdateFileDialog(file)" OnTouch="() => ShowUpdateFileDialog(file)"
 									  Disabled=@(!file.CanEdit)>
-										Edit
-									</MudMenuItemW>
-									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete"
+											Edit
+										</MudMenuItemW>
+										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete"
 									  OnClick="() => DeleteFile(file)" OnTouch="() => DeleteFile(file)"
 									  Disabled=@(!file.CanDelete)>
-										Delete
-									</MudMenuItemW>
-								}
-							</ChildContent>
-						</MudMenu>
+											Delete
+										</MudMenuItemW>
+									}
+								</ChildContent>
+							</MudMenu>
+						}
 					</MudTd>
 				}
 			</RowTemplate>

@@ -665,4 +665,31 @@ public class StorageService
         _oneTimeTokenStore.Tokens.Remove(token);
         return true;
     }
+
+	internal async Task<bool> CanFolderBeMoved(long folderId, long destinationFolderId)
+	{
+        var folder = await _context.Folders.FindAsync(folderId);
+        if(folder is null) return false;
+        var destinationFolder = await _context.Folders.FindAsync(destinationFolderId);
+		if (destinationFolder is null) return false;
+		
+		if (folder.CourseId != destinationFolder.CourseId) return true;
+
+		long? parentId = destinationFolder.ParentId;
+		do
+        {
+            if (parentId == folderId) return false;
+			var parentFolder = await _context.Folders.FindAsync(parentId);
+            if (parentFolder == null) return false;
+			parentId = parentFolder.ParentId;
+		} while (parentId != null);
+		return true;
+	}
+
+	internal async Task<bool> CanFileBeMoved(long fileId, long destinationFolderId)
+	{
+		var file = await _context.UploadedFiles.FindAsync(fileId);
+		if (file == null) return false;
+		return file.FolderId != destinationFolderId;
+	}
 }
