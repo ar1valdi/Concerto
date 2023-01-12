@@ -71,10 +71,10 @@ public class StorageService
             }
             else
             {
-                var canWrite = CanWriteInFolder(userId, subFolder.Id);
-                var canEdit = CanEditFolder(userId, subFolder.Id);
-                var canDelete = CanDeleteFolder(userId, subFolder.Id);
-                subFolders.Add(subFolder.ToFolderItem(canWrite.Result, canEdit.Result, canDelete.Result));
+                var canWrite = await CanWriteInFolder(userId, subFolder.Id);
+                var canEdit = await CanEditFolder(userId, subFolder.Id);
+                var canDelete = await CanDeleteFolder(userId, subFolder.Id);
+                subFolders.Add(subFolder.ToFolderItem(canWrite, canEdit, canDelete));
             }
 
         var files = new List<Dto.FileItem>();
@@ -91,10 +91,10 @@ public class StorageService
         }
         else
         {
-            var canWrite = CanWriteInFolder(userId, folder.Id);
-            var canEdit = CanEditFolder(userId, folder.Id);
-            var canDelete = CanDeleteFolder(userId, folder.Id);
-            selfFolderItem = folder.ToFolderItem(canWrite.Result, canEdit.Result, canDelete.Result);
+            var canWrite = await CanWriteInFolder(userId, folder.Id);
+            var canEdit = await CanEditFolder(userId, folder.Id);
+            var canDelete = await  CanDeleteFolder(userId, folder.Id);
+            selfFolderItem = folder.ToFolderItem(canWrite, canEdit, canDelete);
         }
 
         return new Dto.FolderContent
