@@ -1,4 +1,6 @@
-﻿namespace Concerto.Server.Extensions;
+﻿using System.IO.Pipelines;
+
+namespace Concerto.Server.Extensions;
 
 public static class FileExtensions
 {
@@ -21,10 +23,10 @@ public static class FileExtensions
                 Directory.CreateDirectory(directory);
         }
         
-        await using (var tempFileStream = File.Open(source, FileMode.Open))
-        await using (var fileStream = File.Open(destination, FileMode.CreateNew))
+        await using (var tempFileStream = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read, 524_288, FileOptions.Asynchronous))
+        await using (var fileStream = new FileStream(destination, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None, 524_288, FileOptions.Asynchronous))
         {
-            await tempFileStream.CopyToAsync(fileStream);
+            await tempFileStream.CopyToAsync(fileStream, 524_288);
         }
         await DeleteAsync(source);
     }

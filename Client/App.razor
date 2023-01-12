@@ -4,18 +4,27 @@
 	<Router AppAssembly="@typeof(App).Assembly"
 	        AdditionalAssemblies="new[] { typeof(MainLayout).Assembly }">
 
-
 		<Found Context="routeData">
 			<AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+				<Authorizing>
+					<div class="d-flex align-center justify-center" style="height: 100%">
+						<MudSkeleton Style="position: absolute" Animation="Animation.Wave" SkeletonType="SkeletonType.Rectangle" Width="100%" Height="100%" />
+						<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">Authorizing...</MudText>
+					</div>
+				</Authorizing>
 				<NotAuthorized>
-					<p role="alert">Please log in to continue.</p>
+					<div class="d-flex align-center justify-center" style="height: 100%">
+						<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">Please log in to continue.</MudText>
+					</div>
 				</NotAuthorized>
 			</AuthorizeRouteView>
 		</Found>
 		<NotFound>
 			<PageTitle>Not found</PageTitle>
 			<LayoutView Layout="@typeof(MainLayout)">
-				<p role="alert">Sorry, there's nothing at this address.</p>
+				<div class="d-flex align-center justify-center" style="height: 100%">
+					<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">Sorry, there's nothing at this address.</MudText>
+				</div>
 			</LayoutView>
 		</NotFound>
 	</Router>
