@@ -343,8 +343,8 @@ public class StorageService
             .ToList();
         await _context.SaveChangesAsync();
 
-        var deleteTasks = deletedFiles.Select(DeletePhysicalFile);
-        await Task.WhenAll(deleteTasks);
+		foreach (var file in deletedFiles)
+			await DeletePhysicalFile(file);
     }
 
     private async Task DeleteFolderRecursively(Folder folder)
@@ -425,7 +425,7 @@ public class StorageService
 
     internal async Task<bool> SaveChunk(Dto.FileChunkMetadata fileChunk, IFormFile file)
     {
-        await using (var stream = File.OpenWrite(GetChunkFilePath(fileChunk)))
+        await using (var stream = new FileStream(GetChunkFilePath(fileChunk), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 524_288, FileOptions.Asynchronous))
         {
             stream.Seek(fileChunk.Offset, SeekOrigin.Begin);
             await file.CopyToAsync(stream);
