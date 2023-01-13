@@ -676,13 +676,13 @@ public class StorageService
 		if (folder.CourseId != destinationFolder.CourseId) return true;
 
 		long? parentId = destinationFolder.ParentId;
-		do
+	    while (parentId != null)
         {
             if (parentId == folderId) return false;
 			var parentFolder = await _context.Folders.FindAsync(parentId);
             if (parentFolder == null) return false;
 			parentId = parentFolder.ParentId;
-		} while (parentId != null);
+		}
 		return true;
 	}
 
