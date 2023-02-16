@@ -59,9 +59,9 @@ namespace Concerto.Server.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
-                    OwnerId = table.Column<long>(type: "bigint", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    RootFolderId = table.Column<long>(type: "bigint", nullable: true)
+                    RootFolderId = table.Column<long>(type: "bigint", nullable: true),
+                    SessionsFolderId = table.Column<long>(type: "bigint", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -102,7 +102,7 @@ namespace Concerto.Server.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
                     CourseId = table.Column<long>(type: "bigint", nullable: false),
-                    OwnerId = table.Column<long>(type: "bigint", nullable: false),
+                    OwnerId = table.Column<long>(type: "bigint", nullable: true),
                     ParentId = table.Column<long>(type: "bigint", nullable: true),
                     CoursePermissionType = table.Column<int>(name: "CoursePermission_Type", type: "integer", nullable: false),
                     CoursePermissionInherited = table.Column<bool>(name: "CoursePermission_Inherited", type: "boolean", nullable: false)
@@ -169,6 +169,7 @@ namespace Concerto.Server.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     ScheduledDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CourseId = table.Column<long>(type: "bigint", nullable: false),
+                    FolderId = table.Column<long>(type: "bigint", nullable: false),
                     MeetingGuid = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
                 },
                 constraints: table =>
@@ -180,6 +181,12 @@ namespace Concerto.Server.Migrations
                         principalTable: "Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Sessions_Folders_FolderId",
+                        column: x => x.FolderId,
+                        principalTable: "Folders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -190,6 +197,7 @@ namespace Concerto.Server.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     FolderId = table.Column<long>(type: "bigint", nullable: false),
                     OwnerId = table.Column<long>(type: "bigint", nullable: false),
+                    Size = table.Column<long>(type: "bigint", nullable: false),
                     DisplayName = table.Column<string>(type: "text", nullable: false),
                     Extension = table.Column<string>(type: "text", nullable: false),
                     StorageName = table.Column<string>(type: "text", nullable: false)
@@ -231,6 +239,30 @@ namespace Concerto.Server.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "PostUploadedFile",
+                columns: table => new
+                {
+                    PostId = table.Column<long>(type: "bigint", nullable: false),
+                    ReferencedFilesId = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PostUploadedFile", x => new { x.PostId, x.ReferencedFilesId });
+                    table.ForeignKey(
+                        name: "FK_PostUploadedFile_Post_PostId",
+                        column: x => x.PostId,
+                        principalTable: "Post",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PostUploadedFile_UploadedFiles_ReferencedFilesId",
+                        column: x => x.ReferencedFilesId,
+                        principalTable: "UploadedFiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Comments_AuthorId",
                 table: "Comments",
@@ -245,6 +277,11 @@ namespace Concerto.Server.Migrations
                 name: "IX_Courses_RootFolderId",
                 table: "Courses",
                 column: "RootFolderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Courses_SessionsFolderId",
+                table: "Courses",
+                column: "SessionsFolderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CourseUsers_CourseId",
@@ -282,9 +319,20 @@ namespace Concerto.Server.Migrations
                 column: "CourseId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PostUploadedFile_ReferencedFilesId",
+                table: "PostUploadedFile",
+                column: "ReferencedFilesId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Sessions_CourseId",
                 table: "Sessions",
                 column: "CourseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sessions_FolderId",
+                table: "Sessions",
+                column: "FolderId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_UploadedFiles_FolderId",
@@ -321,6 +369,13 @@ namespace Concerto.Server.Migrations
                 column: "RootFolderId",
                 principalTable: "Folders",
                 principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Courses_Folders_SessionsFolderId",
+                table: "Courses",
+                column: "SessionsFolderId",
+                principalTable: "Folders",
+                principalColumn: "Id");
         }
 
         /// <inheritdoc />
@@ -334,6 +389,10 @@ namespace Concerto.Server.Migrations
                 name: "FK_Courses_Folders_RootFolderId",
                 table: "Courses");
 
+            migrationBuilder.DropForeignKey(
+                name: "FK_Courses_Folders_SessionsFolderId",
+                table: "Courses");
+
             migrationBuilder.DropTable(
                 name: "Comments");
 
@@ -341,16 +400,19 @@ namespace Concerto.Server.Migrations
                 name: "CourseUsers");
 
             migrationBuilder.DropTable(
-                name: "Sessions");
+                name: "PostUploadedFile");
 
             migrationBuilder.DropTable(
-                name: "UploadedFiles");
+                name: "Sessions");
 
             migrationBuilder.DropTable(
                 name: "UserFolderPermissions");
 
             migrationBuilder.DropTable(
                 name: "Post");
+
+            migrationBuilder.DropTable(
+                name: "UploadedFiles");
 
             migrationBuilder.DropTable(
                 name: "Users");

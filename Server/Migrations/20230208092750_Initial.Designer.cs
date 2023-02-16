@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Concerto.Server.Migrations
 {
     [DbContext(typeof(AppDataContext))]
-    [Migration("20230111175026_Initial")]
+    [Migration("20230208092750_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -77,15 +77,17 @@ namespace Concerto.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("OwnerId")
+                    b.Property<long?>("RootFolderId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("RootFolderId")
+                    b.Property<long?>("SessionsFolderId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
                     b.HasIndex("RootFolderId");
+
+                    b.HasIndex("SessionsFolderId");
 
                     b.ToTable("Courses");
                 });
@@ -125,7 +127,7 @@ namespace Concerto.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("OwnerId")
+                    b.Property<long?>("OwnerId")
                         .HasColumnType("bigint");
 
                     b.Property<long?>("ParentId")
@@ -193,6 +195,9 @@ namespace Concerto.Server.Migrations
                     b.Property<long>("CourseId")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("FolderId")
+                        .HasColumnType("bigint");
+
                     b.Property<Guid>("MeetingGuid")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
@@ -208,6 +213,9 @@ namespace Concerto.Server.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CourseId");
+
+                    b.HasIndex("FolderId")
+                        .IsUnique();
 
                     b.ToTable("Sessions");
                 });
@@ -232,6 +240,9 @@ namespace Concerto.Server.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Size")
                         .HasColumnType("bigint");
 
                     b.Property<string>("StorageName")
@@ -293,6 +304,21 @@ namespace Concerto.Server.Migrations
                     b.ToTable("UserFolderPermissions");
                 });
 
+            modelBuilder.Entity("PostUploadedFile", b =>
+                {
+                    b.Property<long>("PostId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ReferencedFilesId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("PostId", "ReferencedFilesId");
+
+                    b.HasIndex("ReferencedFilesId");
+
+                    b.ToTable("PostUploadedFile");
+                });
+
             modelBuilder.Entity("Concerto.Server.Data.Models.Comment", b =>
                 {
                     b.HasOne("Concerto.Server.Data.Models.User", "Author")
@@ -318,7 +344,13 @@ namespace Concerto.Server.Migrations
                         .WithMany()
                         .HasForeignKey("RootFolderId");
 
+                    b.HasOne("Concerto.Server.Data.Models.Folder", "SessionsFolder")
+                        .WithMany()
+                        .HasForeignKey("SessionsFolderId");
+
                     b.Navigation("RootFolder");
+
+                    b.Navigation("SessionsFolder");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.CourseUser", b =>
@@ -330,7 +362,7 @@ namespace Concerto.Server.Migrations
                         .IsRequired();
 
                     b.HasOne("Concerto.Server.Data.Models.User", "User")
-                        .WithMany("CoursesUser")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -351,8 +383,7 @@ namespace Concerto.Server.Migrations
                     b.HasOne("Concerto.Server.Data.Models.User", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Concerto.Server.Data.Models.Folder", "Parent")
                         .WithMany("SubFolders")
@@ -415,7 +446,15 @@ namespace Concerto.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Concerto.Server.Data.Models.Folder", "Folder")
+                        .WithOne()
+                        .HasForeignKey("Concerto.Server.Data.Models.Session", "FolderId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
+
                     b.Navigation("Course");
+
+                    b.Navigation("Folder");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.UploadedFile", b =>
@@ -473,6 +512,21 @@ namespace Concerto.Server.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("PostUploadedFile", b =>
+                {
+                    b.HasOne("Concerto.Server.Data.Models.Post", null)
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Concerto.Server.Data.Models.UploadedFile", null)
+                        .WithMany()
+                        .HasForeignKey("ReferencedFilesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Concerto.Server.Data.Models.Course", b =>
                 {
                     b.Navigation("CourseUsers");
@@ -494,11 +548,6 @@ namespace Concerto.Server.Migrations
             modelBuilder.Entity("Concerto.Server.Data.Models.Post", b =>
                 {
                     b.Navigation("Comments");
-                });
-
-            modelBuilder.Entity("Concerto.Server.Data.Models.User", b =>
-                {
-                    b.Navigation("CoursesUser");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,4 +1,5 @@
 ﻿@using Concerto.Client.Components.Layout;
+@using Concerto.Client.Extensions;
 @using Concerto.Shared.Models.Dto
 @using Concerto.Client.Services
 @using Concerto.Client.Components.Input
@@ -7,14 +8,14 @@
 
 	<MudTable Comparer="_comparer" T="CourseUser" Items="Items" Loading="Loading" Filter="new Func<CourseUser, bool>(Filter)"
 			  RowClassFunc="RowClassFunc" ReadOnly="true" AllowUnsorted="false"
-			  RowsPerPage="25" 
+			  RowsPerPage="PageSize.Default" 
 			  SortLabel="Sort By" Dense="true" Hover="true"  Outlined="true" FixedFooter="true" FixedHeader="true"
 			  Height="100%" Class="@Class" Style="@TableStyle">
 
 		<ToolBarContent>
 			<MudText Typo="Typo.subtitle1">Users</MudText>
 			<MudSpacer/>
-			<MudSwitch Disabled="Editing" Class="ml-2" @bind-Checked="@_showMembersOnly" Color="Color.Primary">Show only members</MudSwitch>
+			<MudSwitch Disabled="Editing" Class="ml-2" @bind-Checked="@_addMembers" Color="Color.Primary">Add members</MudSwitch>
 			<MudSpacer/>
 			<MudTextField Clearable="true" @bind-Value="_searchString" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Class="ma-0"></MudTextField>
 		</ToolBarContent>
@@ -23,17 +24,21 @@
 			@if (LayoutState.Xs)
 			{
 				<col />
+				<col />
+				<col />
+				<col />
+				<col />
 			}
 			else
 			{
 				<col style="padding: 0; width: 20px" />
 				<col style="width: 50px" />
+				<col style="min-width: 100px" />
+				<col style="min-width: 100px" />
+				<col style="min-width: 100px" />
+				<col style="min-width: 230px" />
+				<col style="min-width: 90px;" />
 			}
-			<col style="min-width: 100px" />
-			<col style="min-width: 100px" />
-			<col style="min-width: 100px" />
-			<col style="min-width: 230px" />
-			<col style="min-width: 90px" />
 		</ColGroup>
 
 		<HeaderContent>
@@ -81,9 +86,11 @@
 					<CourseRolePicker @bind-Value="context.Role" />
 				</MudTd>
 
-			<MudTd  DataLabel="Actions">
-					<MudIconButton Size="Size.Small" Icon="@Icons.Filled.Check" OnClick="ApplyEdit" />
-					<MudIconButton Size="Size.Small" Icon="@Icons.Filled.Cancel" OnClick="CancelEdit" />
+			<MudTd DataLabel="Actions" Style="justify-content: space-between;">
+				<div>
+					<MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Check" OnClick="ApplyEdit" />
+					<MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Cancel" OnClick="CancelEdit" />
+				</div>
 			</MudTd>
 			}
 			else
@@ -96,10 +103,10 @@
 
 
 					<MudTd Class="d-flex" DataLabel="Actions">
-						<MudIconButton Size="Size.Small" Icon="@Icons.Filled.Edit" OnClick="() => _editedUser = context" />
+						<MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="() => _editedUser = context" />
 						@if (IsModified(context))
 						{
-							<MudIconButton Disabled="Editing" Size="Size.Small" Icon="@Icons.Filled.Restore" OnClick="() => RestoreUser(context)" />
+							<MudIconButton Disabled="Editing" Size="Size.Small" Icon="@Icons.Material.Filled.Restore" OnClick="() => RestoreUser(context)" />
 						}
 					</MudTd>
 
@@ -128,7 +135,7 @@
 		</FooterContent>
 
 		<PagerContent>
-			<MudTablePager Style="" Class=""  PageSizeOptions="new[] { 25, 50, 100 }"/>
+			<MudTablePager Style="" Class=""  PageSizeOptions="PageSize.DefaultOptions"/>
 		</PagerContent>
 
 	</MudTable>
@@ -136,8 +143,6 @@
 @code
 {
 	[CascadingParameter] LayoutState LayoutState { get; set; } = new();
-
-	private HashSet<CourseUser> _selectedCourseUsers = null!;
 
 	[Parameter]
 	public HashSet<CourseUser> SelectedCourseUsers { get; set; } = new(new CourseUserIdEqualityComparer());
@@ -167,10 +172,10 @@
 	bool Loading => AvailableCourseUsers is null || Users is null;
 
 	IEnumerable<CourseUser> CurrentMembers => AvailableCourseUsers.Where(x => ExistingCourseUsers.Contains(x) || SelectedCourseUsers.Contains(x));
-	IEnumerable<CourseUser> Items => Loading ? new HashSet<CourseUser>() : _showMembersOnly ? CurrentMembers : AvailableCourseUsers;
+	IEnumerable<CourseUser> Items => Loading ? new HashSet<CourseUser>() : !_addMembers ? CurrentMembers : AvailableCourseUsers;
 
 	private string _searchString = "";
-	bool _showMembersOnly = true;
+	bool _addMembers = false;
 
 	private CourseUser? _editedUser;
 	bool Editing => _editedUser is not null;

@@ -1,6 +1,7 @@
 ﻿using Concerto.Server.Extensions;
 using Concerto.Server.Middlewares;
 using Concerto.Server.Services;
+using Concerto.Shared.Extensions;
 using Concerto.Shared.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,11 +28,12 @@ public class SessionController : ControllerBase
 
 	[Authorize(Roles = "teacher")]
 	[HttpPost]
-	public async Task<ActionResult> CreateSession([FromBody] CreateSessionRequest request)
+	public async Task<ActionResult<long>> CreateSession([FromBody] CreateSessionRequest request)
 	{
 		if (!await _courseService.IsUserCourseMember(UserId, request.CourseId)) return Forbid();
-
-		if (await _sessionService.CreateSession(request)) return Ok();
+		
+		var sessionId = await _sessionService.CreateSession(request, UserId);
+		if (sessionId is not null) return Ok(sessionId);
 		return BadRequest();
 	}
 

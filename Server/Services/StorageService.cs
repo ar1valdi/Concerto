@@ -24,10 +24,10 @@ public class StorageService
     }
 
     // Create
-    internal async Task<bool> CreateFolder(Dto.CreateFolderRequest request, long ownerId)
+    internal async Task<long?> CreateFolder(Dto.CreateFolderRequest request, long ownerId)
     {
         var parent = await _context.Folders.FindAsync(request.ParentId);
-        if (parent == null) return false;
+        if (parent == null) return null;
 
         var rootParentOrNotInheriting = parent.IsCourseRoot || !request.CoursePermission.Inherited;
 
@@ -51,7 +51,7 @@ public class StorageService
         await InheritPermissions(parent, newFolder, false);
         await _context.SaveChangesAsync();
         
-        return true;
+        return newFolder.Id;
     }
 
     // Read
@@ -63,11 +63,21 @@ public class StorageService
         await _context.Entry(folder).Collection(c => c.SubFolders).LoadAsync();
         await _context.Entry(folder).Collection(c => c.Files).LoadAsync();
 
-        var subFolders = new List<Dto.FolderItem>();
+        // get sessions folder if course root
+		if (folder.IsCourseRoot)
+		{
+			var course = await _context.Courses.FindAsync(folder.CourseId);
+			if (course == null) return null;
+			await _context.Entry(course).Reference(c => c.SessionsFolder).LoadAsync();
+			if (course.SessionsFolder == null) return null;
+			folder.SubFolders.Add(course.SessionsFolder);
+        }
+
+		var subFolders = new List<Dto.FolderItem>();
         foreach (var subFolder in folder.SubFolders)
             if (isAdmin)
             {
-                subFolders.Add(subFolder.ToFolderItem(true, true, true));
+                subFolders.Add(subFolder.ToFolderItem(true, true, await CanDeleteFolder(userId, subFolder.Id)));
             }
             else
             {
@@ -77,7 +87,7 @@ public class StorageService
                 subFolders.Add(subFolder.ToFolderItem(canWrite, canEdit, canDelete));
             }
 
-        var files = new List<Dto.FileItem>();
+		var files = new List<Dto.FileItem>();
         foreach (var file in folder.Files)
         {
             var canManageFile = isAdmin || await CanManageFile(userId, file.Id);
@@ -180,8 +190,8 @@ public class StorageService
         var folder = await _context.Folders.FindAsync(folderId);
         if (folder is null) return false;
 
-        // If root then only admin or supervisor can edit
-        if (folder.IsCourseRoot)
+        // If permanent then only admin or supervisor can edit
+        if (folder.IsPermanent)
         {
             var courseUserRole = (await _context.CourseUsers.FindAsync(folder.CourseId, userId))?.Role;
             return courseUserRole is CourseUserRole.Admin or CourseUserRole.Supervisor;
@@ -200,7 +210,7 @@ public class StorageService
     {
         var folder = await _context.Folders.FindAsync(folderId);
         if (folder is null) return false;
-        if (folder.IsCourseRoot) return false;
+        if (folder.IsPermanent) return false;
 
         // True if folder owner
         if (folder.OwnerId == userId) return true;
@@ -247,8 +257,11 @@ public class StorageService
         var folder = await _context.Folders.FindAsync(request.Id);
         if (folder == null) return;
 
-        folder.Name = request.Name;
-        folder.Type = request.Type == Dto.FolderType.CourseRoot ? FolderType.Other : request.Type.ToEntity();
+        if(!folder.IsPermanent)
+        {
+            folder.Name = request.Name;
+            folder.Type = request.Type == Dto.FolderType.CourseRoot ? FolderType.Other : request.Type.ToEntity();
+        }
 
         if (request.CoursePermission.Inherited)
             folder.CoursePermission = folder.CoursePermission with { Inherited = true };
@@ -470,6 +483,7 @@ public class StorageService
                 OwnerId = userId,
                 DisplayName = fileUploadResult.DisplayFileName,
                 Extension = fileUploadResult.Extension,
+                Size = lastChunk.FileSize,
                 StorageName = fileUploadResult.StorageFileName,
                 FolderId = folderId
             };
@@ -595,6 +609,7 @@ public class StorageService
         copiedFolder.ParentId = null;
         copiedFolder.CourseId = courseId;
         if (newOwner.HasValue) copiedFolder.OwnerId = newOwner.Value;
+        if (copiedFolder.Type is FolderType.Sessions) copiedFolder.Type = FolderType.Recordings;
     }
 
     internal async Task MoveFiles(IEnumerable<long> fileIds, long destinationFolderId)

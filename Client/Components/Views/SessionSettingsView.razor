@@ -25,7 +25,7 @@ else
 			</MudButtonGroup>
 		</MudStack>
 
-		<MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Filled.Title" Immediate="true" @bind-Value="_request.Name" T="string" Label="Name"></MudTextField>
+		<MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Title" Immediate="true" @bind-Value="_request.Name" T="string" Label="Name"></MudTextField>
 		<MudDatePicker Adornment="Adornment.Start" Label="Date" @bind-Date="Date"/>
 		<MudTimePicker Adornment="Adornment.Start" Label="Time" @bind-Time="Time"/>
 
@@ -124,7 +124,7 @@ else
 
 	private async Task Delete()
 	{
-		if (!await DialogService.ShowDeleteConfirmationDialog("Delete session", "session", _sessionSettings!.Name, true)) return;
+		if (!await DialogService.ShowConfirmationDialog("Delete session", "delete", "session", _sessionSettings!.Name, true)) return;
 		try
 		{
 			await SessionService.DeleteSessionAsync(_sessionSettings.Id);

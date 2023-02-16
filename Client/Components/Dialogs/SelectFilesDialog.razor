@@ -1,0 +1,86 @@
+﻿@using Concerto.Client.Components.Layout;
+@using Concerto.Client.Extensions;
+@using Concerto.Client.Services
+@using Concerto.Shared.Models.Dto
+@using Concerto.Client.Components.Lists
+@inject ICourseService CourseService
+@inject ISnackbar Snackbar
+@inject HttpClient Http
+@inject IStorageService StorageService
+@inject IDialogService DialogService
+@inherits DialogAutoFullscreen
+
+<MudDialog>
+	<DialogContent>
+		@if (!Loading)
+		{
+			<div style="height: calc(100vh - 134px)">
+
+				<div style="height: 84px; overflow: scroll;">
+					Selected Files:
+					@foreach (var file in _selectedItems.OfType<FileItem>())
+					{
+						<MudChip DisableRipple="true" Value="file" Icon="@file.ToIcon()" Text="@file.FullName" OnClose="closeFileChip" />
+					}
+				</div>
+				
+				<FileManager Class="" Style="height: calc(100% - 84px)" Outlined="true" Elevation="0"
+						 SelectFilesMode="true" SelectedItems="_selectedItems" OnSelectedItemsChanged="() => StateHasChanged()" InitialFolderId="_course!.RootFolderId" />
+			</div>
+		}
+	</DialogContent>
+	
+	<DialogActions>
+		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Submit">OK</MudButton>
+	</DialogActions>
+</MudDialog>
+
+
+@code {
+
+	[Parameter]
+	public long CourseId { get; set; }
+
+	private Course? _course;
+
+	[Parameter, EditorRequired]
+	public HashSet<FileItem> SelectedFiles { get; set; } = new(new FolderContentItemIdEqualityComparer());
+
+	public HashSet<FolderContentItem> _selectedItems { get; set; } = new(new FolderContentItemIdEqualityComparer());
+
+	bool Loading => _course is null;
+
+	protected override void OnInitialized()
+	{
+		Dialog.Options.FullWidth = true;
+		Dialog.Options.MaxWidth = MaxWidth.Large;
+		Dialog.SetOptions(Dialog.Options);
+
+		_selectedItems = new(SelectedFiles, new FolderContentItemIdEqualityComparer());
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		_course = await CourseService.GetCourseAsync(CourseId);
+	}
+
+	private void Submit()
+	{
+		// Modify SelectedFiles so that it contains the same files as _selectedFiles
+		SelectedFiles.Clear();
+		SelectedFiles.UnionWith(_selectedItems.OfType<FileItem>());
+		Dialog.Close();
+	}
+
+	void closeFileChip(MudChip chip)
+	{
+		_selectedItems.Remove((FolderContentItem)chip.Value);
+	}
+
+	void Cancel()
+	{
+		Dialog.Cancel();
+	}
+
+}
