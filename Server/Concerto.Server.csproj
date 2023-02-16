@@ -14,6 +14,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="IdentityModel.OidcClient" Version="5.2.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.1" />
@@ -31,8 +32,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Client\Concerto.Client.csproj" />
-		<ProjectReference Include="..\Shared\Concerto.Shared.csproj" />
+	  <ProjectReference Include="..\Client\Concerto.Client.csproj" />
+	  <ProjectReference Include="..\Shared\Concerto.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Authorization\" />
 	</ItemGroup>
 
 

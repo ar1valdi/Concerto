@@ -3,6 +3,7 @@ using System.Text.Json;
 using Concerto.Server.Extensions;
 using Concerto.Server.Middlewares;
 using Concerto.Server.Services;
+using Concerto.Shared.Extensions;
 using Concerto.Shared.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -65,14 +66,14 @@ public class StorageController : ControllerBase
 	}
 
 	[HttpPost]
-	public async Task<ActionResult> CreateFolder([FromBody] CreateFolderRequest createFolderRequest)
+	public async Task<ActionResult<long>> CreateFolder([FromBody] CreateFolderRequest createFolderRequest)
 	{
 		if (!User.IsAdmin() && !await _storageService.CanWriteInFolder(UserId, createFolderRequest.ParentId)) return Forbid();
 		
-		if(await _storageService.CreateFolder(createFolderRequest, UserId))
-			return Ok();
-		
-		return BadRequest();
+
+		var folderId = await _storageService.CreateFolder(createFolderRequest, UserId);
+		if (folderId == null) return BadRequest();
+		return Ok(folderId);
 	}
 
 	[HttpPost]

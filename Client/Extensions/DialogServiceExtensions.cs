@@ -7,16 +7,17 @@ namespace Concerto.Client.Extensions;
 
 public static class DialogServiceExtensions
 {
-	public static async Task<bool> ShowDeleteConfirmationDialog(
+	public static async Task<bool> ShowConfirmationDialog(
 		this IDialogService dialogService,
 		string title,
+		string action,
 		string itemType,
 		string itemName,
 		bool additionalConfirmation = false
 	)
 	{
 		var item = string.IsNullOrEmpty(itemType) ? itemName : $"{itemType} '{itemName}'";
-		var text = $"Are you sure you want to delete {item}?";
+		var text = $"Are you sure you want to {action} {item}?";
 		var parameters = new DialogParameters { ["Text"] = text, ["Confirmation"] = additionalConfirmation };
 		var result = await dialogService.Show<ConfirmationDialog>(title, parameters).Result;
 		if (result.Canceled) return false;
@@ -80,6 +81,43 @@ public static class DialogServiceExtensions
 			["Copy"] = false
 		};
 		var result = await dialogService.Show<MoveOrCopyFolderDialog>("Move selected items", parameters, options).Result;
+		if (result.Canceled) return false;
+		return true;
+	}
+	
+	public static async Task<bool> ShowSelectFilesDialog(this IDialogService dialogService, HashSet<FileItem> selectedFiles, long courseId)
+	{
+		var options = new DialogOptions() { FullScreen = true, MaxWidth=MaxWidth.Large };
+		var parameters = new DialogParameters
+		{
+			["SelectedFiles"] = selectedFiles,
+			["CourseId"] = courseId
+		};
+		var result = await dialogService.Show<SelectFilesDialog>("Select files", parameters, options).Result;
+		if (result.Canceled) return false;
+		return true;
+	}
+
+	public static async Task<bool> ShowPostsRelatedToFileDialog(this IDialogService dialogService, long courseId, FileItem file)
+	{
+		var options = new DialogOptions() { FullScreen = true, MaxWidth=MaxWidth.Large };
+		var parameters = new DialogParameters
+		{
+			["File"] = file,
+			["CourseId"] = courseId
+		};
+		var result = await dialogService.Show<PostsRelatedToFileDialog>($"Posts related to {file.FullName}", parameters, options).Result;
+		if (result.Canceled) return false;
+		return true;
+	}
+
+	public static async Task<bool> ShowUpdateUserDialog(this IDialogService dialogService, UserIdentity user)
+	{
+		var parameters = new DialogParameters
+		{
+			["User"] = user
+		};
+		var result = await dialogService.Show<UpdateUserDialog>($"Update user", parameters).Result;
 		if (result.Canceled) return false;
 		return true;
 	}

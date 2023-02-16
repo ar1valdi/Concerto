@@ -1,5 +1,6 @@
 ﻿@attribute [Authorize]
 @page "/courses/{SelectedCourseId:long}"
+@using Concerto.Client.Components.Views
 @using Concerto.Client.Services
 @using Concerto.Shared.Models.Dto
 @using Microsoft.AspNetCore.Authorization
@@ -24,7 +25,7 @@ else
 	         ApplyEffectsToContainer="true" Class="" PanelClass="panel-height-maximum" Style="height: calc(100%);">
 
 		<MudTabPanel Text="Content">
-			<FileManager InitialFolderId="SelectedCourse.RootFolderId"
+			<FileManager InitialFolderId="SelectedCourse!.RootFolderId"
 				Class="flex-grow-1" Style="height: 100%;" Elevation="0" />
 		</MudTabPanel>
 

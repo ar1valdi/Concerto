@@ -4,6 +4,26 @@ namespace Concerto.Shared.Extensions;
 
 public static class ClaimsPrincipalExtensions
 {
+	public static bool IsAdmin(this ClaimsPrincipal user)
+	{
+		return user.IsInRole("admin");
+	}
+
+	public static bool IsTeacher(this ClaimsPrincipal user)
+	{
+		return user.IsInRole("teacher");
+	}
+
+	public static bool IsStudent(this ClaimsPrincipal user)
+	{
+		return user.IsInRole("user");
+	}
+
+	public static bool IsVerified(this ClaimsPrincipal user)
+	{
+		return !user.IsInRole("unverified");
+	}
+
 	public static long? GetUserId(this ClaimsPrincipal user)
 	{
 		return user.FindFirst("user_id")?.Value.ToUserId();
