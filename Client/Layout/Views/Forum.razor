@@ -44,7 +44,7 @@ else
 						{
 							<MudChip DisableRipple="true" Value="file" Icon="@file.ToIcon()" Text="@file.FullName" OnClose="CloseCreatePostFileChip" />
 						}
-						<MudIconButton DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Add" OnClick="async () => await EditReferencedFiles(_createPostFiles)" />
+						<MudIconButton Title="Add/remove files" DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Add" OnClick="async () => await EditReferencedFiles(_createPostFiles)" />
 					</div>
 
 					<MudTextField Immediate="true" @bind-Value="_createPostRequest.Content" Validation="Validation.NotEmpty" Label="Post content" Variant="Variant.Outlined" Lines="10" />
@@ -77,7 +77,7 @@ else
 									{
 										<MudChip DisableRipple="true" Value="file" Icon="@file.ToIcon()" Text="@file.FullName" OnClose="CloseEditPostFileChip" />
 									}
-									<MudIconButton DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Add" OnClick="async () => await EditReferencedFiles(_editPostFiles)" />
+									<MudIconButton Title="Add/remove files" DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Add" OnClick="async () => await EditReferencedFiles(_editPostFiles)" />
 								</div>
 								<MudTextField @bind-Value="_editPostRequest.Content" Validation="Validation.NotEmpty" Label="Post content" Variant="Variant.Outlined" Lines="10" />
 							</MudForm>
@@ -97,7 +97,7 @@ else
 
 								<MudMenu Dense="true" Class="align-self-start">
 									<ActivatorContent>
-										<MudIconButton DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+										<MudIconButton Title="Actions" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
 									</ActivatorContent>
 									<ChildContent>
 										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Edit" OnTouch="() => EditPost(post)" OnClick="() => EditPost(post)" Disabled=@(!post.CanEdit)>Edit</MudMenuItemW>
@@ -170,7 +170,7 @@ else
 
 									<MudMenu Dense="true" Class="align-self-start">
 										<ActivatorContent>
-											<MudIconButton Size="Size.Small" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+											<MudIconButton Title="Actions" Size="Size.Small" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
 										</ActivatorContent>
 										<ChildContent>
 											<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Edit" OnTouch="() => EditComment(comment, post.Id)" OnClick="() => EditComment(comment, post.Id)" Disabled=@(!comment.CanEdit)>Edit</MudMenuItemW>

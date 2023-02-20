@@ -49,11 +49,11 @@ else
 					<MudTd Style="justify-content: end">
 
 						<MudTooltip Class="d-inline" Text="Restore to default - permission will be the same as parent folder">
-							<MudIconButton Class="" Disabled="@(parentMatch is null || context.Permission.Inherited)" OnClick="@(async () => RestoreInherited(context, parentMatch))" Icon="@Icons.Material.Filled.Restore" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small"/>
+							<MudIconButton Title="Restore inherited" Class="" Disabled="@(parentMatch is null || context.Permission.Inherited)" OnClick="@(async () => RestoreInherited(context, parentMatch))" Icon="@Icons.Material.Filled.Restore" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small"/>
 						</MudTooltip>
 
 						<MudTooltip Class="d-inline" Text="Remove - folder's default permission will apply for removed user" Arrow="true">
-							<MudIconButton Class="ml-2" Disabled="@(parentMatch is not null)" OnClick="@(async () => RemoveUserPermission(context))" Icon="@Icons.Material.Filled.Close" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small"/>
+							<MudIconButton Title="Remove user permission" Class="ml-2" Disabled="@(parentMatch is not null)" OnClick="@(async () => RemoveUserPermission(context))" Icon="@Icons.Material.Filled.Close" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" />
 						</MudTooltip>
 
 					</MudTd>

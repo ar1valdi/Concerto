@@ -24,8 +24,8 @@
 									   DisableElevation="true" Variant="Variant.Filled" Icon="@Icons.Material.Filled.ClearAll" Color="Color.Default" Size="Size.Small"
 									   Title="Clear history" />
 								<MudIconButton OnClick="ToggleOpen" @ontouchend="() => StorageService.ClearInactiveUploads()"
-									   Icon="@Icons.Material.Filled.Minimize" DisableElevation="true" Variant="Variant.Filled" Size="Size.Small" Color="Color.Default"
-									   Title="Minimize" />
+									   Icon="@Icons.Material.Filled.Close" DisableElevation="true" Variant="Variant.Filled" Size="Size.Small" Color="Color.Default"
+									   Title="Close" />
 					</ToolBarContent>
 					
 						<ColGroup>
@@ -93,12 +93,12 @@
 						<MudTd Class="px-2">
 							@if (item.IsInProgress)
 							{
-								<MudIconButton title="Cancel" OnClick="() => CancelUpload(item)"
+								<MudIconButton Title="Cancel" OnClick="() => CancelUpload(item)"
 									   DisableElevation="true" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Cancel" Size="Size.Small" />
 							}
 							else
 							{
-								<MudIconButton title="Clear" OnClick="() => StorageService.ClearIfInactive(item)"
+								<MudIconButton Title="Clear" OnClick="() => StorageService.ClearIfInactive(item)"
 									   DisableElevation="true" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Clear" Size="Size.Small" />
 							}
 						</MudTd>

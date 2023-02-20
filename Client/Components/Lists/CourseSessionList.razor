@@ -15,11 +15,11 @@
 		<MudSpacer/>
 		<MudButtonGroup OverrideStyles="false">
 
-			<MudIconButton DisableElevation="true" Icon="@Icons.Material.Filled.Refresh" Color="Color.Default" Variant="Variant.Filled" OnClick="Initialize"/>
-			<MudIconButton DisableElevation="true" Icon="@Icons.Material.Filled.AddBox" Color="Color.Default" Variant="Variant.Filled" OnClick="CreateSession" Disabled="false"/>
+			<MudIconButton Title="Refresh" DisableElevation="true" Icon="@Icons.Material.Filled.Refresh" Color="Color.Default" Variant="Variant.Filled" OnClick="Initialize" />
+			<MudIconButton Title="Create session" DisableElevation="true" Icon="@Icons.Material.Filled.AddBox" Color="Color.Default" Variant="Variant.Filled" OnClick="CreateSession" Disabled="false" />
 			<MudMenu Dense="true">
 				<ActivatorContent>
-					<MudIconButton DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled"/>
+					<MudIconButton Title="More" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
 				</ActivatorContent>
 				<ChildContent>
 					<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Refresh"
@@ -56,7 +56,7 @@
 		<MudTd Style="text-align: right">
 			<MudMenu Dense="true">
 				<ActivatorContent>
-					<MudIconButton DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled"/>
+					<MudIconButton Title="Actions" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
 				</ActivatorContent>
 				<ChildContent>
 					<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.OpenInBrowser" OnTouch="() => SelectSession(context)" OnClick="() => SelectSession(context)">Open</MudMenuItemW>
