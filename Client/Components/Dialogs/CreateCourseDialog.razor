@@ -6,7 +6,7 @@
 <MudDialog Class="" Style="max-height: 100vh; overflow:auto;" ContentStyle="" ClassContent="d-flex flex-column">
 	<DialogContent>
 		<MudContainer Style="min-height: 300px; min-width: 550px; overflow-y: scroll">
-			<MudTextField Variant="Variant.Outlined" Class="mb-2" @bind-Value="_courseName" T="string" Label="Course name" Margin="Margin.Dense"></MudTextField>
+			<MudTextField Variant="Variant.Outlined" Class="my-2" @bind-Value="_courseName" T="string" Label="Course name" Margin="Margin.Dense"></MudTextField>
 			<CourseMemberPicker @bind-SelectedUsers="_members" Style="@PickerStyle" />
         </MudContainer>
 	</DialogContent>
