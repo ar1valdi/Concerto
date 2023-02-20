@@ -82,8 +82,8 @@
 
             <MudTd DataLabel="Actions" Style="justify-content: space-between;">
                 <div>
-                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Check" OnClick="ApplyEdit" />
-                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Cancel" OnClick="CancelEdit" />
+                    <MudIconButton Title="Apply" Size="Size.Small" Icon="@Icons.Material.Filled.Check" OnClick="ApplyEdit" />
+                    <MudIconButton Title="Cancel" Size="Size.Small" Icon="@Icons.Material.Filled.Cancel" OnClick="CancelEdit" />
                 </div>
             </MudTd>
         }
@@ -97,10 +97,10 @@
 
 
                 <MudTd Class="d-flex" DataLabel="Actions">
-                    <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="() => _editedUser = context" />
+                    <MudIconButton Title="Settings" Size="Size.Small" Icon="@Icons.Material.Filled.Settings" OnClick="() => _editedUser = context" />
                     @if (IsModified(context))
                     {
-                        <MudIconButton Disabled="Editing" Size="Size.Small" Icon="@Icons.Material.Filled.Restore" OnClick="() => RestoreUser(context)" />
+                        <MudIconButton Title="Restore" Disabled="Editing" Size="Size.Small" Icon="@Icons.Material.Filled.Restore" OnClick="() => RestoreUser(context)" />
                     }
                 </MudTd>
 

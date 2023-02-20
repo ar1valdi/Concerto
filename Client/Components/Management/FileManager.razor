@@ -13,7 +13,7 @@
 		<MudPaper Height="45px" Outlined="false" Elevation="0"
 			  Class="pl-4 py-0 mud-breadcrumbs align-content-stretch" Style="overflow-x: scroll; background-color: var(--mud-palette-surface);">
 
-			<MudIconButton Variant="Variant.Filled" Color="Color.Default" Icon="@Icons.Material.Filled.ArrowBack"
+			<MudIconButton Title="Back" Variant="Variant.Filled" Color="Color.Default" Icon="@Icons.Material.Filled.ArrowBack"
 					   Disabled="@(BreadCrumbs.Count <= 1)" OnClick="Back" DisableElevation="true" />
 
 			@if (LayoutState.SmAndUp)
@@ -227,7 +227,7 @@
 								}
 								else
 								{
-									<MudIconButton DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+									<MudIconButton Title="Actions" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
 								}
 							</ActivatorContent>
 							<ChildContent>
@@ -311,7 +311,7 @@
 									}
 									else
 									{
-										<MudIconButton DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+										<MudIconButton Title="Actions" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
 									}
 								</ActivatorContent>
 								<ChildContent>
