@@ -6,27 +6,28 @@
 
 <PageTitle>Admin panel</PageTitle>
 
-	<MudTabs @ref="_tabs" Outlined="true" Position="Position.Top"
+	<MudTabs @ref="_tabs" Outlined="true" Position="Position.Top" HeaderPosition="TabHeaderPosition.After" 
 	         ApplyEffectsToContainer="true" Class="" PanelClass="panel-height-maximum" Style="height: calc(100%);">
 
-		<MudTabPanel Text="Unverified users">
-			<UserManager Unverified="true" Style="height: 100%;" />
-		</MudTabPanel>
+    <ChildContent>
+        <MudTabPanel Text="Unverified users">
+            <UserManager Unverified="true" Style="height: 100%;" />
+        </MudTabPanel>
 
-		<MudTabPanel Text="All users">
-			<UserManager Style="height: 100%;" />
-		</MudTabPanel>
+        <MudTabPanel Text="All users">
+            <UserManager Style="height: 100%;" />
+        </MudTabPanel>
+    </ChildContent>
 
-		<MudTabPanel>
-			<TabContent>
-			<MudLink Color="Color.Default" Underline="Underline.None" Target="_blank" Href="@AppSettingsService.AppSettings.AdminConsoleUrl">
-					<MudStack Row="true" Class="">
-						<MudText Typo="Typo.body2">More</MudText>
-						<MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.OpenInNew" />
-					</MudStack>
-			</MudLink>
-			</TabContent>
-		</MudTabPanel>
+	<Header>
+		<MudLink Style="" Class="mud-tab"
+				 Color="Color.Default" Underline="Underline.None" Target="_blank" Href="@AppSettingsService.AppSettings.AdminConsoleUrl">
+
+			<MudIcon Class="text-icon mr-2" Size="Size.Small" Icon="@Icons.Material.Filled.OpenInNew" />
+			More
+		</MudLink>
+	</Header>
+
 		
 	</MudTabs>
 
