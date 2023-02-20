@@ -1,7 +1,9 @@
 ﻿function downloadFile (fileName, url) {
     const anchorElement = document.createElement('a');
+    anchorElement.visibility="hidden";
     anchorElement.href = url;
     anchorElement.download = fileName ?? '';
+    document.body.appendChild(a);
     anchorElement.click();
     anchorElement.remove();
 }
