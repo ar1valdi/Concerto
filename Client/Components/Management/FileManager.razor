@@ -662,7 +662,7 @@
 
 	public async Task DownloadFile(FileItem file)
 	{
-		await StorageService.DownloadFile(file.Id, file.Name);
+		await StorageService.DownloadFile(file.Id, file.FullName);
 	}
 
 
