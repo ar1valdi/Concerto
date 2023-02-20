@@ -3,7 +3,7 @@
     anchorElement.visibility="hidden";
     anchorElement.href = url;
     anchorElement.download = fileName ?? '';
-    document.body.appendChild(a);
+    document.body.appendChild(anchorElement);
     anchorElement.click();
     anchorElement.remove();
 }

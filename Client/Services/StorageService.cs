@@ -197,9 +197,10 @@ public class StorageService : StorageClient, IStorageService
             var url = $"Storage/DownloadFile?fileId={fileId}&token={token}";
             await _JS.InvokeVoidAsync("downloadFile", saveAs, $"{_http.BaseAddress}{url}");
         }
-        catch
+        catch (Exception e)
         {
             _snackbar.Add("Failed to initiate download.", Severity.Error);
+            Console.WriteLine(e);
         }
     }
 
