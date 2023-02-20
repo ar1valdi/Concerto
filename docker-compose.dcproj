@@ -4,7 +4,7 @@
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Linux</DockerTargetOS>
     <ProjectGuid>c02bb558-db04-4672-89bf-2b544182607f</ProjectGuid>
-    <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
+    <DockerLaunchAction>None</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/concerto/app</DockerServiceUrl>
     <DockerServiceName>concerto.server</DockerServiceName>
   </PropertyGroup>
@@ -30,6 +30,7 @@
     <None Include="compose/docker-compose.base.yml">
       <DependentUpon>compose/docker-compose.yml</DependentUpon>
     </None>
+    <None Include="docker-compose.override.yml" />
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
     <None Include="nginx\Dockerfile" />

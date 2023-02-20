@@ -1,5 +1,4 @@
-﻿using Concerto.Server.Extensions;
-using Concerto.Server.Middlewares;
+﻿using Concerto.Server.Middlewares;
 using Concerto.Server.Services;
 using Concerto.Shared.Extensions;
 using Concerto.Shared.Models.Dto;
@@ -23,7 +22,7 @@ public class CourseController : ControllerBase
 		_courseService = courseService;
 	}
 
-	private long UserId => HttpContext.UserId();
+	private Guid UserId => HttpContext.UserId();
 
 	[HttpGet]
 	public async Task<ActionResult<IEnumerable<CourseListItem>>> GetCurrentUserCourses()
@@ -72,7 +71,7 @@ public class CourseController : ControllerBase
 		return Forbid();
 	}
 
-	[Authorize(Roles = "teacher")]
+	[Authorize(Policy = AuthorizationPolicies.IsTeacher.Name)]
 	[HttpPost]
 	[ProducesResponseType(StatusCodes.Status201Created)]
 	[ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -85,7 +84,7 @@ public class CourseController : ControllerBase
 		return BadRequest();
 	}
 
-	[Authorize(Roles = "teacher")]
+	[Authorize(Policy = AuthorizationPolicies.IsTeacher.Name)]
 	[HttpPost]
 	public async Task<ActionResult<long>> CloneCourse([FromBody] CloneCourseRequest request)
 	{
@@ -95,7 +94,7 @@ public class CourseController : ControllerBase
 		return Ok(newCourseId);
 	}
 
-	[Authorize(Roles = "teacher")]
+	[Authorize(Policy = AuthorizationPolicies.IsTeacher.Name)]
 	[HttpPost]
 	public async Task<ActionResult> UpdateCourse([FromBody] UpdateCourseRequest request)
 	{
@@ -105,7 +104,7 @@ public class CourseController : ControllerBase
 		return BadRequest();
 	}
 
-	[Authorize(Roles = "teacher")]
+	[Authorize(Policy = AuthorizationPolicies.IsTeacher.Name)]
 	[HttpDelete]
 	public async Task<ActionResult> DeleteCourse(long courseId)
 	{
@@ -121,5 +120,5 @@ public class CourseController : ControllerBase
 	{
 		return Ok(User.IsAdmin() || await _courseService.CanManageCourseSessions(courseId, UserId));
 	}
-	
+
 }
