@@ -44,9 +44,10 @@ class RecordingManager
 
     videoFileWorker;
 
-    constructor(dotNetMeetingsComponent, saveInterval = 500)
+    constructor(dotNetMeetingsComponent, filenameBase, saveInterval = 500)
     {
         this.dotNetMeetingsComponent = dotNetMeetingsComponent;
+        this.filenameBase = filenameBase;
         this.saveInterval = saveInterval;
     }
     
@@ -84,15 +85,18 @@ class RecordingManager
         }
         catch (e)
         {
+            alert("Recording not supported!")
             stopRecording();
             return;
         }
         
         // mix audio from screen and microphone
-        if (selectedAudioInputId && selectedAudioInputId.length > 0)
-            this.micMediaStream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: selectedAudioInputId } });
-        else
-            this.micMediaStream = await navigator.mediaDevices.getUserMedia({audio: true, video: false });
+        if (selectedAudioInputId != "none") {
+            if (selectedAudioInputId && selectedAudioInputId.length > 0)
+                this.micMediaStream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: selectedAudioInputId } });
+            else
+                this.micMediaStream = await navigator.mediaDevices.getUserMedia({audio: true, video: false });
+        }
 
         try {
             this.micInput = this.audioContext.createMediaStreamSource(this.micMediaStream);
@@ -129,7 +133,11 @@ class RecordingManager
         
         this.videoFileWorker = new Worker("js/worker.js");
         this.videoFileWorker.onmessage = (e) => {
-            let filename = window.prompt('Enter file name');
+            // generate filename from base and current date in DD-MM-YY_HH:mm:ss
+            let filename  = this.filenameBase + " " + new Date().toLocaleDateString().replace(/\//g, "-") + " " + new Date().toLocaleTimeString().replace(/:/g, "-");
+            // remove characters not allowed in filename
+            filename = filename.replace(/[\\/:*?"<>|]/g, "_");
+
             let downloadLink = document.createElement('a');
             downloadLink.href = e.data;
             downloadLink.download = `${filename}.${recordingManager.outputFileExtension}`;
@@ -137,6 +145,8 @@ class RecordingManager
             downloadLink.click();
             URL.revokeObjectURL(e.data);
             document.body.removeChild(downloadLink);
+
+            disablePreventWindowClose("recording")
         };
 
         const recordingManager = this;
@@ -149,19 +159,19 @@ class RecordingManager
         this.recorder.onstop = () =>
         {
             this.stream?.getTracks().forEach((track) => track.stop());
-            recordingManager.screenMediaStream.getTracks().forEach((track) => track.stop());
-            recordingManager.micMediaStream.getTracks().forEach((track) => track.stop());
+            recordingManager.screenMediaStream?.getTracks().forEach((track) => track.stop());
+            recordingManager.micMediaStream?.getTracks().forEach((track) => track.stop());
             recordingManager.videoFileWorker.postMessage(["e"]);
         };
 
         // stop recording on stream inactive
-        this.screenMediaStream.getVideoTracks().forEach((track) => {
+        this.screenMediaStream?.getVideoTracks().forEach((track) => {
             track.onended = async () => {
                 await recordingManager.stopRecording();
             };
         });
         
-        this.micMediaStream.getAudioTracks().forEach((track) => {
+        this.micMediaStream?.getAudioTracks().forEach((track) => {
             track.onended = async () => {
                 await recordingManager.stopRecording();
             };
@@ -170,12 +180,16 @@ class RecordingManager
         
         this.videoFileWorker.postMessage(["b", this.mimeType, this.outputFileExtension]);
         this.recorder.start(this.saveInterval);
+        enablePreventWindowClose("recording")
         await this.dotNetMeetingsComponent.invokeMethodAsync('RecordingStateChanged', true);
     }
     
     async stopRecording()
     {
+        if(this.recorder.state == "inactive")
+            return;
         this.recorder.stop();
+
         await this.dotNetMeetingsComponent.invokeMethodAsync('RecordingStateChanged', false);
         window.recordingManager = null;
     }

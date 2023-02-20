@@ -1,17 +1,11 @@
-﻿@using Concerto.Client.Components.Layout;
-@using Concerto.Client.Extensions
-@using Concerto.Client.Services
-@using Concerto.Shared.Extensions;
-@using Concerto.Shared.Models.Dto
-@using Microsoft.AspNetCore.Components.Authorization
-@using Concerto.Client.Components.Dialogs
-@inject NavigationManager NavigationManager
+﻿@using Microsoft.AspNetCore.Components.Authorization
+
+@inherits MudComponentBase
+
 @inject IDialogService DialogService
-@inject IJSRuntime JsRuntime
 @inject ISnackbar Snackbar
 @inject ICourseService CourseService
 
-@inherits MudComponentBase
 
 @if (Loading)
 {
@@ -21,7 +15,7 @@ else
 {
 	<MudTable T="CourseListItem" Items="Courses" Hover="true" Elevation="0" Filter="new Func<CourseListItem, bool>(CourseFilter)"
 		  Style="@TableStyle" Class="@Class" Height="100%" FixedHeader="true" FixedFooter="true" Outlined="true"
-	          RowsPerPage="PageSize.Default">
+		  RowsPerPage="PageSize.Default" RowStyle="cursor: pointer;" OnRowClick="OnRowClick">
 		<ToolBarContent>
 			<MudText Class="mr-2" Typo="Typo.subtitle1">Your courses</MudText>
 			<MudSpacer/>
@@ -53,7 +47,7 @@ else
 
 						@if (ManagementEnabled)
 						{
-							<AuthorizeView Policy="@AuthorizationPolicies.IsAdmin.Name">
+							<AuthorizeView Policy="@AuthorizationPolicies.IsTeacher.Name">
 								<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.AddBox"
 									  OnClick="CreateCourse" OnTouch="CreateCourse" Disabled="false">
 									Create course
@@ -91,7 +85,7 @@ else
 						<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@SelectIcon" OnTouch="() => SelectCourse(context)" OnClick="() => SelectCourse(context)">@SelectLabel</MudMenuItemW>
 						@if (ManagementEnabled)
 						{
-							<AuthorizeView Policy="@AuthorizationPolicies.IsAdmin.Name" Context="auth">
+							<AuthorizeView Policy="@AuthorizationPolicies.IsTeacher.Name" Context="auth">
 								<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.CopyAll" OnTouch="() => CloneCourse(context)" OnClick="() => CloneCourse(context)">Clone</MudMenuItemW>
 							</AuthorizeView>
 						}
@@ -146,9 +140,9 @@ else
 		await Initialize();
 	}
 
-	private void SelectCourse(CourseListItem course)
+	private async Task SelectCourse(CourseListItem course)
 	{
-		OnCourseSelected.InvokeAsync(course.Id);
+		await OnCourseSelected.InvokeAsync(course.Id);
 	}
 
 	private async Task DeleteCourse(CourseListItem course)
@@ -166,9 +160,9 @@ else
 		}
 	}
 
-	private void OnRowClick(TableRowClickEventArgs<CourseListItem> rowClick)
+	private async Task OnRowClick(TableRowClickEventArgs<CourseListItem> rowClick)
 	{
-		SelectCourse(rowClick.Item);
+		await SelectCourse(rowClick.Item);
 	}
 
 	private async Task CreateCourse()
