@@ -47,7 +47,7 @@
 		<MudTable @ref="_table" T="FolderContentItem" Comparer="_comparer" Items="FolderContentItems" MultiSelection="false"
 			  Loading="_loading" Filter="new Func<FolderContentItem, bool>(FolderContentItemFilter)" SortLabel="Sort By"
 			  Class="" Style="height: calc(100% - 45px)" Outlined="false" Height="@($"calc(100% - {TableContentHeightDiff})")" Hover="true" Elevation="0" FixedHeader="true" FixedFooter="true"
-			  OnRowClick="OnRowClick" RowStyleFunc="RowStyleFunc" RowClassFunc="RowClassFunc" AllowUnsorted="false" Dense="true">
+			  OnRowClick="OnRowClick" RowStyle="cursor: pointer;" RowClassFunc="RowClassFunc" AllowUnsorted="false" Dense="true">
 			<ToolBarContent>
 
 				@if (LayoutState.SmAndUp)
@@ -720,8 +720,7 @@
 
 	public string RowStyleFunc(FolderContentItem item, int rowNumber)
 	{
-		if (item is FolderItem) return "cursor: pointer;";
-		return string.Empty;
+		return "cursor: pointer;";
 	}
 
 	public string RowClassFunc(FolderContentItem item, int rowNumber)
