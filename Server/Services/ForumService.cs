@@ -134,6 +134,8 @@ public class ForumService
 
 		await _context.Comments.AddAsync(comment);
 		await _context.SaveChangesAsync();
+
+		await _context.Entry(comment).Reference(c => c.Author).LoadAsync();
 		return comment.ToViewModel(true, true);
 	}
 
@@ -165,6 +167,7 @@ public class ForumService
 		comment.Content = request.Content;
 		comment.Edited = true;
 		await _context.SaveChangesAsync();
+		await _context.Entry(comment).Reference(c => c.Author).LoadAsync();
 		return comment.ToViewModel(true, true);
 	}
 
