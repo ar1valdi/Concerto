@@ -4,7 +4,7 @@
 @inject IDialogService DialogService
 
 <MudTable T="UserIdentity" Items="Users" Loading="Loading"
-		  Height="100%" Class="@Class" Style="@($"display: grid; grid-template-rows: min-content 1fr min-content; {Style}")" RowsPerPage="PageSize.Default" Filter="new Func<UserIdentity, bool>(UserFilter)"
+		  Height="100%" Class="@Class" Style="@($"height: 100%; display: grid; grid-template-rows: min-content 1fr; {Style}")" RowsPerPage="PageSize.Default" Filter="new Func<UserIdentity, bool>(UserFilter)"
 		  FixedHeader="true" FixedFooter="true" Outlined="true" Hover="true" Elevation="0">
 
 	<ToolBarContent>
@@ -52,47 +52,53 @@
 		<MudTd DataLabel="Name">@context.FirstName</MudTd>
 		<MudTd DataLabel="Surname">@context.LastName</MudTd>
 		<MudTd DataLabel="Username">@context.Username</MudTd>
-		<MudTd DataLabel="Email" Style="">
-			@if(context.EmailVerified)
-			{
-				<MudIcon Class="text-icon" Size="Size.Small" Color="Color.Success"  Icon="@Icons.Material.Filled.Verified" />
-			}
-			else
-			{
-				<MudIcon Class="text-icon" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Error" />
-			}
-			@context.Email
+		<MudTd DataLabel="Email" Style="text-align: right">
+			<div>
+				@if (context.EmailVerified)
+				{
+					<MudIcon Class="text-icon" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.Verified" />
+				}
+				else
+				{
+					<MudIcon Class="text-icon" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Error" />
+				}
+				@context.Email
+			</div>
 		</MudTd>
 
 
-		<MudTd DataLabel="Role" Style="">
-			@if (context.Role is Role.Unverified)
-			{
-				<MudIcon Class="text-icon" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Error" />
-			}
-			else
-			{
-				<MudIcon Class="text-icon" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.VerifiedUser" />
-			}
-			@context.Role.ToDisplayString()
+		<MudTd DataLabel="Role">
+			<div>
+				@if (context.Role is Role.Unverified)
+				{
+					<MudIcon Class="text-icon" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Error" />
+				}
+				else
+				{
+					<MudIcon Class="text-icon" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.VerifiedUser" />
+				}
+				@context.Role.ToDisplayString()
+			</div>
 		</MudTd>
 
 		<MudTd DataLabel="Actions">
 
-			@if(Unverified && context.Role == Role.Unverified)
-			{
-				<MudIconButton Disabled="!context.EmailVerified"  Variant="Variant.Filled" Color="Color.Success" DisableElevation="true" Icon="@Icons.Material.Filled.Check"
-						   OnClick="async () => await VerifyUser(context)"  />
-				<MudIconButton Variant="Variant.Filled" Color="Color.Error" DisableElevation="true" Icon="@Icons.Material.Filled.Close"
-						   OnClick="async () => await DeleteUser(context)"  />
-			}
-			else
-			{
-				<MudIconButton Variant="Variant.Filled" Color="Color.Info" DisableElevation="true" Icon="@Icons.Material.Filled.Settings"
-						   OnClick="async () => await UpdateUser(context)" />
-				<MudIconButton Variant="Variant.Filled" Color="Color.Error" DisableElevation="true" Icon="@Icons.Material.Filled.PersonRemove"
-						   OnClick="async () => await DeleteUser(context)" />
-			}
+			<div>
+				@if (Unverified && context.Role == Role.Unverified)
+				{
+					<MudIconButton Disabled="!context.EmailVerified" Variant="Variant.Filled" Color="Color.Success" DisableElevation="true" Icon="@Icons.Material.Filled.Check"
+							   OnClick="async () => await VerifyUser(context)" />
+					<MudIconButton Variant="Variant.Filled" Color="Color.Error" DisableElevation="true" Icon="@Icons.Material.Filled.Close"
+							   OnClick="async () => await DeleteUser(context)" />
+				}
+				else
+				{
+					<MudIconButton Variant="Variant.Filled" Color="Color.Info" DisableElevation="true" Icon="@Icons.Material.Filled.Settings"
+							   OnClick="async () => await UpdateUser(context)" />
+					<MudIconButton Variant="Variant.Filled" Color="Color.Error" DisableElevation="true" Icon="@Icons.Material.Filled.PersonRemove"
+							   OnClick="async () => await DeleteUser(context)" />
+				}
+			</div>
 		</MudTd>
 	</RowTemplate>
 
