@@ -1,29 +1,25 @@
 const FILE_EXTENSIONS = ["mp4", "webm", "ogg", "x-matroska"];
 
 const CODECS = [
-  "vp9",
-  "vp9.0",
-  "vp8",
-  "vp8.0",
-  "avc1",
-  "av1",
-  "h265",
-  "h.265",
-  "h264",
-  "h.264",
-  "opus"
+    "vp9",
+    "vp9.0",
+    "vp8",
+    "vp8.0",
+    "avc1",
+    "av1",
+    "h265",
+    "h.265",
+    "h264",
+    "h.264"
 ];
 
-// generate all mime types combinations from FILE_EXTENSIONS and CODECS in "video/fileExtension;codecs=codec" format
-const MIME_TYPES = FILE_EXTENSIONS.reduce((mimeTypes, fileExtension) => {
-    return mimeTypes.concat(CODECS.map(codec => `video/${fileExtension};codecs=${codec}`));
-}, []);
+// 10GB test
+const MAX_RECORDING_SIZE = 10 * 1024 * 1024 * 1024;
 
-class RecordingManager
-{
+class RecordingManager {
     screenMediaStream;
     micMediaStream;
-   
+
     audioContext;
     micInput;
     audioInput;
@@ -32,30 +28,28 @@ class RecordingManager
     outputStream;
     recorder;
 
-    writeToFile;
-    outputFileHandle;
-    outputWriteable;
-    outputBuffer
-    outputFileExtension;
-
     saveInterval;
 
     dotNetMeetingsComponent
 
     videoFileWorker;
 
-    constructor(dotNetMeetingsComponent, filenameBase, saveInterval = 500)
-    {
+    filename
+    mimeType
+    extension
+    recordingChunksLength
+    recordingChunks
+
+    constructor(dotNetMeetingsComponent, filenameBase, saveInterval = 500) {
         this.dotNetMeetingsComponent = dotNetMeetingsComponent;
         this.filenameBase = filenameBase;
         this.saveInterval = saveInterval;
     }
-    
-    getMimeTypeAndExtension()
-    {
+
+    getMimeTypeAndExtension() {
         for (const ext of FILE_EXTENSIONS) {
             for (const codec of CODECS) {
-                var mimeType = `video/${ext};codecs=${codec}`;
+                var mimeType = `video/${ext};codecs=${codec},opus`;
                 if (MediaRecorder.isTypeSupported(mimeType)) {
                     return [mimeType, ext];
                 }
@@ -64,11 +58,17 @@ class RecordingManager
         return [null, null];
     };
 
-    async startRecording(selectedAudioInputId)
-    {
+
+    async startRecording(selectedAudioInputId) {
+        this.part = 0;
+        // generate filename from base and current date in DD-MM-YY_HH:mm:ss
+        var filename = this.filenameBase + " " + new Date().toLocaleDateString().replace(/\//g, "-") + " " + new Date().toLocaleTimeString().replace(/:/g, "-");
+        // remove characters not allowed in filename
+        filename = filename.replace(/[\\/:*?"<>|]/g, "_");
+        this.filename = filename;
+
         window.recordingManager = this;
         this.audioContext = new AudioContext();
-
 
         try {
             this.screenMediaStream = await navigator.mediaDevices.getDisplayMedia({
@@ -83,85 +83,71 @@ class RecordingManager
 
             this.audioOutput = this.audioContext.createMediaStreamDestination();
         }
-        catch (e)
-        {
-            alert("Recording not supported!")
-            stopRecording();
+        catch (e) {
+            alert("Recording canceled or not supported!")
+            this.stopRecording();
             return;
         }
-        
+
         // mix audio from screen and microphone
         if (selectedAudioInputId != "none") {
             if (selectedAudioInputId && selectedAudioInputId.length > 0)
                 this.micMediaStream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: selectedAudioInputId } });
             else
-                this.micMediaStream = await navigator.mediaDevices.getUserMedia({audio: true, video: false });
+                this.micMediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         }
 
         try {
             this.micInput = this.audioContext.createMediaStreamSource(this.micMediaStream);
             this.micInput.connect(this.audioOutput);
         }
-        catch (e)
-        {
-            alert("Recording with no microphone!")
+        catch (e) {
+            if (!confirm("Recording with no microphone!\nConfirm to start recording."))
+            {
+                this.stopRecording();
+                return;
+            }
         }
 
         try {
             this.audioInput = this.audioContext.createMediaStreamSource(this.screenMediaStream);
             this.audioInput.connect(this.audioOutput);
         }
-        catch (e)
-        {
-            alert("Recording with no audio!")
+        catch (e) {
+            alert("Cannot get audio from browser tab or computer!\nScreen/tab was shared without audio or your browser doesn't support this feature. Recording will be stopped.");
+            this.stopRecording();
+            return;
         }
 
-
-        
         // mix video with audio
         this.outputStream = new MediaStream([...this.screenMediaStream.getVideoTracks(), ...this.audioOutput.stream.getAudioTracks()]);
 
-        var [mimeType, extension] = this.getMimeTypeAndExtension();
-        
-        if (mimeType == null)
-        {
+        [this.mimeType, this.extension] = this.getMimeTypeAndExtension();
+
+        if (this.mimeType == null) {
             throw new Error("Recording is not supported");
         }
 
-        this.outputFileExtension = extension;
-        this.recorder = new MediaRecorder(this.outputStream, { mimeType: mimeType });
-        
-        this.videoFileWorker = new Worker("js/worker.js");
-        this.videoFileWorker.onmessage = (e) => {
-            // generate filename from base and current date in DD-MM-YY_HH:mm:ss
-            let filename  = this.filenameBase + " " + new Date().toLocaleDateString().replace(/\//g, "-") + " " + new Date().toLocaleTimeString().replace(/:/g, "-");
-            // remove characters not allowed in filename
-            filename = filename.replace(/[\\/:*?"<>|]/g, "_");
-
-            let downloadLink = document.createElement('a');
-            downloadLink.href = e.data;
-            downloadLink.download = `${filename}.${recordingManager.outputFileExtension}`;
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            URL.revokeObjectURL(e.data);
-            document.body.removeChild(downloadLink);
-
-            disablePreventWindowClose("recording")
-        };
+        this.recorder = new MediaRecorder(this.outputStream, { mimeType: this.mimeType });
 
         const recordingManager = this;
-        this.recorder.ondataavailable = (e) =>
-        {
-            if (e.data.size > 0)
-                recordingManager.videoFileWorker.postMessage(["d" , e.data]);
+
+        this.recordingChunks = [];
+        this.recordingChunksLength = 0;
+
+        this.recorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+                recordingManager.recordingChunks.push(e.data);
+                recordingManager.recordingChunksLength += e.data.size;
+            }
+            if (recordingManager.recordingChunksLength > MAX_RECORDING_SIZE) {
+                recordingManager.stopRecording();
+            }
         };
-        
-        this.recorder.onstop = () =>
-        {
-            this.stream?.getTracks().forEach((track) => track.stop());
-            recordingManager.screenMediaStream?.getTracks().forEach((track) => track.stop());
-            recordingManager.micMediaStream?.getTracks().forEach((track) => track.stop());
-            recordingManager.videoFileWorker.postMessage(["e"]);
+
+        // stop tracks and save recording file on stop
+        this.recorder.onstop = () => {
+            recordingManager.saveRecording();
         };
 
         // stop recording on stream inactive
@@ -170,27 +156,56 @@ class RecordingManager
                 await recordingManager.stopRecording();
             };
         });
-        
+
+        // stop recording on stream inactive
         this.micMediaStream?.getAudioTracks().forEach((track) => {
             track.onended = async () => {
                 await recordingManager.stopRecording();
             };
         });
-        
-        
-        this.videoFileWorker.postMessage(["b", this.mimeType, this.outputFileExtension]);
+
         this.recorder.start(this.saveInterval);
-        enablePreventWindowClose("recording")
+        enablePreventWindowClose("recording");
         await this.dotNetMeetingsComponent.invokeMethodAsync('RecordingStateChanged', true);
     }
-    
-    async stopRecording()
-    {
-        if(this.recorder.state == "inactive")
-            return;
-        this.recorder.stop();
 
+    async stopRecording() {
+        this.stopAllTracks();
+        this.recorder?.stop();
         await this.dotNetMeetingsComponent.invokeMethodAsync('RecordingStateChanged', false);
         window.recordingManager = null;
     }
+
+    stopAllTracks()
+    {
+        this.recorder?.stream?.getTracks().forEach((track) => track.stop());
+        this.screenMediaStream?.getTracks().forEach((track) => track.stop());
+        this.audioOutput?.stream?.getTracks().forEach((track) => track.stop());
+    }
+
+    saveRecording() {
+         this.screenMediaStream?.getTracks().forEach((track) => track.stop());
+         this.micMediaStream?.getTracks().forEach((track) => track.stop());
+         this.saveRecordingFile(this.recordingChunks)
+                .then(() => disablePreventWindowClose("recording"));
+        this.recordingChunks = [];
+    }
+
+    async saveRecordingFile(recordingChunks) {
+        let recording = new Blob([...recordingChunks], { type: this.mimeType });
+        if (this.extension = "webm")
+            recording = await fixWebmDuration(recording, { type: this.mimeType });
+
+        let recordingUrl = URL.createObjectURL(recording);
+        let downloadLink = document.createElement('a');
+        downloadLink.href = recordingUrl;
+        downloadLink.download = `${this.filename}.${this.extension}`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        URL.revokeObjectURL(e.data);
+        document.body.removeChild(downloadLink);
+    }
+
 }
+
+
