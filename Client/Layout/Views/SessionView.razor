@@ -21,6 +21,11 @@ else
 			<Meeting MeetingName="@SelectedSession?.Name" Guid="@SelectedSession?.MeetingGuid" UploadFolderId="SelectedSession?.FolderId" />
 		</MudTabPanel>
 
+		<MudTabPanel Text="Recordings">
+			<FileManager InitialFolderId="SelectedSession!.FolderId"
+					 Class="flex-grow-1" Style="height: 100%;" Elevation="0" />
+		</MudTabPanel>
+
 		<MudTabPanel Text="Course content">
 			<FileManager InitialFolderId="SelectedSession!.CourseRootFolderId"
 					 Class="flex-grow-1" Style="height: 100%;" Elevation="0" />
