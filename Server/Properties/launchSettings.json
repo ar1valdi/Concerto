@@ -25,7 +25,6 @@
     },
     "Concerto.Server": {
       "commandName": "Project",
-      "commandLineArgs": "watch run",
       "launchBrowser": true,
       "launchUrl": "concerto/app",
       "environmentVariables": {
