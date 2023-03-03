@@ -14,14 +14,15 @@
     "https": {
       "commandName": "Project",
       "commandLineArgs": "--pathbase=/concerto/app",
-      "launchUrl": "concerto/app",
       "launchBrowser": true,
+      "launchUrl": "concerto/app",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "DevelopmentStandalone"
       },
       "dotnetRunMessages": true,
       "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/concerto/app/_framework/debug/ws-proxy?browser={browserInspectUri}",
-      "applicationUrl": "https://localhost:7080/;http://localhost:5203/"
+      "applicationUrl": "https://localhost:7080/;http://localhost:5203/",
+      "hotReloadEnabled": true
     },
     "IIS Express": {
       "commandName": "IISExpress",
