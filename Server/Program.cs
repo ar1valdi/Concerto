@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Npgsql;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger("Concerto.Server Builder");
@@ -151,7 +152,7 @@ if (builder.Environment.IsDevelopment())
 
 var app = builder.Build();
 
-app.UsePathBase(AppSettings.Web.BasePath);
+app.UsePathBase($"/{AppSettings.Web.BasePath.Trim('/')}");
 
 app.UseSwagger();
 app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Blazor API V1"); });
@@ -182,7 +183,23 @@ app.UseAuthorization();
 app.MapRazorPages();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notifications");
-app.MapFallbackToFile("index.html");
+
+var contentRoot = app.Environment.WebRootFileProvider;
+// load index.html
+var indexHtml = contentRoot.GetFileInfo("index.html");
+
+var indexHtmlContent = File.ReadAllText(indexHtml.PhysicalPath!);
+var basePath = AppSettings.Web.BasePath.Trim('/');
+var baseTag = @$"<base href=""/{basePath}/"">";
+
+// replace base tag with <base href="/{basePath}/"> 
+var indexHtmlContentWithBase = Regex.Replace(indexHtmlContent, "<base *href=\".*?\" */>", baseTag);
+// write to index_base.html
+var indexBaseHtml = Path.Combine(Path.GetDirectoryName(indexHtml.PhysicalPath)!, "index_base.html");
+File.WriteAllText(indexBaseHtml, indexHtmlContentWithBase);
+
+app.MapFallbackToFile("index_base.html");
+
 
 var diagnosticSource = app.Services.GetRequiredService<DiagnosticListener>();
 using var badRequestListener = new BadRequestEventListener(diagnosticSource, (badRequestExceptionFeature) =>
