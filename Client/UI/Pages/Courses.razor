@@ -1,0 +1,37 @@
+﻿@attribute [Authorize]
+
+@page "/courses"
+@using Concerto.Client.Services
+@using Microsoft.AspNetCore.Authorization
+@using Concerto.Client.UI.Components.Lists
+
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
+
+@inject IBreadcrumbsService BreadcrumbsService
+@inject ICourseService CourseService
+
+
+<PageTitle>Courses</PageTitle>
+
+<CoursesList Style="height: 100%;" OnCourseSelected="SelectCourse"/>
+
+@code {
+
+	protected override void OnInitialized()
+	{
+		BreadcrumbsService.Set(
+			Icons.Material.Filled.List,
+			"Courses",
+			new BreadcrumbItem("Courses", null, true)
+			);
+	}
+
+	private void SelectCourse(long courseId)
+	{
+		NavigationManager.NavigateTo($"courses/{courseId}");
+	}
+
+}

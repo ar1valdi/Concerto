@@ -1,0 +1,22 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+
+<MudNavMenu>
+	<MudText Class="px-4" Typo="Typo.h6">Menu</MudText>
+	<MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+	<AuthorizeView Policy="@AuthorizationPolicies.IsAdmin.Name">
+		<MudNavLink Href="admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin panel</MudNavLink>
+	</AuthorizeView>
+	<AuthorizeView >
+		@if(!LayoutState.IsMobile)
+		{
+			<MudNavLink Href="recorder" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Camera">Recording tool</MudNavLink>
+		}
+		<MudNavLink Href="courses" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.MenuBook">Courses</MudNavLink>
+		<CoursesNavGroup/>
+	</AuthorizeView>
+</MudNavMenu>
+
+@code
+{
+	[CascadingParameter] LayoutState LayoutState { get; set; } = LayoutState.Default;
+}
