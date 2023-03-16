@@ -1,0 +1,132 @@
+﻿@inherits MudComponentBase;
+
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject ICourseService CourseService
+@inject ISessionService SessionService
+
+<MudTable T="SessionListItem" Items="Sessions" Hover="true" Outlined="false" Square="true" Elevation="0" FixedHeader="true" FixedFooter="true"
+          Height="100%" Loading="@Loading" Class="@Class" RowStyle="cursor: pointer;"
+		  Style="@TableStyle"
+			AllowUnsorted="false"
+          OnRowClick="OnRowClick">
+	<ToolBarContent>
+		<MudText Class="mr-2" Typo="Typo.h6">Sessions</MudText>
+		<MudSpacer/>
+		<MudButtonGroup OverrideStyles="false">
+
+			<MudIconButton Title="Refresh" DisableElevation="true" Icon="@Icons.Material.Filled.Refresh" Color="Color.Default" Variant="Variant.Filled" OnClick="Initialize" />
+			<MudIconButton Title="Create session" DisableElevation="true" Icon="@Icons.Material.Filled.AddBox" Color="Color.Default" Variant="Variant.Filled" OnClick="CreateSession" Disabled="false" />
+			<MudMenu Dense="true">
+				<ActivatorContent>
+					<MudIconButton Title="More" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+				</ActivatorContent>
+				<ChildContent>
+					<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Refresh"
+								  OnClick="Initialize" OnTouch="Initialize" Disabled="false">
+						Refresh view
+					</MudMenuItemW>
+					<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.AddBox"
+								  OnClick="CreateSession" OnTouch="CreateSession" Disabled="_canManageSessions">
+						Create session
+					</MudMenuItemW>
+				</ChildContent>
+			</MudMenu>
+		</MudButtonGroup>
+
+
+	</ToolBarContent>
+	<HeaderContent>
+		<MudTh>
+			<MudTableSortLabel SortBy="new Func<SessionListItem, object>(x => x.Name)">
+				Name
+			</MudTableSortLabel>
+		</MudTh>
+		<MudTh>
+			<MudTableSortLabel InitialDirection="SortDirection.Descending" SortBy="new Func<SessionListItem, object>(x => x.ScheduledDate)">
+				Date
+			</MudTableSortLabel>
+		</MudTh>
+		<MudTh/>
+
+	</HeaderContent>
+	<RowTemplate>
+		<MudTd DataLabel="Name">@context.Name</MudTd>
+		<MudTd DataLabel="Scheduled for">@context.ScheduledDate.ToLocalTime().ToString()</MudTd>
+		<MudTd DataLabel="Actions"  Style="text-align: right">
+			<MudMenu Dense="true">
+				<ActivatorContent>
+					<MudIconButton Title="Actions" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+				</ActivatorContent>
+				<ChildContent>
+					<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.OpenInBrowser" OnTouch="() => SelectSession(context)" OnClick="() => SelectSession(context)">Open</MudMenuItemW>
+					<MudMenuItemW Disabled="!_canManageSessions" IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete" OnTouch="() => DeleteSession(context)" OnClick="() => DeleteSession(context)">Delete</MudMenuItemW>
+				</ChildContent>
+			</MudMenu>
+		</MudTd>
+	</RowTemplate>
+</MudTable>
+
+@code
+{
+	[Parameter]
+	public long CourseId { get; set; }
+
+	[Parameter]
+	public EventCallback<long> OnSessionSelected { get; set; }
+
+	[CascadingParameter] LayoutState LayoutState { get; set; } = LayoutState.Default;
+
+	private string TableStyle => LayoutState.Xs
+	? $"min-height: 245px; display:grid; grid-template-rows: 0fr 0fr 1fr; {Style}"
+	: $"min-height: 245px; display:grid; grid-template-rows: 0fr 1fr; {Style}";
+
+	private IEnumerable<SessionListItem>? Sessions;
+	private bool _canManageSessions = false;
+	bool Loading => Sessions is null;
+
+	private async Task SelectSession(SessionListItem session)
+	{
+		await OnSessionSelected.InvokeAsync(session.Id);
+	}
+
+	private async Task OnRowClick(TableRowClickEventArgs<SessionListItem> tableClick)
+	{
+		await SelectSession(tableClick.Item);
+	}
+
+	private async Task Initialize()
+	{
+		Sessions = await SessionService.GetCourseSessionsAsync(CourseId);
+		_canManageSessions = await CourseService.CanManageCourseSessionsAsync(CourseId);
+	}
+
+	protected override async Task OnParametersSetAsync()
+	{
+		await Initialize();
+	}
+
+	private async Task CreateSession()
+	{
+		var parameters = new DialogParameters { ["CourseId"] = CourseId };
+		var result = await DialogService.Show<CreateSessionDialog>("Create new session", parameters).Result;
+		if (result.Canceled) return;
+		await Initialize();
+	}
+
+	private async Task DeleteSession(SessionListItem session)
+	{
+		if (!await DialogService.ShowConfirmationDialog("Delete session", "delete", "session", session.Name, true)) return;
+		try
+		{
+			await SessionService.DeleteSessionAsync(session.Id);
+			Snackbar.Add($"Session {session.Name} deleted", Severity.Success);
+			await Initialize();
+		}
+		catch
+		{
+			Snackbar.Add($"Failed to delete session {session.Name}.", Severity.Error);
+		}
+	}
+
+}

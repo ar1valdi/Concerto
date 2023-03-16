@@ -1,0 +1,137 @@
+﻿@using MudBlazor.Services
+
+@inherits MudComponentBase
+
+@if (Loading)
+{
+	<LoadingIndicator Color="Color.Primary" Size="Size.Large"/>
+}
+else
+{
+		<MudTable Comparer="comparer" Items="UserFolderPermissions" Hover="true" Breakpoint="Breakpoint.Xs"
+		  Style="@($"display:grid; grid-template-rows: 0fr 1fr; {Style}")" Class="@Class" Height="100%"
+		Dense="true">
+			<ToolBarContent>
+				<MudAutocomplete Margin="Margin.Dense" Dense="true" T="User" Label="Add user" @ref="_addUserAutocomplete"
+								 ValueChanged="@AddUser" SearchFunc="@SearchContacts" Variant="Variant.Outlined"
+								 ShowProgressIndicator="true" ProgressIndicatorColor="@Color.Default"
+								 ToStringFunc="@(u => u == null ? null : $"{u.FullName}")"
+								 AdornmentIcon="@Icons.Material.Filled.PersonAdd" AdornmentColor="Color.Default" Adornment="Adornment.Start"/>
+			</ToolBarContent>
+
+
+			<HeaderContent>
+				<MudTh>Name</MudTh>
+				<MudTh>Permission</MudTh>
+				<MudTh>Actions</MudTh>
+			</HeaderContent>
+
+			<ColGroup>
+				<col />
+				@if (LayoutState.MdAndUp)
+				{
+					<col style="min-width: 210px" />
+					<col />
+				}
+
+			</ColGroup>
+
+
+			<RowTemplate>
+			<MudTd DataLabel="Name" >@context.User.FullName</MudTd>
+				@{
+					var parentMatch = ParentUserFolderPermissions.FirstOrDefault(p => p.User.Id == context.User.Id);
+
+					<MudTd DataLabel="Role">
+						<FolderPermissionPicker @bind-Value="context.Permission" Inherited="parentMatch?.Permission.Type"/>
+					</MudTd>
+
+					<MudTd Style="justify-content: end">
+
+						<MudTooltip Class="d-inline" Text="Restore to default - permission will be the same as parent folder">
+							<MudIconButton Title="Restore inherited" Class="" Disabled="@(parentMatch is null || context.Permission.Inherited)" OnClick="@(async () => RestoreInherited(context, parentMatch))" Icon="@Icons.Material.Filled.Restore" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small"/>
+						</MudTooltip>
+
+						<MudTooltip Class="d-inline" Text="Remove - folder's default permission will apply for removed user" Arrow="true">
+							<MudIconButton Title="Remove user permission" Class="ml-2" Disabled="@(parentMatch is not null)" OnClick="@(async () => RemoveUserPermission(context))" Icon="@Icons.Material.Filled.Close" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" />
+						</MudTooltip>
+
+					</MudTd>
+				}
+
+			</RowTemplate>
+		</MudTable>
+
+}
+
+
+
+@code {
+
+	LayoutState _layoutState = LayoutState.Default;
+	[CascadingParameter]
+	LayoutState LayoutState
+	{
+		get { return _layoutState; }
+		set
+		{
+			_layoutState = value;
+			StateHasChanged();
+		}
+	}
+	[Parameter]
+	public HashSet<User> Users { get; set; } = null!;
+
+	[Parameter]
+	public HashSet<UserFolderPermission> UserFolderPermissions { get; set; } = null!;
+
+	[Parameter]
+	public HashSet<UserFolderPermission> ParentUserFolderPermissions { get; set; } = null!;
+
+	[Parameter]
+	public EventCallback<HashSet<UserFolderPermission>> UserFolderPermissionsChanged { get; set; }
+
+	UserFolderPermissionIdEqualityComparer comparer = new();
+
+	bool Loading => Users is null;
+
+	private MudAutocomplete<User>? _addUserAutocomplete;
+
+	private Task<IEnumerable<User>> SearchContacts(string searchString)
+	{
+		if (string.IsNullOrEmpty(searchString)) return Task.FromResult(Enumerable.Empty<User>());
+		return Task.Run(() =>
+		{
+			if (Users is null) return Enumerable.Empty<User>();
+			var notSelectedUsers = Users.Where(u => !UserFolderPermissions.Select(ufp => ufp.User).Contains(u));
+			if (string.IsNullOrWhiteSpace(searchString)) return notSelectedUsers;
+			return notSelectedUsers.Where(u => u.FullName.Contains(searchString, StringComparison.OrdinalIgnoreCase));
+		});
+	}
+
+
+	private void AddUser(User user)
+	{
+		UserFolderPermissions.Add(new UserFolderPermission
+			(
+			user,
+			new FolderPermission(FolderPermissionType.Read, false)
+			));
+		_addUserAutocomplete!.Reset();
+		UserFolderPermissionsChanged.InvokeAsync(UserFolderPermissions);
+	}
+
+	private void RemoveUserPermission(UserFolderPermission userPermission)
+	{
+		UserFolderPermissions.Remove(userPermission);
+		UserFolderPermissionsChanged.InvokeAsync(UserFolderPermissions);
+	}
+
+	private void RestoreInherited(UserFolderPermission userPermission, UserFolderPermission? parentUserPermission)
+	{
+		if (parentUserPermission is null) return;
+		userPermission.Permission = parentUserPermission.Permission with { Inherited = true };
+		UserFolderPermissionsChanged.InvokeAsync(UserFolderPermissions);
+	}
+
+}

@@ -1,0 +1,81 @@
+﻿@using System.Web
+@using Concerto.Client.Services;
+@using Concerto.Shared.Models.Dto;
+@inject IJSRuntime JS
+@inject IAppSettingsService AppSettingsService
+@inject ISessionService SessionService
+@implements IDisposable
+
+@if (!LayoutState.IsMobile)
+{
+        <MudPaper id="jitsi" Class="flex-grow-1 meeting" Height="100%" MaxHeight="100%" Elevation="0" Outlined="true" />
+}
+else
+{
+		<div style="height: 100%; display: grid; grid-template-rows: min-content 1fr;">
+			<MudButton StartIcon="@Icons.Material.Filled.OpenInNew" Color="Color.Default" Variant="Variant.Filled" DisableElevation="true" Href="@_downloadJitsiUrl" Target="_blank">
+				Download Jitsi Meet app
+			</MudButton>
+			<MudButton StartIcon="@Icons.Material.Filled.OpenInNew" Color="Color.Default" Variant="Variant.Filled" DisableElevation="true" OnClick="OpenInApp">
+				Open meeting in Jitsi Meet app (needs to be installed)
+			</MudButton>
+		</div>
+}
+@code {
+	[CascadingParameter]
+	public LayoutState LayoutState { get; set; } = LayoutState.Default;
+
+	[Parameter]
+	public string? MeetingName { get; set; }
+
+	[Parameter]
+	public Guid? Guid { get; set; }
+
+	DotNetObjectReference<Meeting> _dotNetObjectReference = null!;
+
+	string _meetingPath = string.Empty;
+
+
+	string _openInApp => LayoutState.IsIos ? $"org.jitsi.meet://{AppSettingsService.AppSettings.JitsiUrl}/{_meetingPath}"
+								           : $"intent://{AppSettingsService.AppSettings.JitsiUrl}/{_meetingPath}#Intent;scheme=org.jitsi.meet;package=org.jitsi.meet;end";
+
+	string _downloadJitsiUrl => AppSettingsService.AppSettings.JitsiAppDownloadUrl;
+
+	class AudioDevices
+	{
+		public string test { get; set; } = null!;
+		public string[] Names { get; set; } = null!;
+		public string[] Ids { get; set; } = null!;
+	}
+
+	protected override async Task OnParametersSetAsync()
+	{
+		if (MeetingName == null || Guid == null) return;
+		var guid = Guid.ToString();
+		_meetingPath = HttpUtility.UrlPathEncode($"{guid}");
+
+		if (LayoutState.IsMobile) return;
+
+		_dotNetObjectReference = DotNetObjectReference.Create(this);
+		await StartMeeting();
+	}
+
+	[JSInvokable]
+	public async Task StartMeeting()
+	{
+		if (string.IsNullOrEmpty(_meetingPath)) return;
+		var token = await SessionService.GetMeetingTokenAsync(Guid);
+		await JS.InvokeAsync<string>("startMeeting", "jitsi", (new System.Uri(AppSettingsService.AppSettings.JitsiUrl)).Host, _meetingPath, token, _dotNetObjectReference);
+	}
+
+	private async Task OpenInApp()
+	{
+		var token = await SessionService.GetMeetingTokenAsync(Guid);
+		await JS.InvokeVoidAsync("open", $"{_openInApp}?jwt={token}");
+	}
+
+public void Dispose()
+    {
+        _dotNetObjectReference?.Dispose();
+    }
+}

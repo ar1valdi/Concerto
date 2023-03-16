@@ -1,5 +1,5 @@
 using Blazored.LocalStorage;
-using Concerto.Client;
+using Concerto.Client.UI;
 using Concerto.Client.Extensions;
 using Concerto.Client.Services;
 using Concerto.Shared.Extensions;
@@ -16,7 +16,7 @@ var baseAddress = new Uri(builder.HostEnvironment.BaseAddress);
 // Add HTTP Client with base address and authorization handler 
 if (builder.HostEnvironment.Environment == "DevelopmentStandalone")
 {
-    baseAddress = new Uri("https://localhost:7001/concerto/app/");
+    baseAddress = new Uri("https://localhost:7001/app/");
     builder.Services.AddHttpClient("WebAPI", client => client.BaseAddress = baseAddress)
     .AddHttpMessageHandler(sp =>
     {
