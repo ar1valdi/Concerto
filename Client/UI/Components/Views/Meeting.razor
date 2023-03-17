@@ -8,11 +8,16 @@
 
 @if (!LayoutState.IsMobile)
 {
-        <MudPaper id="jitsi" Class="flex-grow-1 meeting" Height="100%" MaxHeight="100%" Elevation="0" Outlined="true" />
+    <MudPaper id="jitsi" Class="flex-grow-1 meeting" Height="100%" MaxHeight="100%" Elevation="0" Outlined="true">
+        @if (_loading)
+        {
+			<LoadingIndicator Size="Size.Large" />
+        }
+    </MudPaper>
 }
 else
 {
-		<div style="height: 100%; display: grid; grid-template-rows: min-content 1fr; overflow: hidden;">
+		<div style="height: 100%; display: grid; grid-template-rows: min-content 1fr;">
 			<MudButton StartIcon="@Icons.Material.Filled.OpenInNew" Color="Color.Default" Variant="Variant.Filled" DisableElevation="true" Href="@_downloadJitsiUrl" Target="_blank">
 				Download Jitsi Meet app
 			</MudButton>
@@ -42,6 +47,7 @@ else
 	string _downloadJitsiUrl => AppSettingsService.AppSettings.JitsiAppDownloadUrl;
 
 	bool _disposed = false;
+	bool _loading = true;
 
 	CancellationTokenSource startMeetingCancellation = new();
 
@@ -59,34 +65,29 @@ else
 		_dotNetObjectReference = DotNetObjectReference.Create(this);
 	}
 
-	protected override void OnParametersSet()
+	protected override async Task OnParametersSetAsync()
 	{
 		if (MeetingName == null || Guid == null) return;
 		var guid = Guid.ToString();
 		_meetingPath = HttpUtility.UrlPathEncode($"{guid}");
-	}
 
-	protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
 		if (LayoutState.IsMobile) return;
-		if(firstRender)
-		{
-			await StartMeeting();
-		}
+		await StartMeeting();
 	}
-
-
 
 	[JSInvokable]
 	public async Task StartMeeting()
 	{
 		if (_disposed || string.IsNullOrEmpty(_meetingPath)) return;
+		_loading = true;
+		StateHasChanged();
 		var token = await SessionService.GetMeetingTokenAsync(Guid, startMeetingCancellation.Token);
 		try
 		{
 			await JS.InvokeAsync<string>("startMeeting", startMeetingCancellation.Token, "jitsi", (new System.Uri(AppSettingsService.AppSettings.JitsiUrl)).Host, _meetingPath, token, _dotNetObjectReference);
 		}
 		catch(ObjectDisposedException) { }
+		_loading = false;
 	}
 
 	private async Task OpenInApp()

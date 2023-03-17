@@ -52,13 +52,24 @@ function cleanFilename(filename: string): string {
 }
 
 export async function getVideoInputs(): Promise<{ Names: string[], Ids: string[] }> {
-
-    await navigator.mediaDevices.getUserMedia({video: true}).catch((e) => { console.log(e); });
+    try{
+        var stream = await navigator.mediaDevices.getUserMedia({video: true});
+        stream?.getTracks().forEach((track) => track.stop());
+    }
+    catch(e) {
+        console.log(e);
+    }
     return await getMediaInputs("videoinput");
 }
 
 export async function getAudioInputs(): Promise<{ Names: string[], Ids: string[] }> {
-    await navigator.mediaDevices.getUserMedia({audio: true}).catch((e) => { console.log(e); });
+    try{
+        var stream = await navigator.mediaDevices.getUserMedia({audio: true});
+        stream?.getTracks().forEach((track) => track.stop());
+    }
+    catch(e) {
+        console.log(e);
+    }
     return await getMediaInputs("audioinput");
 }
 
@@ -174,6 +185,9 @@ export class RecordingManager {
 
     public async setWebcam(deviceId: string) {
         await this.webcam.start(deviceId);
+        if(!this.webcam.isActive())
+            return;
+
         this.canvas.width = this.webcam.getWidth() as number;
         this.canvas.height = this.webcam.getHeight() as number;
         this.previewCanvas.width = this.canvas.width;
@@ -188,9 +202,9 @@ export class RecordingManager {
         }
 
         await this.microphone.start(deviceId);
+        if(!this.microphone.isActive())
+            return;
 
-        if(!this.microphone.active)
-        return;
         this.microphoneInput = this.audioContext.createMediaStreamSource(this.microphone.getStream());
         this.microphoneInput.connect(this.audioOutput);
     }
@@ -249,6 +263,8 @@ export class RecordingManager {
     public async dispose()
     {
         await this.stopRecording();
+        this.webcam.stop();
+        this.microphone.stop();
         window.recordingManager.removePreview();
         if(window.recordingManager == this)
             window.recordingManager = null;
@@ -375,7 +391,7 @@ class Webcam
 
     public stop() {
         this.stream?.getTracks().forEach((track) => track.stop());
-        this.preview.srcObject = null;
+        this.preview.remove();
         this.deviceId = null;
         this.width = this.height = null;
         this.active = false;
@@ -384,10 +400,9 @@ class Webcam
 
 class Microphone
 {
-    active: boolean = false;
-    deviceId: string | null = null;
-
-    stream: MediaStream | null = null;
+    private active: boolean = false;
+    private deviceId: string | null = null;
+    private stream: MediaStream | null = null;
 
     public constructor() { }
 
