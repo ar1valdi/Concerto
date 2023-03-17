@@ -10,85 +10,92 @@
 
 @if (Loading)
 {
-	<LoadingIndicator Color="Color.Primary" Size="Size.Large"/>
+    <LoadingIndicator Color="Color.Primary" Size="Size.Large" />
 }
 else
 {
-	<MudTabs Outlined="true" Position="Position.Top"
-	         ApplyEffectsToContainer="true" Class="" PanelClass="panel-height-maximum" Style="height: calc(100%);"
-	         KeepPanelsAlive="true">
+    <MudTabs Outlined="true" Position="Position.Top" HeaderPosition="TabHeaderPosition.Before"
+         ApplyEffectsToContainer="true" Class="" PanelClass="panel-height-maximum" Style="height: calc(100%);"
+         KeepPanelsAlive="true">
 
-		<MudTabPanel Text="Meeting">
-			<Meeting MeetingName="@SelectedSession?.Name" Guid="@SelectedSession?.MeetingGuid" />
-		</MudTabPanel>
+        <Header>
+            <MudLink Class="mud-tab px-1"
+                 Color="Color.Default" Underline="Underline.None" OnClick="@(() => NavigationManager.NavigateTo($"courses/{CourseId}"))">
+                <MudIcon Class="text-icon" Size="Size.Small" Icon="@Icons.Material.Filled.ArrowBack" />
+            </MudLink>
+        </Header>
 
-		<MudTabPanel Text="Recordings">
-			<FileManager InitialFolderId="SelectedSession!.FolderId"
-					 Class="flex-grow-1" Style="height: 100%;" Elevation="0" />
-		</MudTabPanel>
+        <ChildContent>
+            <MudTabPanel Text="Meeting">
+                <Meeting MeetingName="@SelectedSession?.Name" Guid="@SelectedSession?.MeetingGuid" />
+            </MudTabPanel>
 
-		<MudTabPanel Text="Course content">
-			<FileManager InitialFolderId="SelectedSession!.CourseRootFolderId"
-					 Class="flex-grow-1" Style="height: 100%;" Elevation="0" />
-		</MudTabPanel>
+            <MudTabPanel Text="Recordings">
+                <FileManager InitialFolderId="SelectedSession!.FolderId"
+                         Class="flex-grow-1" Style="height: 100%;" Elevation="0" />
+            </MudTabPanel>
 
-		<MudTabPanel Text="Course forum">
-			<Forum CourseId="CourseId" Title="Course forum" />
-		</MudTabPanel>
+            <MudTabPanel Text="Course content">
+                <FileManager InitialFolderId="SelectedSession!.CourseRootFolderId"
+                         Class="flex-grow-1" Style="height: 100%;" Elevation="0" />
+            </MudTabPanel>
 
-		@if (SelectedSession!.CanManage)
-		{
-			<MudTabPanel Text="Session settings">
-				<SessionSettingsManager SessionId="SelectedSession!.Id" OnSessionDeleted="OnSessionDeleted" OnSessionUpdated="OnSessionUpdated"/>
-			</MudTabPanel>
-		}
+            <MudTabPanel Text="Course forum">
+                <Forum CourseId="CourseId" Title="Course forum" />
+            </MudTabPanel>
 
-
-	</MudTabs>
+            @if (SelectedSession!.CanManage)
+            {
+                <MudTabPanel Text="Session settings">
+                    <SessionSettingsManager SessionId="SelectedSession!.Id" OnSessionDeleted="OnSessionDeleted" OnSessionUpdated="OnSessionUpdated" />
+                </MudTabPanel>
+            }
+        </ChildContent>
+    </MudTabs>
 }
 
 @code {
 
-	[Parameter]
-	public long SelectedSessionId { get; set; }
+    [Parameter]
+    public long SelectedSessionId { get; set; }
 
-	[Parameter]
-	public long CourseId { get; set; }
+    [Parameter]
+    public long CourseId { get; set; }
 
-	private Session? SelectedSession { get; set; }
+    private Session? SelectedSession { get; set; }
 
-	private bool Loading => SelectedSession is null;
+    private bool Loading => SelectedSession is null;
 
-	protected override async Task OnParametersSetAsync()
-	{
-		try
-		{
-			SelectedSession = await SessionService.GetSessionAsync(SelectedSessionId);
-		}
-		catch
-		{
-			Snackbar.Add("Session does not exists or you don't have access", Severity.Error);
-			NavigationManager.NavigateTo($"courses/{CourseId}");
-			return;
-		}
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            SelectedSession = await SessionService.GetSessionAsync(SelectedSessionId);
+        }
+        catch
+        {
+            Snackbar.Add("Session does not exists or you don't have access", Severity.Error);
+            NavigationManager.NavigateTo($"courses/{CourseId}");
+            return;
+        }
 
-		BreadcrumbsService.Set(
-			Icons.Material.Filled.MeetingRoom,
-			SelectedSession.Name,
-			new BreadcrumbItem("Courses", "courses"),
-			new BreadcrumbItem(SelectedSession.CourseName, $"courses/{SelectedSession.CourseId}"),
-			new BreadcrumbItem(SelectedSession.Name, null, true)
-		);
-	}
+        BreadcrumbsService.Set(
+            Icons.Material.Filled.MeetingRoom,
+            SelectedSession.Name,
+            new BreadcrumbItem("Courses", "courses"),
+            new BreadcrumbItem(SelectedSession.CourseName, $"courses/{SelectedSession.CourseId}"),
+            new BreadcrumbItem(SelectedSession.Name, null, true)
+        );
+    }
 
-	private void OnSessionDeleted()
-	{
-		NavigationManager.NavigateTo($"courses/{SelectedSession!.CourseId}");
-	}
+    private void OnSessionDeleted()
+    {
+        NavigationManager.NavigateTo($"courses/{SelectedSession!.CourseId}");
+    }
 
-	private async void OnSessionUpdated()
-	{
-		await OnParametersSetAsync();
-	}
+    private async void OnSessionUpdated()
+    {
+        await OnParametersSetAsync();
+    }
 
 }
