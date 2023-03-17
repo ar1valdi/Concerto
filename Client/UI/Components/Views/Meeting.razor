@@ -12,7 +12,7 @@
 }
 else
 {
-		<div style="height: 100%; display: grid; grid-template-rows: min-content 1fr;">
+		<div style="height: 100%; display: grid; grid-template-rows: min-content 1fr; overflow: hidden;">
 			<MudButton StartIcon="@Icons.Material.Filled.OpenInNew" Color="Color.Default" Variant="Variant.Filled" DisableElevation="true" Href="@_downloadJitsiUrl" Target="_blank">
 				Download Jitsi Meet app
 			</MudButton>
@@ -37,9 +37,15 @@ else
 
 
 	string _openInApp => LayoutState.IsIos ? $"org.jitsi.meet://{AppSettingsService.AppSettings.JitsiUrl}/{_meetingPath}"
-								           : $"intent://{AppSettingsService.AppSettings.JitsiUrl}/{_meetingPath}#Intent;scheme=org.jitsi.meet;package=org.jitsi.meet;end";
+													: $"intent://{AppSettingsService.AppSettings.JitsiUrl}/{_meetingPath}#Intent;scheme=org.jitsi.meet;package=org.jitsi.meet;end";
 
 	string _downloadJitsiUrl => AppSettingsService.AppSettings.JitsiAppDownloadUrl;
+
+	bool _disposed = false;
+
+	CancellationTokenSource startMeetingCancellation = new();
+
+
 
 	class AudioDevices
 	{
@@ -48,24 +54,39 @@ else
 		public string[] Ids { get; set; } = null!;
 	}
 
-	protected override async Task OnParametersSetAsync()
+	protected override void OnInitialized()
+	{
+		_dotNetObjectReference = DotNetObjectReference.Create(this);
+	}
+
+	protected override void OnParametersSet()
 	{
 		if (MeetingName == null || Guid == null) return;
 		var guid = Guid.ToString();
 		_meetingPath = HttpUtility.UrlPathEncode($"{guid}");
-
-		if (LayoutState.IsMobile) return;
-
-		_dotNetObjectReference = DotNetObjectReference.Create(this);
-		await StartMeeting();
 	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (LayoutState.IsMobile) return;
+		if(firstRender)
+		{
+			await StartMeeting();
+		}
+	}
+
+
 
 	[JSInvokable]
 	public async Task StartMeeting()
 	{
-		if (string.IsNullOrEmpty(_meetingPath)) return;
-		var token = await SessionService.GetMeetingTokenAsync(Guid);
-		await JS.InvokeAsync<string>("startMeeting", "jitsi", (new System.Uri(AppSettingsService.AppSettings.JitsiUrl)).Host, _meetingPath, token, _dotNetObjectReference);
+		if (_disposed || string.IsNullOrEmpty(_meetingPath)) return;
+		var token = await SessionService.GetMeetingTokenAsync(Guid, startMeetingCancellation.Token);
+		try
+		{
+			await JS.InvokeAsync<string>("startMeeting", startMeetingCancellation.Token, "jitsi", (new System.Uri(AppSettingsService.AppSettings.JitsiUrl)).Host, _meetingPath, token, _dotNetObjectReference);
+		}
+		catch(ObjectDisposedException) { }
 	}
 
 	private async Task OpenInApp()
@@ -74,8 +95,10 @@ else
 		await JS.InvokeVoidAsync("open", $"{_openInApp}?jwt={token}");
 	}
 
-public void Dispose()
-    {
-        _dotNetObjectReference?.Dispose();
-    }
+	public void Dispose()
+	{
+		startMeetingCancellation.Cancel();
+		_dotNetObjectReference?.Dispose();
+		_disposed = true;
+	}
 }
