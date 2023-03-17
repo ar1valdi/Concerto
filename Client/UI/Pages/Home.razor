@@ -18,9 +18,8 @@
 </div>
 
 @code {
-
 	[CascadingParameter]
-	public bool DarkMode { get; set; }
+	public LayoutState LayoutState { get; set; } = LayoutState.Default;
 
 	protected override void OnInitialized()
 	{

@@ -27,7 +27,7 @@ public record SessionSettings(
 
 public record CreateSessionRequest
 {
-	public string Name { get; set; }
+	public string Name { get; set; } = null!;
 	public DateTime ScheduledDateTime { get; set; }
 	public long CourseId { get; set; }
 }
@@ -35,7 +35,7 @@ public record CreateSessionRequest
 public record UpdateSessionRequest
 {
 	public long SessionId { get; set; }
-	public string Name { get; set; }
+	public string Name { get; set; } = null!;
 	public DateTime ScheduledDateTime { get; set; }
 }
 
