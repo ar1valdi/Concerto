@@ -186,19 +186,19 @@ app.MapHub<NotificationHub>("/notifications");
 
 var contentRoot = app.Environment.WebRootFileProvider;
 // load index.html
-var indexHtml = contentRoot.GetFileInfo("index.html");
+var indexHtmlTemplate = contentRoot.GetFileInfo("index_template.html");
 
-var indexHtmlContent = File.ReadAllText(indexHtml.PhysicalPath!);
+var indexHtmlContent = File.ReadAllText(indexHtmlTemplate.PhysicalPath!);
 var basePath = AppSettings.Web.BasePath.Trim('/');
-var baseTag = @$"<base href=""/{basePath}/"">";
+var baseTag = @$"<base href=""/{basePath}/"" />";
 
 // replace base tag with <base href="/{basePath}/"> 
-var indexHtmlContentWithBase = Regex.Replace(indexHtmlContent, "<base *href=\".*?\" */>", baseTag);
+var indexHtmlContentWithBase = Regex.Replace(indexHtmlContent, "<base *href=\".*?\".*?>", baseTag);
 // write to index_base.html
-var indexBaseHtml = Path.Combine(Path.GetDirectoryName(indexHtml.PhysicalPath)!, "index_base.html");
-File.WriteAllText(indexBaseHtml, indexHtmlContentWithBase);
+var indexHtml = Path.Combine(Path.GetDirectoryName(indexHtmlTemplate.PhysicalPath)!, "index.html");
+File.WriteAllText(indexHtml, indexHtmlContentWithBase);
 
-app.MapFallbackToFile("index_base.html");
+app.MapFallbackToFile("index.html");
 
 
 var diagnosticSource = app.Services.GetRequiredService<DiagnosticListener>();
