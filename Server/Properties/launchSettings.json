@@ -48,7 +48,8 @@
         "JITSI_JWT_APP_ID": "jitsi",
         "JITSI_MEET_URL": "https://mazak-ap.ds.pg.gda.pl",
         "JITSI_APP_DOWNLOAD_URL": "jitsi.org/downloads/",
-        "JITSI_RECORDER_PASSWORD": "c0f5472a0f789b715497b4c5ad35b792"
+        "JITSI_RECORDER_PASSWORD": "c0f5472a0f789b715497b4c5ad35b792",
+        "CONCERTO_BASE_PATH": "/app/"
       },
       "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
       "applicationUrl": "https://localhost:7001;http://localhost:7000",
