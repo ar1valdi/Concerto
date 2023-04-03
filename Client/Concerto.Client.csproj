@@ -12,6 +12,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<RunAOTCompilation>true</RunAOTCompilation>
+	</PropertyGroup>
+
+	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
