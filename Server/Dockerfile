@@ -10,6 +10,9 @@ WORKDIR /src
 COPY ["Server/Concerto.Server.csproj", "Server/"]
 COPY ["Client/Concerto.Client.csproj", "Client/"]
 COPY ["Shared/Concerto.Shared.csproj", "Shared/"]
+RUN apt-get update
+RUN apt-get install --no-install-recommends --yes python3
+RUN dotnet workload restore "Client/Concerto.Client.csproj"
 RUN dotnet restore "Server/Concerto.Server.csproj"
 COPY . .
 WORKDIR "/src/Server"
