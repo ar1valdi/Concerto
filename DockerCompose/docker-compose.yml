@@ -21,26 +21,23 @@ services:
       - 7000:80
       - 7001:443
     environment:
-      CONCERTO_STORAGE_PATH: /var/lib/concerto/storage
-      CONCERTO_FILE_SIZE_LIMIT_MB: 102400
-      CONCERTO_MAX_ALLOWED_FILES: 1000
       DB_STRING:
       OIDC_AUDIENCE: account
-      OIDC_ADMIN_REST_API_BASE: http://keycloak:8080/keycloak/admin/realms/concerto
-      OIDC_AUTHORITY: http://keycloak:8080/keycloak/realms/concerto
-      OIDC_METADATA_ADDRESS: http://keycloak:8080/keycloak/realms/concerto/.well-known/openid-configuration
+      OIDC_ADMIN_REST_API_BASE: http://keycloak:8080${CONCERTO_BASE_PATH}/keycloak/admin/realms/concerto
+      OIDC_AUTHORITY: http://keycloak:8080${CONCERTO_BASE_PATH}/keycloak/realms/concerto
+      OIDC_METADATA_ADDRESS: http://keycloak:8080${CONCERTO_BASE_PATH}/keycloak/realms/concerto/.well-known/openid-configuration
       OIDC_ACCEPT_ANY_SERVER_CERTIFICATE_VALIDATOR: "true"
       OIDC_REQUIRE_HTTPS_METADATA: false
 
-      OIDC_CLIENT_AUTHORITY: http://localhost:7200/keycloak/realms/concerto
-      IDENTITY_ACCOUNT_CONSOLE_URL: http://localhost:7200/keycloak/realms/concerto/account/
-      IDENTITY_ADMIN_CONSOLE_URL: http://localhost:7200/keycloak/admin/concerto/console/#/concerto/users
+      OIDC_CLIENT_AUTHORITY: ${CONCERTO_BASE_URL:?}/keycloak/realms/concerto/
+      IDENTITY_ACCOUNT_CONSOLE_URL: ${CONCERTO_BASE_URL:?}/keycloak/realms/concerto/account/
+      IDENTITY_ADMIN_CONSOLE_URL: ${CONCERTO_BASE_URL:?}/keycloak/admin/concerto/console/#/concerto/users
 
       SERVER_CLIENT_ID: concerto-server
       SERVER_CLIENT_SECRET:
 
     volumes:
-      - concerto_files:/var/lib/concerto/storage
+      - concerto_files:/srv/concerto/storage
     networks:
       - concerto
 
@@ -73,23 +70,23 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:20.0.3
     environment:
-      KC_PROXY: "edge"
-      KC_HTTP_ENABLED: "true"
-      KC_HOSTNAME_PATH: /keycloak
-      KC_HTTP_RELATIVE_PATH: /keycloak
-
-
-      KC_HOSTNAME_URL: "http://localhost:7200/keycloak"
-      KC_HOSTNAME_STRICT_HTTPS: "false"
-      KC_HOSTNAME_ADMIN_URL: "http://localhost:7200/keycloak"
-      
-      KEYCLOAK_ADMIN:
-      KEYCLOAK_ADMIN_PASSWORD:
-      
       KC_DB:
       KC_DB_PASSWORD:
       KC_DB_URL:
       KC_DB_USERNAME:
+
+      KEYCLOAK_ADMIN:
+      KEYCLOAK_ADMIN_PASSWORD:
+
+      KC_PROXY: "edge"
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_RELATIVE_PATH: ${CONCERTO_BASE_PATH}/keycloak
+
+      KC_HOSTNAME_PATH: ${CONCERTO_BASE_PATH}/keycloak
+      KC_HOSTNAME_URL: "http://localhost:7200/keycloak"
+      KC_HOSTNAME_ADMIN_URL: "http://localhost:7200/keycloak"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+
     ports:
       - 7200:8080
     depends_on:

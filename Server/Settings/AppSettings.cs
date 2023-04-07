@@ -22,7 +22,7 @@ public static class AppSettings
 
 	public static class Storage
 	{
-		public static string StoragePath = EnvironmentHelper.GetVariable("CONCERTO_STORAGE_PATH");
+		public static string StoragePath = "/srv/concerto/storage"; // EnvironmentHelper.GetVariable("CONCERTO_STORAGE_PATH");
 		public static string TempPath = Path.Combine(StoragePath, "tmp");
 		public static TimeSpan TempFileExpirationSpan = TimeSpan.FromMinutes(5);
 		public static long FileSizeLimit = long.MaxValue; // long.Parse(EnvironmentHelper.GetVariable("CONCERTO_FILE_SIZE_LIMIT_MB")) * 1024 * 1024;

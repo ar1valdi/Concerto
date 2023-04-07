@@ -7,14 +7,14 @@
     <ProjectGuid>806936f1-4b51-48a1-a7e4-5afabf13a5f8</ProjectGuid>
     <DockerServiceName>concerto.server</DockerServiceName>
   </PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<AdditionalComposeFilePaths>docker-compose.proxy.override.yml</AdditionalComposeFilePaths>
-	</PropertyGroup>
-
-<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<AdditionalComposeFilePaths>docker-compose.proxy.override.yml</AdditionalComposeFilePaths>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AdditionalComposeFilePaths>docker-compose.proxy.override.yml</AdditionalComposeFilePaths>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AdditionalComposeFilePaths>docker-compose.proxy.override.yml</AdditionalComposeFilePaths>
+  </PropertyGroup>
   <ItemGroup>
+    <None Include=".env" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
@@ -22,6 +22,6 @@
     <None Include="docker-compose.proxy.override.yml" />
     <None Include=".dockerignore" />
     <None Include="nginx/Dockerfile" />
-    <None Include="nginx/nginx.conf" />
+    <None Include="nginx\nginx.conf" />
   </ItemGroup>
 </Project>

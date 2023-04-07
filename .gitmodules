@@ -1,0 +1,3 @@
+[submodule "ConcertoJitsiDocker"]
+	path = JitsiDocker
+	url = https://github.com/Etav99/ConcertoJitsiDocker
