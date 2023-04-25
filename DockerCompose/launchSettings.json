@@ -13,7 +13,6 @@
         "jitsi_jvb": "StartWithoutDebugging",
         "jitsi_prosody": "StartWithoutDebugging",
         "jitsi_web": "StartWithoutDebugging",
-        "kask": "StartWithoutDebugging",
         "keycloak": "StartWithoutDebugging",
         "pgadmin": "StartWithoutDebugging",
         "postgres": "StartWithoutDebugging"
