@@ -6,7 +6,7 @@
 @inject ISessionService SessionService
 @implements IDisposable
 
-@if (!LayoutState.IsMobile)
+@if (true)
 {
     <MudPaper id="jitsi" Class="flex-grow-1 meeting" Height="100%" MaxHeight="100%" Elevation="0" Outlined="true">
         @if (_loading)
@@ -41,8 +41,9 @@ else
 	string _meetingPath = string.Empty;
 
 
-	string _openInApp => LayoutState.IsIos ? $"org.jitsi.meet://{AppSettingsService.AppSettings.JitsiUrl}/{_meetingPath}"
-													: $"intent://{AppSettingsService.AppSettings.JitsiUrl}/{_meetingPath}#Intent;scheme=org.jitsi.meet;package=org.jitsi.meet;end";
+	string OpenInAppUrl(string token) => LayoutState.IsIos
+										? $"org.jitsi.meet://{AppSettingsService.AppSettings.JitsiUrl.Host}/{_meetingPath}?jwt={token}"
+										: $"intent://{AppSettingsService.AppSettings.JitsiUrl.Host}/{_meetingPath}?jwt={token}#Intent;scheme=org.jitsi.meet;package=org.jitsi.meet;end";
 
 	string _downloadJitsiUrl => AppSettingsService.AppSettings.JitsiAppDownloadUrl;
 
@@ -71,7 +72,7 @@ else
 		var guid = Guid.ToString();
 		_meetingPath = HttpUtility.UrlPathEncode($"{guid}");
 
-		if (LayoutState.IsMobile) return;
+		//if (LayoutState.IsMobile) return;
 		await StartMeeting();
 	}
 
@@ -84,7 +85,7 @@ else
 		var token = await SessionService.GetMeetingTokenAsync(Guid, startMeetingCancellation.Token);
 		try
 		{
-			await JS.InvokeAsync<string>("startMeeting", startMeetingCancellation.Token, "jitsi", (new System.Uri(AppSettingsService.AppSettings.JitsiUrl)).Host, _meetingPath, token, _dotNetObjectReference);
+			await JS.InvokeAsync<string>("startMeeting", startMeetingCancellation.Token, "jitsi", AppSettingsService.AppSettings.JitsiUrl.Host, _meetingPath, token, _dotNetObjectReference);
 		}
 		catch(ObjectDisposedException) { }
 		_loading = false;
@@ -93,7 +94,7 @@ else
 	private async Task OpenInApp()
 	{
 		var token = await SessionService.GetMeetingTokenAsync(Guid);
-		await JS.InvokeVoidAsync("open", $"{_openInApp}?jwt={token}");
+		await JS.InvokeVoidAsync("open", OpenInAppUrl(token));
 	}
 
 	public void Dispose()

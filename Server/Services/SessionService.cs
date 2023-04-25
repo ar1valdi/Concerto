@@ -197,12 +197,12 @@ public class SessionService
         ClaimsIdentity claimsIdentity = new ClaimsIdentity();
         claimsIdentity.AddClaim(new Claim("context", JsonSerializer.Serialize(jitsiContext), JsonClaimValueTypes.Json));
         claimsIdentity.AddClaim(new Claim("room", roomGuid.ToString()));
-        claimsIdentity.AddClaim(new Claim("sub", (new Uri(AppSettings.Meetings.JitsiUrl)).Host));
+        claimsIdentity.AddClaim(new Claim("sub", AppSettings.Meetings.JitsiUrl.Host));
 
 		var tokenHandler = new JwtSecurityTokenHandler();
 		var token = tokenHandler.CreateJwtSecurityToken(
 			issuer: AppSettings.Meetings.JwtAppId,
-			audience: (new Uri(AppSettings.Meetings.JitsiUrl)).Host,
+			audience: AppSettings.Meetings.JitsiUrl.Host,
 			subject: claimsIdentity,
 			expires: DateTime.UtcNow.AddMinutes(2),
 			signingCredentials: credentials

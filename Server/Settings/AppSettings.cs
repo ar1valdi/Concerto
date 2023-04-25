@@ -10,7 +10,7 @@ public static class AppSettings
 		public static string AppUrl => $"{PublicUrl}{BasePath}";
 		public static string PublicUrl = EnvironmentHelper.GetVariable("CONCERTO_PUBLIC_URL");
 		public static string BasePath = EnvironmentHelper.GetVariable("CONCERTO_BASE_PATH").IsNullOrEmpty()
-										? "/app"
+										? ""
 										: EnvironmentHelper.GetVariable("CONCERTO_BASE_PATH");
 	}
 
@@ -59,7 +59,7 @@ public static class AppSettings
 		public static string RecorderKey = EnvironmentHelper.GetVariable("JITSI_RECORDER_PASSWORD");
 		public static string JwtSecret = EnvironmentHelper.GetVariable("JITSI_JWT_SECRET");
 		public static string JwtAppId = EnvironmentHelper.GetVariable("JITSI_JWT_APP_ID");
-		public static string JitsiUrl = EnvironmentHelper.GetVariable("JITSI_MEET_URL");
+		public static Uri  JitsiUrl = new Uri(EnvironmentHelper.GetVariable("JITSI_MEET_URL"));
 		public static string JitsiAppDownloadUrl = EnvironmentHelper.GetVariable("JITSI_APP_DOWNLOAD_URL");
 	}
 }

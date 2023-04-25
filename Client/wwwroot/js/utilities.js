@@ -1,6 +1,6 @@
 ﻿function downloadFile (fileName, url) {
     const anchorElement = document.createElement('a');
-    anchorElement.visibility="hidden";
+    anchorElement.style.display = 'none';
     anchorElement.href = url;
     anchorElement.download = fileName ?? '';
     document.body.appendChild(anchorElement);

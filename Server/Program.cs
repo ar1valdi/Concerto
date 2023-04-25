@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -190,7 +191,8 @@ var indexHtmlTemplate = contentRoot.GetFileInfo("index_template.html");
 
 var indexHtmlContent = File.ReadAllText(indexHtmlTemplate.PhysicalPath!);
 var basePath = AppSettings.Web.BasePath.Trim('/');
-var baseTag = @$"<base href=""/{basePath}/"" />";
+basePath = basePath.IsNullOrEmpty() ? basePath : basePath + "/";
+var baseTag = @$"<base href=""/{basePath}"" />";
 
 // replace base tag with <base href="/{basePath}/"> 
 var indexHtmlContentWithBase = Regex.Replace(indexHtmlContent, "<base *href=\".*?\".*?>", baseTag);

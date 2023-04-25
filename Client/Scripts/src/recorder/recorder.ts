@@ -1,4 +1,3 @@
-import { output } from "../webpack.config";
 import fixWebmDuration from 'webm-duration-fix';
 
 declare global {
