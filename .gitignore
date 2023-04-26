@@ -6,3 +6,5 @@ compose
 keycloak
 Client/NPM/node_modules
 Client/wwwroot/index.html
+ChromeDebugUserData
+EdgeDebugUserData

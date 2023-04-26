@@ -3,19 +3,19 @@
     "Docker Compose": {
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
-      "composeLaunchAction": "None",
-      "composeLaunchServiceName": "concerto.server",
-      "serviceActions": {
-        "concerto.server": "StartDebugging",
-        "proxy": "StartWithoutDebugging",
-        "jitsi_jibri": "StartWithoutDebugging",
-        "jitsi_jicofo": "StartWithoutDebugging",
-        "jitsi_jvb": "StartWithoutDebugging",
-        "jitsi_prosody": "StartWithoutDebugging",
-        "jitsi_web": "StartWithoutDebugging",
-        "keycloak": "StartWithoutDebugging",
-        "pgadmin": "StartWithoutDebugging",
-        "postgres": "StartWithoutDebugging"
+      "composeProfile": {
+        "includes": [
+          "full"
+        ]
+      }
+    },
+    "Services": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "composeProfile": {
+        "includes": [
+          "noserver"
+        ]
       }
     }
   }
