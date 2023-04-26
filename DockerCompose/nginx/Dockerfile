@@ -10,8 +10,9 @@ RUN chmod +x /wait-for-it.sh
 CMD set -a \
     && CERT_FILE=${CERT_FILE:-crt.crt} \
 	&& CERT_KEY_FILE=${CERT_KEY_FILE:-key.key} \
-	&& envsubst '$${BASE_PATH} $${CONCERTO_DOMAIN} $${JITSI_DOMAIN} $${CERT_FILE} $${CERT_KEY_FILE}' < /etc/nginx/nginx.template.conf > /etc/nginx/nginx.conf \
-	&& /wait-for-it.sh concerto_server:80 -t 0 \
+    && CONCERTO_UPSTREAM=${CONCERTO_UPSTREAM:-concerto_server:80} \
+	&& envsubst '$${BASE_PATH} $${CONCERTO_DOMAIN} $${JITSI_DOMAIN} $${CERT_FILE} $${CERT_KEY_FILE} $${CONCERTO_UPSTREAM}' < /etc/nginx/nginx.template.conf > /etc/nginx/nginx.conf \
+	&& /wait-for-it.sh ${CONCERTO_UPSTREAM} -t 0 \
 	&& /wait-for-it.sh keycloak:8080 -t 0 \
 	&& /wait-for-it.sh jitsi_web:80 -t 0 \
 	&& nginx -g 'daemon off;'

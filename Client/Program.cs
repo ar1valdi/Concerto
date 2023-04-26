@@ -14,9 +14,9 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 var baseAddress = new Uri(builder.HostEnvironment.BaseAddress);
 // Add HTTP Client with base address and authorization handler 
-if (builder.HostEnvironment.Environment == "DevelopmentStandalone")
+if (builder.HostEnvironment.Environment == "Development")
 {
-    baseAddress = new Uri("https://localhost:7001/app/");
+    baseAddress = new Uri(builder.Configuration["ServerlessBaseURL"]!);
     builder.Services.AddHttpClient("WebAPI", client => client.BaseAddress = baseAddress)
     .AddHttpMessageHandler(sp =>
     {

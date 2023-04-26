@@ -6,6 +6,8 @@ networks:
 
 services:
   concerto.server:
+    profiles:
+    - full
     hostname: concerto_server
     image: ${DOCKER_REGISTRY-}concertoserver
     build:
@@ -16,6 +18,9 @@ services:
       - ${CONCERTO_VOLUME_PATH:?}/recordings:/srv/concerto/recordings
     networks:
       - concerto
+    ports:
+      - "9222:9222"
+      - "9300:9300"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:80
@@ -44,6 +49,8 @@ services:
       JITSI_RECORDER_PASSWORD: ${JIBRI_RECORDER_PASSWORD:?}
 
   proxy:
+    profiles:
+    - full
     build:
       context: ./nginx
       dockerfile: ./Dockerfile
@@ -53,6 +60,7 @@ services:
     # - ${CONCERTO_FILES_PATH:?}/nginx/nginx.conf:/etc/nginx/nginx.conf
     ports:
       - 443:443
+      - 80:80
     environment:
       BASE_PATH: ${CONCERTO_BASE_PATH}
       CONCERTO_DOMAIN: ${CONCERTO_DOMAIN:?}
@@ -60,6 +68,8 @@ services:
     networks:
       concerto:
       meet-jitsi:
+
+
 
   keycloak:
     image: quay.io/keycloak/keycloak:21.1.0
@@ -98,6 +108,8 @@ services:
       POSTGRES_USER:
     networks:
       concerto:
+    ports:
+      - 5432:5432
 
 
   pgadmin:
