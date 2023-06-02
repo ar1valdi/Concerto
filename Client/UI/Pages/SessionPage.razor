@@ -1,7 +1,7 @@
 ﻿@attribute [Authorize]
 @page "/courses/{CourseId:long}/sessions/{SelectedSessionId:long}"
 
-@inject NavigationManager NavigationManager
+@inject NavigationManager NavigationManager;
 @inject IBreadcrumbsService BreadcrumbsService;
 @inject ISessionService SessionService;
 @inject ISnackbar Snackbar;
@@ -27,7 +27,7 @@ else
 
         <ChildContent>
             <MudTabPanel Text="Meeting">
-                <Meeting MeetingName="@SelectedSession?.Name" Guid="@SelectedSession?.MeetingGuid" />
+                    <Meeting Session="SelectedSession" />
             </MudTabPanel>
 
             <MudTabPanel Text="Recordings">
@@ -65,6 +65,7 @@ else
     private Session? SelectedSession { get; set; }
 
     private bool Loading => SelectedSession is null;
+
 
     protected override async Task OnParametersSetAsync()
     {

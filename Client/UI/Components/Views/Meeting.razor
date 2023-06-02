@@ -1,106 +1,128 @@
-﻿@using System.Web
-@using Concerto.Client.Services;
-@using Concerto.Shared.Models.Dto;
+﻿@using System.Web;
+
+@implements IAsyncDisposable
 @inject IJSRuntime JS
 @inject IAppSettingsService AppSettingsService
 @inject ISessionService SessionService
-@implements IDisposable
 
-@if (true)
-{
-    <MudPaper id="jitsi" Class="flex-grow-1 meeting" Height="100%" MaxHeight="100%" Elevation="0" Outlined="true">
+<div style="@MeetingStyle" class="">
+    <div id="jitsi" class="flex-grow-1 meeting" style="height: 100%; max-height: 100%;">
         @if (_loading)
         {
-			<LoadingIndicator Size="Size.Large" />
+            <LoadingIndicator Size="Size.Large" />
         }
-    </MudPaper>
-}
-else
+    </div>
+
+    @if(!LayoutState.IsMobile)
+    {
+        <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="ToggleDaw" />
+
+        <div style="@DawStyle">
+            @if (_dawInitialized)
+            {
+                <Daw SessionId="@Session?.Id" OnListenTogether="PlaySharedMedia" OnRequestStopSharing="StopSharedMedia" />
+            }
+        </div> 
+    }
+</div>
+
+
+
+
+
+@code
 {
-		<div style="height: 100%; display: grid; grid-template-rows: min-content 1fr;">
-			<MudButton StartIcon="@Icons.Material.Filled.OpenInNew" Color="Color.Default" Variant="Variant.Filled" DisableElevation="true" Href="@_downloadJitsiUrl" Target="_blank">
-				Download Jitsi Meet app
-			</MudButton>
-			<MudButton StartIcon="@Icons.Material.Filled.OpenInNew" Color="Color.Default" Variant="Variant.Filled" DisableElevation="true" OnClick="OpenInApp">
-				Open meeting in Jitsi Meet app (needs to be installed)
-			</MudButton>
-		</div>
-}
-@code {
-	[CascadingParameter]
-	public LayoutState LayoutState { get; set; } = LayoutState.Default;
 
-	[Parameter]
-	public string? MeetingName { get; set; }
+    [CascadingParameter]
+    public LayoutState LayoutState { get; set; } = LayoutState.Default;
 
-	[Parameter]
-	public Guid? Guid { get; set; }
+    [Parameter]
+    public Session? Session { get; set; }
 
-	DotNetObjectReference<Meeting> _dotNetObjectReference = null!;
+    string _meetingPath = string.Empty;
+    CancellationTokenSource startMeetingCancellation = new();
 
-	string _meetingPath = string.Empty;
+    DotNetObjectReference<Meeting> _dotNetObjectReference = null!;
+    IJSObjectReference? _jitsi = null;
 
+    bool _disposed = false;
+    bool _loading = true;
 
-	string OpenInAppUrl(string token) => LayoutState.IsIos
-										? $"org.jitsi.meet://{AppSettingsService.AppSettings.JitsiUrl.Host}/{_meetingPath}?jwt={token}"
-										: $"intent://{AppSettingsService.AppSettings.JitsiUrl.Host}/{_meetingPath}?jwt={token}#Intent;scheme=org.jitsi.meet;package=org.jitsi.meet;end";
+    protected override void OnInitialized()
+    {
+        _dotNetObjectReference = DotNetObjectReference.Create(this);
+    }
 
-	string _downloadJitsiUrl => AppSettingsService.AppSettings.JitsiAppDownloadUrl;
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Session is null) return;
+        var guid = Session.MeetingGuid.ToString();
+        var meetingPath = HttpUtility.UrlPathEncode($"{guid}");
+        if (meetingPath == _meetingPath) return;
+        _meetingPath = HttpUtility.UrlPathEncode($"{guid}");
+        //if (LayoutState.IsMobile) return;
+        await StartMeeting();
+    }
 
-	bool _disposed = false;
-	bool _loading = true;
+    [JSInvokable]
+    public async Task StartMeeting()
+    {
+        if (Session is null) return;
+        _loading = true;
+        StateHasChanged();
+        var token = await SessionService.GetMeetingTokenAsync(Session.MeetingGuid, startMeetingCancellation.Token);
+        _jitsi = await JS.InvokeAsync<IJSObjectReference>("startMeeting", startMeetingCancellation.Token, "jitsi", AppSettingsService.AppSettings.JitsiUrl.Host, _meetingPath, token, _dotNetObjectReference);
+        _loading = false;
+    }
 
-	CancellationTokenSource startMeetingCancellation = new();
+    [JSInvokable]
+    public async Task OnVideoConferenceLeft()
+    {
 
+    }
 
+    public async Task PlaySharedMedia(string url)
+    {
+        if (_jitsi == null) return;
+        await _jitsi.InvokeVoidAsync("executeCommand", "stopShareVideo");
+        await _jitsi.InvokeVoidAsync("executeCommand", "startShareVideo", url);
+    }
 
-	class AudioDevices
-	{
-		public string test { get; set; } = null!;
-		public string[] Names { get; set; } = null!;
-		public string[] Ids { get; set; } = null!;
-	}
+    public async Task StopSharedMedia()
+    {
+        if (_jitsi == null) return;
+        await _jitsi.InvokeVoidAsync("executeCommand", "stopShareVideo");
+    }
 
-	protected override void OnInitialized()
-	{
-		_dotNetObjectReference = DotNetObjectReference.Create(this);
-	}
+    public async Task DisposeJitsiApi()
+    {
+        if (_jitsi == null) return;
+        await _jitsi.InvokeVoidAsync("dispose");
+        await _jitsi.DisposeAsync();
+        _jitsi = null;
+    }
 
-	protected override async Task OnParametersSetAsync()
-	{
-		if (MeetingName == null || Guid == null) return;
-		var guid = Guid.ToString();
-		_meetingPath = HttpUtility.UrlPathEncode($"{guid}");
+    public async ValueTask DisposeAsync()
+    {
+        startMeetingCancellation.Cancel();
+        await DisposeJitsiApi();
+        _dotNetObjectReference?.Dispose();
+        _disposed = true;
+    }
 
-		//if (LayoutState.IsMobile) return;
-		await StartMeeting();
-	}
+    private bool _dawInitialized = false;
+    private bool _dawVisible = false;
+    private const string MeetingStyleBase = "display: grid; height: 100%; max-height: 100%;";
+    private string MeetingStyle => _dawVisible
+                            ? $"{MeetingStyleBase} grid-template-rows: 1fr; grid-template-columns: 1fr min-content 1fr;"
+                            : $"{MeetingStyleBase} grid-template-rows: 1fr; grid-template-columns: 1fr min-content min-content;";
 
-	[JSInvokable]
-	public async Task StartMeeting()
-	{
-		if (_disposed || string.IsNullOrEmpty(_meetingPath)) return;
-		_loading = true;
-		StateHasChanged();
-		var token = await SessionService.GetMeetingTokenAsync(Guid, startMeetingCancellation.Token);
-		try
-		{
-			await JS.InvokeAsync<string>("startMeeting", startMeetingCancellation.Token, "jitsi", AppSettingsService.AppSettings.JitsiUrl.Host, _meetingPath, token, _dotNetObjectReference);
-		}
-		catch(ObjectDisposedException) { }
-		_loading = false;
-	}
+    private const string DawStyleBase = "overflow: auto;";
+    private string DawStyle => _dawVisible ? $"{DawStyleBase}" : $"{DawStyleBase} display: none;";
 
-	private async Task OpenInApp()
-	{
-		var token = await SessionService.GetMeetingTokenAsync(Guid);
-		await JS.InvokeVoidAsync("open", OpenInAppUrl(token));
-	}
-
-	public void Dispose()
-	{
-		startMeetingCancellation.Cancel();
-		_dotNetObjectReference?.Dispose();
-		_disposed = true;
-	}
+    private void ToggleDaw()
+    {
+        if (!_dawInitialized) _dawInitialized = true;
+        _dawVisible = !_dawVisible;
+    }
 }

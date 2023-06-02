@@ -30,14 +30,14 @@ services:
       DB_STRING:
 
       OIDC_AUDIENCE: account
-      OIDC_ADMIN_REST_API_BASE: http://keycloak:8080${CONCERTO_BASE_PATH}/keycloak/admin/realms/concerto
-      OIDC_AUTHORITY: http://keycloak:8080${CONCERTO_BASE_PATH}/keycloak/realms/concerto
-      OIDC_METADATA_ADDRESS: http://keycloak:8080${CONCERTO_BASE_PATH}/keycloak/realms/concerto/.well-known/openid-configuration
+      OIDC_ADMIN_REST_API_BASE: http://keycloak:8080${KEYCLOAK_BASE_PATH}/admin/realms/concerto
+      OIDC_AUTHORITY: http://keycloak:8080${KEYCLOAK_BASE_PATH}/realms/concerto
+      OIDC_METADATA_ADDRESS: http://keycloak:8080${KEYCLOAK_BASE_PATH}/realms/concerto/.well-known/openid-configuration
       OIDC_REQUIRE_HTTPS_METADATA: "false"
       
-      OIDC_CLIENT_AUTHORITY: ${CONCERTO_BASE_URL:?}/keycloak/realms/concerto/
-      IDENTITY_ACCOUNT_CONSOLE_URL: ${CONCERTO_BASE_URL:?}/keycloak/realms/concerto/account/
-      IDENTITY_ADMIN_CONSOLE_URL: ${CONCERTO_BASE_URL:?}/keycloak/admin/concerto/console/#/concerto/users
+      OIDC_CLIENT_AUTHORITY: ${KEYCLOAK_BASE_URL:?}/realms/concerto/
+      IDENTITY_ACCOUNT_CONSOLE_URL: ${KEYCLOAK_BASE_URL:?}/realms/concerto/account/
+      IDENTITY_ADMIN_CONSOLE_URL: ${KEYCLOAK_BASE_URL:?}/admin/concerto/console/#/concerto/users
       
       SERVER_CLIENT_ID: concerto-server
       SERVER_CLIENT_SECRET:
@@ -65,6 +65,7 @@ services:
       BASE_PATH: ${CONCERTO_BASE_PATH}
       CONCERTO_DOMAIN: ${CONCERTO_DOMAIN:?}
       JITSI_DOMAIN: ${JITSI_DOMAIN:?}
+      KEYCLOAK_DOMAIN: ${KEYCLOAK_DOMAIN:?}
     networks:
       concerto:
       meet-jitsi:
@@ -86,16 +87,17 @@ services:
       
       KC_PROXY: edge
       KC_HTTP_ENABLED: "true"
-      KC_HTTP_RELATIVE_PATH: ${CONCERTO_BASE_PATH}/keycloak
+      KC_HTTP_RELATIVE_PATH: ${KEYCLOAK_BASE_PATH}/
       
-      KC_HOSTNAME_PATH: ${CONCERTO_BASE_PATH}/keycloak
-      KC_HOSTNAME_URL: ${CONCERTO_BASE_URL:?}/keycloak/
-      KC_HOSTNAME_ADMIN_URL: ${CONCERTO_BASE_URL:?}/keycloak/
+      KC_HOSTNAME_PATH: ${KEYCLOAK_BASE_PATH}/
+      KC_HOSTNAME_URL: ${KEYCLOAK_BASE_URL:?}/
+      KC_HOSTNAME_ADMIN_URL: ${KEYCLOAK_BASE_URL:?}/
       KC_HOSTNAME_STRICT_HTTPS: "false"
     command:
     - start 
     networks:
       concerto:
+    restart: unless-stopped
 
 
   postgres:
@@ -127,7 +129,7 @@ services:
 
 
   jitsi_web:
-    image: etav/web:stable-8319-concerto-2.0
+    image: etav/web:stable-8615-concerto-2.1
     volumes:
      - ${CONCERTO_VOLUME_PATH}/jitsi_config/web:/config
      - ${CONCERTO_VOLUME_PATH}/jitsi_config/web/crontabs:/var/spool/cron/crontabs
@@ -155,7 +157,7 @@ services:
         - ${JITSI_DOMAIN:?}
 
   jitsi_jvb:
-    image: etav/jvb:stable-8319-concerto-2.0
+    image: etav/jvb:stable-8615-concerto-2.1
     volumes:
       - ${CONCERTO_VOLUME_PATH}/jitsi_config/jvb:/config
     ports:
@@ -250,7 +252,7 @@ services:
 
 
   jitsi_jibri:
-    image: etav/jibri:stable-8319-concerto-2.0
+    image: etav/jibri:stable-8615-concerto-2.1
     volumes:
     - ${CONCERTO_VOLUME_PATH}/recordings:/srv/concerto/recordings
     - ${CONCERTO_VOLUME_PATH}/jitsi_config/jibri:/config

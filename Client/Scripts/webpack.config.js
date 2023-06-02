@@ -11,13 +11,31 @@ module.exports = {
         {
           test: /\.tsx?$/,
           use: 'ts-loader',
-          exclude: ["/node_modules/", "/src/waveform-playlist/" ], 
+          exclude: ["/node_modules/", "/src/waveform-playlist/node_modules/" ], 
         },
         {
           test: /\.css$/,
           use: [
             'style-loader',
-            'css-loader'
+            'css-loader',
+            {
+              loader: 'postcss-loader',
+              options: {
+                postcssOptions: {
+                  plugins: [
+                    [
+                      'postcss-prefix-selector',
+                      {
+                        prefix: '.daw',
+                        transform: function (prefix, selector, prefixedSelector) {
+                          return prefixedSelector;
+                        },
+                      },
+                    ],
+                  ],
+                },
+              },
+            },
           ]
         },
         {

@@ -17,7 +17,7 @@ namespace Concerto.Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.3")
+                .HasAnnotation("ProductVersion", "7.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -107,6 +107,25 @@ namespace Concerto.Server.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("CourseUsers");
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.DawProject", b =>
+                {
+                    b.Property<long>("ProjectId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ProjectId"));
+
+                    b.Property<Guid?>("AudioSourceGuid")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AudioSourceHash")
+                        .HasColumnType("text");
+
+                    b.HasKey("ProjectId");
+
+                    b.ToTable("DawProjects");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.Folder", b =>
@@ -217,6 +236,41 @@ namespace Concerto.Server.Migrations
                     b.HasIndex("MeetingGuid");
 
                     b.ToTable("Sessions");
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.Track", b =>
+                {
+                    b.Property<long>("ProjectId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid?>("AudioSourceGuid")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("SelectedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<float>("StartTime")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Volume")
+                        .HasColumnType("real");
+
+                    b.HasKey("ProjectId", "Id");
+
+                    b.ToTable("Tracks");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.UploadedFile", b =>
@@ -448,6 +502,17 @@ namespace Concerto.Server.Migrations
                     b.Navigation("Folder");
                 });
 
+            modelBuilder.Entity("Concerto.Server.Data.Models.Track", b =>
+                {
+                    b.HasOne("Concerto.Server.Data.Models.DawProject", "Project")
+                        .WithMany("Tracks")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Concerto.Server.Data.Models.UploadedFile", b =>
                 {
                     b.HasOne("Concerto.Server.Data.Models.Folder", "Folder")
@@ -525,6 +590,11 @@ namespace Concerto.Server.Migrations
                     b.Navigation("Posts");
 
                     b.Navigation("Sessions");
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.DawProject", b =>
+                {
+                    b.Navigation("Tracks");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.Folder", b =>
