@@ -52,7 +52,7 @@ builder.Services.AddScoped<IBreadcrumbsService, BreadcrumbsService>();
 // builder.Services.AddScoped<ClientNotificationService, ClientNotificationService>();
 
 
-builder.Services.AddMudServicesWithExtensions(config => 
+builder.Services.AddMudServices(config => 
     {
         config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
         config.SnackbarConfiguration.HideTransitionDuration = 100;

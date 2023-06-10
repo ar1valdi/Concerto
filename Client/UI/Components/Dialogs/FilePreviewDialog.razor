@@ -1,6 +1,4 @@
-﻿@using MudBlazor.Extensions.Components
-@using MimeMapping
-@inherits DialogAutoFullscreen
+﻿@inherits DialogAutoFullscreen
 
 @inject IStorageService StorageService
 
@@ -8,8 +6,8 @@
 			.preview {
 				display: flex;
 				flex-grow: 1;
-				height: calc(100vh - 140px);
-				width: 100%;
+				height: calc(100vh - 200px);
+				width: 1230px;
 			}
 
 			.preview-fs {
@@ -45,7 +43,7 @@
 					<img src="@_url" class="@previewClass" />
                     break;
 				case "video":
-					<video src="@_url" class="@previewClass"></video>
+					<video src="@_url" controls class="@previewClass"></video>
                     break;
 				case "audio":
 					<div class="@audioPreviewClass">
