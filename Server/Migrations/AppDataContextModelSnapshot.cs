@@ -259,7 +259,7 @@ namespace Concerto.Server.Migrations
                     b.Property<int>("Order")
                         .HasColumnType("integer");
 
-                    b.Property<Guid?>("SelectedBy")
+                    b.Property<Guid?>("SelectedByUserId")
                         .HasColumnType("uuid");
 
                     b.Property<float>("StartTime")
@@ -269,6 +269,8 @@ namespace Concerto.Server.Migrations
                         .HasColumnType("real");
 
                     b.HasKey("ProjectId", "Id");
+
+                    b.HasIndex("SelectedByUserId");
 
                     b.ToTable("Tracks");
                 });
@@ -514,7 +516,13 @@ namespace Concerto.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Concerto.Server.Data.Models.User", "SelectedByUser")
+                        .WithMany()
+                        .HasForeignKey("SelectedByUserId");
+
                     b.Navigation("Project");
+
+                    b.Navigation("SelectedByUser");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.UploadedFile", b =>
