@@ -12,10 +12,12 @@ namespace Concerto.Client.Services;
 public interface IStorageService : IStorageClient
 {
     public void QueueFilesToUpload(long folderId, IEnumerable<IBrowserFile> files);
+    public void QueueFileToUpload(long folderId, IJSStreamReference file, string name);
     public void CancelAllUploads();
     public void ClearInactiveUploads();
 
     public Task DownloadFile(long fileId, string saveAs);
+    public Task<string> GetFileUrl(long fileId, bool inline = false);
 
     public void ClearIfInactive(UploadQueueItem item);
     public EventHandler<IReadOnlyCollection<UploadQueueItem>>? QueueChangedEventHandler { get; set; }
@@ -56,11 +58,22 @@ public class StorageService : StorageClient, IStorageService
 
     public void QueueFilesToUpload(long folderId, IEnumerable<IBrowserFile> files)
     {
+        var uploadQueueItems = files.Select(file => new BrowserFileUploadQueueItem(folderId, file));
+        QueueFilesToUploadInternal(folderId, uploadQueueItems);
+    }
+
+    public void QueueFileToUpload(long folderId, IJSStreamReference file, string name)
+    {
+        var uploadQueueItem = new JsStreamFileUploadQueueItem(folderId, name, file);
+        QueueFilesToUploadInternal(folderId, new[] { uploadQueueItem });
+    }
+
+    private void QueueFilesToUploadInternal(long folderId, IEnumerable<UploadQueueItem> files)
+    {
         foreach (var file in files)
         {
-            var queueItem = new UploadQueueItem(folderId, file);
-            _uploadQueue.Enqueue(queueItem);
-            _items.Add(queueItem);
+            _uploadQueue.Enqueue(file);
+            _items.Add(file);
         }
 
         if (!_isUploading)
@@ -114,8 +127,9 @@ public class StorageService : StorageClient, IStorageService
     private async Task UploadQueueFile(UploadQueueItem item)
     {
         long chunkSize = 1024 * 1024 * 10;
-        Stream file = item.File;
         // long maxFileSize = _appSettingsService.AppSettings.FileSizeLimit;
+        await item.InitializeAsync();
+        Stream file = item.File;
 
         FileChunkMetadata? fileChunk = null;
         try
@@ -149,7 +163,6 @@ public class StorageService : StorageClient, IStorageService
                 if (fileStream.Position == fileStream.Length)
                 {
                     item.Result = await response.Content.ReadFromJsonAsync<FileUploadResult>();
-                    ;
                     item.Progress = 100;
                 }
 
@@ -193,8 +206,7 @@ public class StorageService : StorageClient, IStorageService
     {
         try
         {
-            var token = await GetOneTimeTokenAsync(fileId);
-            var url = $"Storage/DownloadFile?fileId={fileId}&token={token}";
+            var url = await GetFileUrl(fileId);
             await _JS.InvokeVoidAsync("downloadFile", saveAs, $"{_http.BaseAddress}{url}");
         }
         catch (Exception e)
@@ -204,15 +216,21 @@ public class StorageService : StorageClient, IStorageService
         }
     }
 
+	public async Task<string> GetFileUrl(long fileId, bool inline = false)
+	{
+		var token = await GetFileDownloadTokenAsync(fileId);
+		return $"Storage/DownloadFile?fileId={fileId}&token={token}&inline={inline}";
+	}
+
 }
 
-public class UploadQueueItem
+public abstract class UploadQueueItem : IAsyncDisposable
 {
     public long FolderId { get; private set; }
     public readonly CancellationTokenSource Cancellation = new();
-    public Stream File { get; private set; }
-    public long Size { get; private set; }
-    public string Name { get; private set; }
+    public abstract Stream File { get; }
+    public abstract long Size { get; }
+    public abstract string Name { get;}
     public FileUploadResult? Result { get; set; } = null;
     public double Progress { get; set; } = 0;
 
@@ -224,11 +242,70 @@ public class UploadQueueItem
     public bool IsPending => IsInProgress && Progress == 0;
     public bool IsUploading => IsInProgress && Progress > 0;
 
-    public UploadQueueItem(long folderId, IBrowserFile file)
+    public UploadQueueItem(long folderId)
     {
         FolderId = folderId;
+    }
+
+    public abstract Task InitializeAsync();
+
+    public virtual async ValueTask DisposeAsync()
+    {
+        await File.DisposeAsync();
+        Cancellation.Dispose();
+    }
+
+}
+
+public class BrowserFileUploadQueueItem : UploadQueueItem
+{
+
+    public override long Size { get; } 
+    public override string Name { get; } 
+    public override Stream File { get; }
+
+    public BrowserFileUploadQueueItem(long folderId, IBrowserFile file) : base(folderId)
+    {
+        File = file.OpenReadStream(long.MaxValue);
         Size = file.Size;
         Name = file.Name;
-        File = file.OpenReadStream(long.MaxValue);
+    }
+    public override Task InitializeAsync() => Task.CompletedTask;
+}
+
+public class JsStreamFileUploadQueueItem : UploadQueueItem
+{
+    public override long Size { get; } 
+    public override string Name { get; } 
+
+    IJSStreamReference jsStream;
+    private Stream? _file;
+    public override Stream File
+    {
+        get
+        {
+            if (_file == null) throw new InvalidOperationException("Stream not initialized");
+            return _file;
+        }
+    }
+
+    public JsStreamFileUploadQueueItem(long folderId, string name, IJSStreamReference file) : base(folderId)
+    {
+        Size = file.Length;
+        Name = name;
+        jsStream = file;
+    }
+
+    public override async Task InitializeAsync()
+    {
+        _file = await jsStream.OpenReadStreamAsync(long.MaxValue);
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        await base.DisposeAsync();
+        await jsStream.DisposeAsync();
     }
 }
+
+

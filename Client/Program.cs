@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
+using MudBlazor;
+using MudBlazor.Extensions;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -50,7 +52,13 @@ builder.Services.AddScoped<IBreadcrumbsService, BreadcrumbsService>();
 // builder.Services.AddScoped<ClientNotificationService, ClientNotificationService>();
 
 
-builder.Services.AddMudServices();
+builder.Services.AddMudServicesWithExtensions(config => 
+    {
+        config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
+        config.SnackbarConfiguration.HideTransitionDuration = 100;
+        config.SnackbarConfiguration.ShowTransitionDuration = 100;
+        config.SnackbarConfiguration.PreventDuplicates = false;
+    });
 
 builder.Services.AddBlazoredLocalStorage();
 
