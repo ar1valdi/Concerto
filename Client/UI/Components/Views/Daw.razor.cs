@@ -45,6 +45,8 @@ public partial class Daw : IAsyncDisposable
     [Parameter]
     public long? CourseId { get; set; }
 
+    private Track? UploadingTrack { get; set; }
+
     private Task _updateProjectTask = Task.CompletedTask;
     private CancellationTokenSource _updateProjectCancellationTokenSource = new();
 
@@ -264,7 +266,9 @@ public partial class Daw : IAsyncDisposable
 
     private async Task UploadTrackSource(Track track, IBrowserFile file)
     {
-        await DawService.SetTrackSourceAsync(_sessionId, track.Id, file, 0);
+        UploadingTrack = track;
+        await DawService.SetTrackSourceAsync(_sessionId, track.Id, file, 1);
+        UploadingTrack = null;
     }
 
     private async Task SelectTrack(Track track)
