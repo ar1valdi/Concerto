@@ -9,6 +9,7 @@ using Concerto.Shared.Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
@@ -41,11 +42,6 @@ builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<StorageService>();
 builder.Services.AddScoped<IdentityManagerService>();
 
-// builder.Services.AddResponseCompression(opts =>
-// {
-//     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-//         new[] { "application/octet-stream" });
-// });
 
 builder.Services.AddAuthentication(options =>
 		{

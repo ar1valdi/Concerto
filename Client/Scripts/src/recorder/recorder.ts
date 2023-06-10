@@ -159,7 +159,7 @@ export class RecordingManager {
                 this.canvasContext.fillStyle = "black";
                 this.canvasContext.fillRect(0, 0, this.canvas.width, this.canvas.height);
                 this.canvasContext.fillStyle = "white";
-                this.canvasContext.font = "90px Calibri";
+                this.canvasContext.font = "12px Calibri";
                 this.canvasContext.textAlign = "center";
                 this.canvasContext.fillText("No camera input", this.canvas.width / 2, this.canvas.height / 2);
             }
