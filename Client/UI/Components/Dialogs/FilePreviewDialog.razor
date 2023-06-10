@@ -4,25 +4,58 @@
 
 @inject IStorageService StorageService
 
+		<style>
+			.preview {
+				display: flex;
+				flex-grow: 1;
+				height: calc(100vh - 140px);
+				width: 100%;
+			}
+
+			.preview-fs {
+				display: flex;
+				flex-grow: 1;
+				height: calc(100vh - 140px);
+				width: 100%;
+			}
+
+			.preview-audio {
+
+			}
+
+			.preview-audio-fs {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				justify-content: center;
+				height: calc(100vh - 140px);
+				width: 100%;
+			}
+
+		</style>
+
 <MudDialog>
 	<DialogContent>
+
 		@if(File is not null && _url is not null)
 		{
 			@switch(_mimeType)
 			{
                 case "image":
-					<img src="@_url" style="@previewStyle" class="@previewClass" />
+					<img src="@_url" class="@previewClass" />
                     break;
 				case "video":
-					<video src="@_url" controls style="@previewStyle" class="@previewClass"></video>
+					<video src="@_url" class="@previewClass"></video>
                     break;
 				case "audio":
-					<audio src="@_url" controls></audio>
+					<div class="@audioPreviewClass">
+						<audio src="@_url" controls class="flex-grow-1"></audio>
+					</div>
 					break;
 				default:
 					if(_fullMimeType == "application/pdf")
 					{
-						<embed src="@_url" type="@_fullMimeType" style="@previewStyle" class="@previewClass" />
+						<embed src="@_url" type="@_fullMimeType" class="@previewClass" />
 					}
 					else
 					{
@@ -52,10 +85,8 @@
 	private string? _fullMimeType;
 	private string? _mimeType;
 
-	private string previewStyle => IsFullScreen ? "display: flex; flex-grow: 1; height: calc(100vh - 140px); width: 100%;"
-												: "display: flex; flex-grow: 1; height: calc(100vh - 205px); width: 1232px; max-width: 1232px;";
-
-	private string previewClass => "mud-container-maxwidth-xl";
+	private string previewClass => IsFullScreen ? "preview-fs" : "preview";
+	private string audioPreviewClass => IsFullScreen ? "preview-audio-fs" : "preview-audio";
 
 	protected override async Task OnInitializedAsync()
 	{

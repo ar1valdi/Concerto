@@ -139,7 +139,7 @@
 
     .pulse-blob {
         border-radius: 50%;
-        margin: 10px;
+        margin: 5px;
         height: 20px;
         width: 20px;
         background: rgba(255, 82, 82, 1);
@@ -272,11 +272,22 @@
 
                                     <MudFileUpload T="IBrowserFile" FilesChanged="(file) => UploadTrackSource(track, file)" Accept="audio/*" Class="ma-0">
                                         <ButtonTemplate>
-                                            <MudIconButton Disabled="trackControlsDisabled"
-                                           DisableElevation="true" Variant="Variant.Filled" Size="Size.Small"
-                                           Color="Color.Info" Icon="@Icons.Material.Filled.UploadFile"
-                                           HtmlTag="label"
-                                                           for="@context" />
+
+                                            @if(UploadingTrack == track)
+                                            {
+                                                <div style="width: 30px; height: 30px; display: flex; justify-content: center; align-content: center; align-items:center;">
+                                                    <MudProgressCircular Style="width: 20px; height: 20px;" Indeterminate="true" Size="Size.Small" />
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <MudIconButton Disabled="trackControlsDisabled"
+                                                               DisableElevation="true" Variant="Variant.Filled" Size="Size.Small"
+                                                               Color="Color.Info" Icon="@Icons.Material.Filled.UploadFile"
+                                                               HtmlTag="label"
+                                                               for="@context" />
+                                            }
+
                                         </ButtonTemplate>
                                     </MudFileUpload>
 
@@ -336,7 +347,7 @@
         <div class="daw-add">
             @if (DawInitialized)
             {
-                <MudButton OnClick="AddTrack" Class="flex-grow-1"
+                <MudButton OnClick="AddTrack" Class="flex-grow-1" Disabled="IsPlaying || IsRecording || IsRecordingPending"
                        DisableElevation="true" Variant="Variant.Filled" Size="Size.Small"
                        Color="Color.Success" StartIcon="@Icons.Material.Filled.Add">
                     Add Track
