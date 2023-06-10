@@ -16,33 +16,33 @@ JITSI_REPO=etav
 COMPOSE_DOCKER_CLI_BUILD=1
 DOCKER_BUILDKIT=1
 
-#docker buildx build \
-#	--platform linux/amd64,linux/arm64 \
-#	--progress=plain \
-#	--pull --push \
-#	--tag etav/concerto_server:${VERSION} \
-#	--file ./Server/Dockerfile .
-#	
-#docker buildx build \
-#	--platform linux/amd64,linux/arm64 \
-#	--progress=plain \
-#	--pull --push \
-#	--tag etav/concerto_proxy:${VERSION} \
-#	--file ./DockerCompose/nginx/Dockerfile ./DockerCompose/nginx
-#	
-#docker buildx build \
-#	--platform linux/amd64,linux/arm64 \
-#	--progress=plain \
-#	--pull --push \
-#	--tag etav/kask:${VERSION} \
-#	--file ./DockerCompose/nginx_kask_sim/Dockerfile ./DockerCompose/nginx_kask_sim
+docker buildx build \
+	--platform linux/amd64,linux/arm64 \
+	--progress=plain \
+	--pull --push \
+	--tag etav/concerto_server:${VERSION} \
+	--file ./Server/Dockerfile .
+	
+docker buildx build \
+	--platform linux/amd64,linux/arm64 \
+	--progress=plain \
+	--pull --push \
+	--tag etav/concerto_proxy:${VERSION} \
+	--file ./DockerCompose/nginx/Dockerfile ./DockerCompose/nginx
+	
+docker buildx build \
+	--platform linux/amd64,linux/arm64 \
+	--progress=plain \
+	--pull --push \
+	--tag etav/kask:${VERSION} \
+	--file ./DockerCompose/nginx_kask_sim/Dockerfile ./DockerCompose/nginx_kask_sim
 	
 cd JitsiDocker
 
 
 make buildx_web
-#make buildx_jibri
-#make buildx_jvb
+make buildx_jibri
+make buildx_jvb
 cd ..
 
 
