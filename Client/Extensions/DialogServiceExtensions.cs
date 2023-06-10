@@ -53,35 +53,18 @@ public static class DialogServiceExtensions
         return (long)result.Data;
     }
 
-
-    public static async Task<bool> ShowCopyFolderItemsDialog(this IDialogService dialogService, IEnumerable<FolderContentItem> items, long fromFolderId, long initialCourseId)
+    public static async Task<FolderItem?> ShowSelectFolderDialog(this IDialogService dialogService, string title, string selectButtonText, long? initialCourseId = null, IEnumerable<long>? excludedIds = null, IEnumerable<long>? excludedWithChildrenIds = null)
     {
-        var options = new DialogOptions() { FullScreen = true, MaxWidth = MaxWidth.Large };
-        var parameters = new DialogParameters
+		var parameters = new DialogParameters
         {
-            ["Items"] = items,
-            ["FromFolderId"] = fromFolderId,
+			["ExcludedIds"] = excludedIds,
+			["ExcludedWithChildrenIds"] = excludedWithChildrenIds,
             ["InitialCourseId"] = initialCourseId,
-            ["Copy"] = true
-        };
-        var result = await dialogService.Show<MoveOrCopyFolderDialog>("Copy selected items", parameters, options).Result;
-        if (result.Canceled) return false;
-        return true;
-    }
-
-    public static async Task<bool> ShowMoveFolderItemsDialog(this IDialogService dialogService, IEnumerable<FolderContentItem> items, long fromFolderId, long initialCourseId)
-    {
-        var options = new DialogOptions() { FullScreen = true, MaxWidth = MaxWidth.Large };
-        var parameters = new DialogParameters
-        {
-            ["Items"] = items,
-            ["FromFolderId"] = fromFolderId,
-            ["InitialCourseId"] = initialCourseId,
-            ["Copy"] = false
-        };
-        var result = await dialogService.Show<MoveOrCopyFolderDialog>("Move selected items", parameters, options).Result;
-        if (result.Canceled) return false;
-        return true;
+			["SelectButtonText"] = selectButtonText,
+		};
+		var result = await dialogService.Show<SelectFolderDialog>(title, parameters).Result;
+		if (result.Canceled) return null;
+		return (FolderItem)result.Data;
     }
 
     public static async Task<bool> ShowSelectFilesDialog(this IDialogService dialogService, HashSet<FileItem> selectedFiles, long courseId)
@@ -110,6 +93,17 @@ public static class DialogServiceExtensions
         return true;
     }
 
+    public static async Task<string?> ShowInputStringDialog(this IDialogService dialogService, string title, string placeholder)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Placeholder"] = placeholder
+        };
+        var result = await dialogService.Show<InputStringDialog>(title, parameters).Result;
+        if (result.Canceled) return null;
+        return (string)result.Data;
+    }
+
     public static async Task<bool> ShowUpdateUserDialog(this IDialogService dialogService, UserIdentity user)
     {
         var parameters = new DialogParameters
@@ -119,6 +113,16 @@ public static class DialogServiceExtensions
         var result = await dialogService.Show<UpdateUserDialog>($"Update user", parameters).Result;
         if (result.Canceled) return false;
         return true;
+    }
+
+
+    public static async Task ShowFilePreviewDialog(this IDialogService dialogService, FileItem file)
+    {
+        var parameters = new DialogParameters
+        {
+            ["File"] = file
+        };
+        await dialogService.Show<FilePreviewDialog>(file.FullName, parameters).Result;
     }
 
 }
