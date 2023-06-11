@@ -181,6 +181,27 @@
         transform: scale(1);
     }
 
+
+    .crossed-out .mud-icon-root {
+        position: relative;
+        display: inline-block;
+        overflow: hidden;
+    }
+
+    .crossed-out .mud-icon-root::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -44%;
+        height: 3px;
+        width: 200%;
+        background: white;
+        transform: rotate(45deg);
+        transform-origin: left center;
+        pointer-events: none;
+     }
+
+
     @@keyframes pulse-red {
         0% {
             transform: scale(0.95);
@@ -254,6 +275,10 @@
                 <MudIconButton OnClick="ListenTogether" Disabled="ListenTogetherDisabled"
                            DisableElevation="true" Variant="Variant.Filled"
                            Color="Color.Info" Icon="@CustomIcons.Share" />
+
+                <MudIconButton OnClick="RequestStopSharing" D
+                           DisableElevation="true" Variant="Variant.Filled"
+                           Color="Color.Info" Icon="@CustomIcons.Share" Class="crossed-out" />
 
                 <MudIconButton OnClick="SaveProjectOutput" Disabled="SaveProjectOutputDisabled"
                            DisableElevation="true" Variant="Variant.Filled"

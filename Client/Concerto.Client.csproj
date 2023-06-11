@@ -35,7 +35,7 @@
 	</ItemGroup>
 
 	<PropertyGroup>
-		<RunAOTCompilation>false</RunAOTCompilation>
+		<RunAOTCompilation>true</RunAOTCompilation>
 	</PropertyGroup>
 
 </Project>

@@ -184,23 +184,7 @@ app.MapControllers();
 app.MapHub<NotificationHub>("/notifications");
 app.MapHub<DawHub>("/daw");
 
-var contentRoot = app.Environment.WebRootFileProvider;
-// load index.html
-var indexHtmlTemplate = contentRoot.GetFileInfo("index_template.html");
-
-var indexHtmlContent = File.ReadAllText(indexHtmlTemplate.PhysicalPath!);
-var basePath = AppSettings.Web.BasePath.Trim('/');
-basePath = basePath.IsNullOrEmpty() ? basePath : basePath + "/";
-var baseTag = @$"<base href=""/{basePath}"" />";
-
-// replace base tag with <base href="/{basePath}/"> 
-var indexHtmlContentWithBase = Regex.Replace(indexHtmlContent, "<base *href=\".*?\".*?>", baseTag);
-// write to index_base.html
-var indexHtml = Path.Combine(Path.GetDirectoryName(indexHtmlTemplate.PhysicalPath)!, "index.html");
-File.WriteAllText(indexHtml, indexHtmlContentWithBase);
-
 app.MapFallbackToFile("index.html");
-
 
 var diagnosticSource = app.Services.GetRequiredService<DiagnosticListener>();
 using var badRequestListener = new BadRequestEventListener(diagnosticSource, (badRequestExceptionFeature) =>
