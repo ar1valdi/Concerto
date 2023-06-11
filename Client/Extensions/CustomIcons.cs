@@ -11,6 +11,8 @@ public static class CustomIcons
     public static string CursorText { get; } = "fa-solid fa-i-cursor fa-force-size";
     public static string Shift { get; } = "fa-solid fa-arrows-alt-h";
     public static string Share { get; } = "fa-solid fa-share";
+    public static string Music { get; } = "fa-solid fa-music";
+    public static string MusicSlash { get; } = "fa-solid fa-music-slash";
 
     public static string Play { get; } = "fa-solid fa-play";
     public static string Pause { get; } = "fa-solid fa-pause";

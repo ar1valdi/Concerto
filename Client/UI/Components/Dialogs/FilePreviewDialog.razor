@@ -1,6 +1,7 @@
 ﻿@inherits DialogAutoFullscreen
 
 @inject IStorageService StorageService
+@inject NavigationManager Navigation
 
 		<style>
 			.preview {
@@ -53,7 +54,9 @@
 				default:
 					if(_fullMimeType == "application/pdf")
 					{
-						<embed src="@_url" type="@_fullMimeType" class="@previewClass" />
+						<object src="@_url" type="@_fullMimeType" class="@previewClass">
+							<p>Your browser doesn't support PDF preview</p>
+						</object>
 					}
 					else
 					{

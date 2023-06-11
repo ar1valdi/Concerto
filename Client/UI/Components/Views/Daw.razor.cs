@@ -337,7 +337,7 @@ public partial class Daw : IAsyncDisposable
         _shiftActive = true;
     }
 
-    private bool ListenTogetherDisabled => IsRecording || IsRecordingPending || ListenTogetherPending;
+    private bool ListenTogetherDisabled => IsRecording || IsRecordingPending || ListenTogetherPending || !(_project?.Tracks.Any(t => t.SourceId is not null) ?? true);
     public async Task ListenTogether()
     {
         if (ListenTogetherDisabled) return;
@@ -351,6 +351,12 @@ public partial class Daw : IAsyncDisposable
         url = Navigation.ToAbsoluteUri(url).ToString();
         await OnListenTogether.InvokeAsync(url);
         ListenTogetherPending = false;
+    }
+
+    public async Task RequestStopSharing()
+    {
+        await DawHub.InvokeAsync(DawHubMethods.Server.RequestStopSharingVideo, _sessionId);
+        await OnRequestStopSharing.InvokeAsync();
     }
 
     private bool SaveProjectOutputDisabled => IsRecording || IsRecordingPending || ListenTogetherPending || !(_project?.Tracks.Any(t => t.SourceId is not null) ?? true);
