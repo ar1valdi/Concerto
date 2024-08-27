@@ -218,16 +218,29 @@ public partial class Daw : IAsyncDisposable
 
     public async Task Play()
     {
-        if(IsRecording) return;
-        IsPlaying = true;
-        await DawInterop.Play();
+        try
+        {
+            if(IsRecording) return;
+            IsPlaying = true;
+            await DawInterop.Play();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.StackTrace);
+        }
     }
 
     public async Task Stop()
     {
-        IsPlaying = false;
-        await DawInterop.Stop();
-
+        try
+        {
+            IsPlaying = false;
+            await DawInterop.Stop();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.StackTrace);
+        }
         if(ShouldUpdate) await UpdateProject();
     }
 
@@ -240,60 +253,86 @@ public partial class Daw : IAsyncDisposable
     }
     private async Task StartRecording(Track track)
     {
-        if (IsRecording) return;
-        IsRecording = true;
-        TrackRecording = new TrackRecording(track);
-        await DawInterop.RecordTrack(track);
+        try
+        {
+            if (IsRecording) return;
+            IsRecording = true;
+            TrackRecording = new TrackRecording(track);
+            await DawInterop.RecordTrack(track);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.StackTrace);
+        }
     }
 
     private async Task DiscardRecording()
     {
-        if (!IsRecordingPending) return;
-        if (TrackRecording is null) throw new InvalidOperationException("TrackRecording is null");
-        if (Project is null) throw new InvalidOperationException("Project is null");
+        try
+        {
+            if (!IsRecordingPending) return;
+            if (TrackRecording is null) throw new InvalidOperationException("TrackRecording is null");
+            if (Project is null) throw new InvalidOperationException("Project is null");
 
-        var originalTrack = Project.TracksById[TrackRecording.Id];
-        await DawInterop.UpdateTrack(originalTrack, true);
-        await DawInterop.ReRender();
+            var originalTrack = Project.TracksById[TrackRecording.Id];
+            await DawInterop.UpdateTrack(originalTrack, true);
+            await DawInterop.ReRender();
 
-        TrackRecording = null;
-        IsRecordingPending = false;
+            TrackRecording = null;
+            IsRecordingPending = false;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.StackTrace);
+        }
 
-        if(ShouldUpdate) await UpdateProject();
+        if (ShouldUpdate) await UpdateProject();
     }
 
     private async Task AcceptRecording()
     {
-        if (!IsRecordingPending) return;
-        if (TrackRecording is null) throw new InvalidOperationException("TrackRecording is null");
-        if (TrackRecording.Blob is null) throw new InvalidOperationException("TrackRecording.Blob is null");
-        if(Project is null) throw new InvalidOperationException("Project is null");
+        try
+        {
+            if (!IsRecordingPending) return;
+            if (TrackRecording is null) throw new InvalidOperationException("TrackRecording is null");
+            if (TrackRecording.Blob is null) throw new InvalidOperationException("TrackRecording.Blob is null");
+            if(Project is null) throw new InvalidOperationException("Project is null");
 
 
-        Project.TracksById[TrackRecording.Id].StartTime = TrackRecording.StartTime;
-        await DawService.SetTrackSourceAsync(_sessionId, TrackRecording.Id, TrackRecording.Blob, TrackRecording.StartTime, TrackRecording.Volume);
+            Project.TracksById[TrackRecording.Id].StartTime = TrackRecording.StartTime;
+            await DawService.SetTrackSourceAsync(_sessionId, TrackRecording.Id, TrackRecording.Blob, TrackRecording.StartTime, TrackRecording.Volume);
 
-        TrackRecording = null;
-        IsRecordingPending = false;
+            TrackRecording = null;
+            IsRecordingPending = false;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.StackTrace);
+        }
 
-        if(ShouldUpdate) await UpdateProject();
+        if (ShouldUpdate) await UpdateProject();
     }
 
     [JSInvokable]
     public void OnRecordingFinished(long trackId, IJSStreamReference blob, float startTime)
     {
-        if (!IsRecording || TrackRecording is null)
-            throw new InvalidOperationException("Recording finished but no recording was started");
+        try
+        {
+            if (!IsRecording || TrackRecording is null)
+                throw new InvalidOperationException("Recording finished but no recording was started");
 
-        if (TrackRecording.Id != trackId)
-            throw new InvalidOperationException("Recording finished but for different track");
+            if (TrackRecording.Id != trackId)
+                throw new InvalidOperationException("Recording finished but for different track");
 
-
-
-        TrackRecording.Blob = blob;
-        TrackRecording.StartTime = startTime;
-        IsRecordingPending = true;
-        IsRecording = false;
+            TrackRecording.Blob = blob;
+            TrackRecording.StartTime = startTime;
+            IsRecordingPending = true;
+            IsRecording = false;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.StackTrace);
+        }
 
         StateHasChanged();
     }
