@@ -5,15 +5,15 @@
 
 @inject IBreadcrumbsService BreadcrumbsService
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Concerto</PageTitle>
 
-<div class="pa-4" style="geight: 100%; display:flex;flex-direction:column;"
+<div class="pa-4" style="height: 100%; display:flex;flex-direction:column;">
 	<MudText Typo="Typo.h3" GutterBottom="true">Home</MudText>
 	<AuthorizeView Policy="@AuthorizationPolicies.IsNotVerified.Name">
 		<MudAlert Severity="Severity.Warning">An administrator must verify your account before accessing Concerto. Please come back later or contact your administrator.</MudAlert>
 	</AuthorizeView>
 	<MudImage Src="home.svg" Style="@ImageStyle" Elevation="0" />
-</div
+</div>
 
 
 @code {
@@ -27,7 +27,7 @@
 	{
 		BreadcrumbsService.Set(
 			Icons.Material.Filled.List,
-			"Workspaces",
+			"Home",
 			new BreadcrumbItem("Home", null, true)
 			);
 	}

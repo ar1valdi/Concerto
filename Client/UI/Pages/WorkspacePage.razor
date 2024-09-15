@@ -6,7 +6,7 @@
 @inject ISnackbar Snackbar;
 @inject IBreadcrumbsService BreadcrumbsService;
 
-<PageTitle>Workspace</PageTitle>
+<PageTitle>@($"{SelectedWorkspace?.Name}")</PageTitle>
 
 @if (Loading)
 {
