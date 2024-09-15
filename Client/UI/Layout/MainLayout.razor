@@ -48,12 +48,13 @@
 							</MudMenuItemW>
 							</MudLink>
 							<MudMenuItemW Icon="@(_layoutState.DarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" OnTouch="()=> toggleDarkMode(!_layoutState.DarkMode)" OnClick="() => toggleDarkMode(!_layoutState.DarkMode)">Toggle theme</MudMenuItemW>
+							<MudMenuItemW Icon="@Icons.Material.Filled.Help" OnTouch="GoToManual" OnClick="GoToManual">User manual</MudMenuItemW>
 							<MudMenuItemW Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error" OnTouch="BeginLogout" OnClick="BeginLogout">Log out</MudMenuItemW>
 						</ChildContent>
 					</MudMenu>
 				</Authorized>
 				<NotAuthorized>
-					<MudSwitch T="bool" Checked="@_layoutState.DarkMode" CheckedChanged="@(b => toggleDarkMode(b))" ThumbIconColor="Color.Dark" ThumbIcon="@(_layoutState.DarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)">Theme</MudSwitch>
+					<MudButton Href="manual" Variant="Variant.Text" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Help">User manual</MudButton>
 					<MudStack Row="true">
 						<MudButton Href="authentication/login" Variant="Variant.Text" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Login">Sign in</MudButton>
 					</MudStack>
@@ -95,6 +96,11 @@
 	private void BeginLogout()
 	{
 		Navigation.NavigateToLogout("authentication/logout");
+	}
+
+	private void GoToManual()
+	{
+		Navigation.NavigateTo("manual");
 	}
 
 	private void LogIn()
