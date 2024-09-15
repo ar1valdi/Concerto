@@ -6,5 +6,7 @@ border-box *, border-box *:before, border-box *:after { box-sizing: inherit; }
 
 .panel-height-maximum {
     flex: 1 1 100%;
+    display: grid;
+    overflow: auto;
 }
 
