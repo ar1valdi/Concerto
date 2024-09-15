@@ -5,7 +5,7 @@
 @inject IBreadcrumbsService BreadcrumbsService;
 @inject ISessionService SessionService;
 @inject ISnackbar Snackbar;
-<PageTitle>@($"Session - {SelectedSession?.Name}")</PageTitle>
+<PageTitle>@($"{SelectedSession?.Name}")</PageTitle>
 
 
 @if (Loading)

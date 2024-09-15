@@ -6,10 +6,10 @@ if [ -z "$1" ]; then
 fi
 
 # Fix multiarch build
-#docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-#docker buildx rm builder
-#docker buildx create --name builder --driver docker-container --use
-#docker buildx inspect --bootstrap
+docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+docker buildx rm builder
+docker buildx create --name builder --driver docker-container --use
+docker buildx inspect --bootstrap
 
 set -a
 VERSION=$1
