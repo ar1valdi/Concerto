@@ -23,7 +23,7 @@ COMPOSE_DOCKER_CLI_BUILD=1
 DOCKER_BUILDKIT=1
 
 docker buildx build \
-	--platform linux/arm64 \
+	--platform linux/amd64,linux/arm64 \
 	--progress=plain \
 	--pull --push \
 	--tag etav/concerto_server:${VERSION} \

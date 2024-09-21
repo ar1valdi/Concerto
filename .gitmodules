@@ -1,6 +1,6 @@
-[submodule "ConcertoJitsiDocker"]
-	path = JitsiDocker
-	url = https://github.com/Etav99/ConcertoJitsiDocker
 [submodule "Client/Scripts/src/waveform-playlist"]
 	path = Client/Scripts/src/waveform-playlist
 	url = https://github.com/Etav99/waveform-playlist
+[submodule "JitsiDocker"]
+	path = JitsiDocker
+	url = https://github.com/jitsi/docker-jitsi-meet.git

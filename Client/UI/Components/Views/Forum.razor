@@ -93,7 +93,7 @@ else
 									<MudAvatar Class="" Size="Size.Small">@post.Author.Initials</MudAvatar>
 									<MudText Typo="Typo.caption">@($"{post.Author.FullName} posted on {post.CreatedAt.ToLocalTime()}{(post.Edited ? " (Edited)" : "")}")</MudText>
 									</MudStack>
-									<MudText Typo="Typo.h6">@post.Title</MudText>
+									<MudText Typo="Typo.h6" Style="white-space: pre-wrap; word-break: break-word;">@post.Title</MudText>
 								</MudStack>
 
 								<MudMenu Dense="true" Class="align-self-start">
