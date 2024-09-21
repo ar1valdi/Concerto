@@ -1,26 +1,18 @@
-version: '3.4'
+version: '3.7'
 
 networks:
   concerto: {}
   meet-jitsi: {}
 
 services:
-  concerto.server:
-    profiles:
-    - full
-    hostname: concerto_server
-    image: ${DOCKER_REGISTRY-}concertoserver
-    build:
-      context: ..
-      dockerfile: Server/Dockerfile
+  concerto_server:
+    image: etav/concerto_server:${CONCERTO_VERSION}
+    restart: always
     volumes:
       - ${CONCERTO_VOLUME_PATH:?}/storage:/srv/concerto/storage
       - ${CONCERTO_VOLUME_PATH:?}/recordings:/srv/concerto/recordings
     networks:
-      - concerto
-    ports:
-      - "9222:9222"
-      - "9300:9300"
+      concerto:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:80
@@ -50,31 +42,29 @@ services:
       JITSI_RECORDER_PASSWORD: ${JIBRI_RECORDER_PASSWORD:?}
 
   proxy:
-    profiles:
-    - full
-    build:
-      context: ./nginx
-      dockerfile: ./Dockerfile
+    image: etav/concerto_proxy:${CONCERTO_VERSION}
+    restart: always
     volumes:
-    # - ${CONCERTO_FILES_PATH:?}/acme:/etc/nginx/acme
+    - ${CONCERTO_FILES_PATH:?}/acme:/etc/nginx/acme
     - ${CONCERTO_CERT_PATH:?}:/etc/nginx/cert
-    # - ${CONCERTO_FILES_PATH:?}/nginx/nginx.conf:/etc/nginx/nginx.conf
+    - ${CONCERTO_FILES_PATH:?}/nginx/nginx.conf:/etc/nginx/nginx.conf
     ports:
-      - 443:443
       - 80:80
+      - 443:443
     environment:
       BASE_PATH: ${CONCERTO_BASE_PATH}
       CONCERTO_DOMAIN: ${CONCERTO_DOMAIN:?}
       JITSI_DOMAIN: ${JITSI_DOMAIN:?}
       KEYCLOAK_DOMAIN: ${KEYCLOAK_DOMAIN:?}
+      CERT_FILE:
+      CERT_KEY_FILE:
     networks:
       concerto:
       meet-jitsi:
 
-
-
   keycloak:
     image: quay.io/keycloak/keycloak:21.1.0
+    restart: always
     volumes:
       - ${CONCERTO_VOLUME_PATH}/keycloak:/var/lib/keycloak/data
     environment:
@@ -98,11 +88,10 @@ services:
     - start 
     networks:
       concerto:
-    restart: unless-stopped
-
 
   postgres:
     image: postgres:15.0
+    restart: always
     volumes:
       - ${CONCERTO_VOLUME_PATH}/postgres:/var/lib/postgresql/data
     environment:
@@ -111,26 +100,10 @@ services:
       POSTGRES_USER:
     networks:
       concerto:
-    ports:
-      - 5432:5432
-
-
-  pgadmin:
-    image: dpage/pgadmin4
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - 7100:80
-    volumes:
-      - ${CONCERTO_VOLUME_PATH}/pgadmin:/var/lib/pgadmin
-    networks:
-     - concerto
-
 
   jitsi_web:
     image: jitsi/web:${JITSI_VERSION}
+    restart: always
     volumes:
      - ${CONCERTO_VOLUME_PATH}/jitsi_config/web:/config
      - ${CONCERTO_VOLUME_PATH}/jitsi_config/web/crontabs:/var/spool/cron/crontabs
@@ -142,7 +115,7 @@ services:
       TZ: UTC
 
       PUBLIC_URL: ${JITSI_BASE_URL:?}/
-      TOKEN_AUTH_URL: ${CONCERTO_BASE_URL:?}/auth/room/{room}
+      TOKEN_AUTH_URL: ${CONCERTO_BASE_URL:?}/app/auth/room/{room}
 
       XMPP_AUTH_DOMAIN: auth.meet-jitsi
       XMPP_BOSH_URL_BASE: http://xmpp.meet-jitsi:5280
@@ -159,11 +132,11 @@ services:
 
   jitsi_jvb:
     image: jitsi/jvb:${JITSI_VERSION}
+    restart: always
     volumes:
       - ${CONCERTO_VOLUME_PATH}/jitsi_config/jvb:/config
     ports:
       - ${JITSI_UDP_PORT:?}:${JITSI_UDP_PORT:?}/udp
-
     environment:
       DISABLE_HTTPS: 1
       SENTRY_DSN: '0'
@@ -180,9 +153,9 @@ services:
       XMPP_AUTH_DOMAIN: auth.meet-jitsi
       XMPP_INTERNAL_MUC_DOMAIN: internal-muc.meet-jitsi
       XMPP_SERVER: xmpp.meet-jitsi
-
+      
     entrypoint: sh -c "sed -i 's/ip route get 1/ip route get ${SWARM_INGRESS_SUBNET:-1}/' /etc/cont-init.d/10-config && exec /init"
-
+    
     networks:
       meet-jitsi:
         aliases:
@@ -190,6 +163,7 @@ services:
 
   jitsi_jicofo:
     image: jitsi/jicofo:${JITSI_VERSION}
+    restart: always
     volumes:
       - ${CONCERTO_VOLUME_PATH}/jitsi_config/jicofo:/config
     environment:
@@ -216,6 +190,7 @@ services:
 
   jitsi_prosody:
     image: jitsi/prosody:${JITSI_VERSION}
+    restart: always
     volumes:
       - ${CONCERTO_VOLUME_PATH}/jitsi_config/prosody/config:/config
       - ${CONCERTO_VOLUME_PATH}/jitsi_config/prosody/prosody-plugins-custom:/prosody-plugins-custom
@@ -235,7 +210,7 @@ services:
       JICOFO_AUTH_PASSWORD:
       JIGASI_XMPP_PASSWORD:
       JVB_AUTH_PASSWORD:
-
+      
       ENABLE_END_CONFERENCE: 0
 
       XMPP_AUTH_DOMAIN: auth.meet-jitsi
@@ -259,6 +234,7 @@ services:
 
   jitsi_jibri:
     image: jitsi/jibri:${JITSI_VERSION}
+    restart: always
     volumes:
     - ${CONCERTO_VOLUME_PATH}/recordings:/srv/concerto/recordings
     - ${CONCERTO_VOLUME_PATH}/jitsi_config/jibri:/config
@@ -271,9 +247,9 @@ services:
       DISPLAY: :0
       TZ: UTC
       PUBLIC_URL: ${JITSI_BASE_URL:?}/
-      CHROMIUM_FLAGS: --ignore-certificate-errors,--disable-web-security,--disable-dev-shm-usage,--start-maximized,--kiosk,--enabled,--disable-infobars,--autoplay-policy=no-user-gesture-required
+      CHROMIUM_FLAGS: --disable-dev-shm-usage,--start-maximized,--kiosk,--enabled,--disable-infobars,--autoplay-policy=no-user-gesture-required
 
-      JIBRI_FINALIZE_RECORDING_SCRIPT_PATH: /defaults/finalize.sh
+      JIBRI_FINALIZE_RECORDING_SCRIPT_PATH: /srv/concerto/recordings/finalize.sh
       JIBRI_RECORDING_DIR: /srv/concerto/recordings
 
       JIBRI_RECORDER_PASSWORD:
@@ -290,3 +266,4 @@ services:
         concerto:
     cap_add:
     - SYS_ADMIN
+

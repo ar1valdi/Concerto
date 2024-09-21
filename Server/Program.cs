@@ -20,8 +20,6 @@ using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger("Concerto.Server Builder");
-// Add services to the container.
-// IdentityModelEventSource.ShowPII = true; 
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
@@ -56,17 +54,21 @@ builder.Services.AddAuthentication(options =>
 		{
 			options.RequireHttpsMetadata = AppSettings.Oidc.RequireHttpsMetadata;
 
+			// Developement only - toggled by OIDC_ACCEPT_ANY_SERVER_CERTIFICATE_VALIDATOR enviroment variable
 			if (AppSettings.Oidc.AcceptAnyServerCertificateValidator)
 				options.BackchannelHttpHandler = new HttpClientHandler
 				{
-					ServerCertificateCustomValidationCallback =
-						HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+					ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
 				};
 
 			options.MetadataAddress = AppSettings.Oidc.MetadataAddress;
 			options.Authority = AppSettings.Oidc.Authority;
 			options.Audience = AppSettings.Oidc.Audience;
 
+			// Sending the access token in the query string is required when using WebSockets or ServerSentEvents
+			// due to a limitation in Browser APIs.
+			// https://learn.microsoft.com/en-us/aspnet/core/signalr/authn-and-authz?view=aspnetcore-7.0
+			// Query is enrypted with HTTPS
 			options.Events = new JwtBearerEvents
 			{
 				OnMessageReceived = context =>
@@ -86,6 +88,12 @@ builder.Services.AddAuthentication(options =>
 	);
 
 
+// No request logging in production - avoids logging access tokens in SignalR requests
+if (builder.Environment.IsProduction())
+{
+	builder.Logging.SetMinimumLevel(LogLevel.Warning);
+}
+
 builder.Services.AddAuthorization(options =>
 {
 	options.AddPolicy(AuthorizationPolicies.IsAuthenticated.Name, AuthorizationPolicies.IsAuthenticated.Policy());
@@ -103,10 +111,10 @@ builder.Services.AddDbContext<ConcertoDbContext>(options =>
 );
 builder.Services.AddScoped<ConcertoDbContext>();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (builder.Environment.IsDevelopment())
 {
-	// Allow any origin
+	// Allow any origin if development environment
 	builder.Services.AddCors(options =>
 	{
 		options.AddPolicy("DevPolicy", builder =>
@@ -120,25 +128,26 @@ var app = builder.Build();
 
 app.UsePathBase($"/{AppSettings.Web.BasePath.Trim('/')}");
 
-app.UseSwagger();
-app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Blazor API V1"); });
-
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (builder.Environment.IsDevelopment())
 {
+	// Enable swagger if development
+	app.UseSwagger();
+	app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Blazor API V1"); });
+
+	// Enable WebAssembly debugging if development
 	app.UseWebAssemblyDebugging();
 	app.UseCors("DevPolicy");
 }
 else
-{
-	app.UseExceptionHandler("/Error");
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-	app.UseHsts();
+{	app.UseExceptionHandler("/Error");
+	// Use HSTS in production
+	// HTTPS is handled by the reverse proxy - the app should not be exposed directly to the internet
+	// app.UseHttpsRedirection();
+	// app.UseHsts();
 }
 
 
-// app.UseHttpsRedirection();
+
 app.UseAuthentication();
 app.UseUserIdMapperMiddleware();
 app.UseBlazorFrameworkFiles();
@@ -184,12 +193,6 @@ app.MapGet("manifest.json", async (HttpContext context) =>
 	);
 });
 
-
-var diagnosticSource = app.Services.GetRequiredService<DiagnosticListener>();
-using var badRequestListener = new BadRequestEventListener(diagnosticSource, (badRequestExceptionFeature) =>
-{
-	app.Logger.LogError(badRequestExceptionFeature.Error, "Bad request received");
-});
 
 await using var scope = app.Services.CreateAsyncScope();
 await using (var db = scope.ServiceProvider.GetService<ConcertoDbContext>())
