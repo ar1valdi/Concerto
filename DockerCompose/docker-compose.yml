@@ -163,6 +163,7 @@ services:
       - ${CONCERTO_VOLUME_PATH}/jitsi_config/jvb:/config
     ports:
       - ${JITSI_UDP_PORT:?}:${JITSI_UDP_PORT:?}/udp
+
     environment:
       DISABLE_HTTPS: 1
       SENTRY_DSN: '0'
@@ -174,12 +175,14 @@ services:
       JVB_PORT: ${JITSI_UDP_PORT:?}
       JVB_ADVERTISE_IPS: ${JITSI_PUBLIC_IP:?}
       JVB_WS_SERVER_ID: jvb.meet-jitsi
-      JVB_INGRESS_SUBNET: ${SWARM_INGRESS_SUBNET:?}
       JVB_AUTH_PASSWORD:
 
       XMPP_AUTH_DOMAIN: auth.meet-jitsi
       XMPP_INTERNAL_MUC_DOMAIN: internal-muc.meet-jitsi
       XMPP_SERVER: xmpp.meet-jitsi
+
+    entrypoint: sh -c "sed -i 's/ip route get 1/ip route get ${SWARM_INGRESS_SUBNET:-1}/' /etc/cont-init.d/10-config && exec /init"
+
     networks:
       meet-jitsi:
         aliases:

@@ -13,23 +13,24 @@
 }
 else
 {
-	<MudStack Spacing="4" Class="pa-4" Style="overflow: auto">
+	<div>
+		<MudStack Spacing="4" Class="pa-4" Style="overflow: auto; justify-items: start;">
+			<MudStack Row="true" Style="background-color: var(--mud-palette-default)" Justify="Justify.SpaceBetween">
+				<MudButtonGroup OverrideStyles="false">
+					<MudButton OnClick="Discard" Disabled="!Changed" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Restore" Color="Color.Error">Discard</MudButton>
+					<MudButton OnClick="Save" Disabled="!Changed" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Success">Save</MudButton>
+				</MudButtonGroup>
+				<MudButtonGroup OverrideStyles="false">
+					<MudButton OnClick="Delete" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Delete session</MudButton>
+				</MudButtonGroup>
+			</MudStack>
 
-		<MudStack Row="true" Style="background-color: var(--mud-palette-default)" Justify="Justify.SpaceBetween">
-			<MudButtonGroup OverrideStyles="false">
-				<MudButton OnClick="Discard" Disabled="!Changed" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Restore" Color="Color.Error">Discard</MudButton>
-				<MudButton OnClick="Save" Disabled="!Changed" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Success">Save</MudButton>
-			</MudButtonGroup>
-			<MudButtonGroup OverrideStyles="false">
-				<MudButton OnClick="Delete" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Delete session</MudButton>
-			</MudButtonGroup>
+			<MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Title" Immediate="true" @bind-Value="_request.Name" T="string" Label="Name" />
+			<MudDatePicker Adornment="Adornment.Start" Label="Date" @bind-Date="Date" />
+			<MudTimePicker Adornment="Adornment.Start" Label="Time" @bind-Time="Time" />
+
 		</MudStack>
-
-		<MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Title" Immediate="true" @bind-Value="_request.Name" T="string" Label="Name"></MudTextField>
-		<MudDatePicker Adornment="Adornment.Start" Label="Date" @bind-Date="Date"/>
-		<MudTimePicker Adornment="Adornment.Start" Label="Time" @bind-Time="Time"/>
-
-	</MudStack>
+	</div>
 }
 
 
