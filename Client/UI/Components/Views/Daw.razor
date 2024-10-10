@@ -38,9 +38,6 @@
         margin-top: 30px;
         margin-bottom: 8px;
         grid-area: daw-tracks;
-        display: grid;
-        grid-template-columns: 1fr;
-        grid-template-rows: 0 1fr;
     }
 
         .daw-tracks > .daw-track-controls {
@@ -60,17 +57,17 @@
 
 
     .daw-track-controls {
-        width: 160px;
+        height: 162px;
         display: grid;
         grid-auto-flow: column;
         grid-template-rows: min-content 1fr min-content min-content;
         gap: 8px 0px;
-        padding: 4px;
+        padding: 2px;
     }
 
     .daw-track-selectedby {
         position: relative;
-        left: 164px;
+        left: 190px;
         top: 4px;
         width: unset;
         overflow: visible;
@@ -111,6 +108,7 @@
     }
 
     .daw-track-controls-sliders {
+        width: inherit;
         display: grid;
         grid-auto-rows: min-content;
         gap: 0px 0px;
@@ -131,7 +129,6 @@
         }
 
     .daw-track-controls-buttons {
-        width: 152px;
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
