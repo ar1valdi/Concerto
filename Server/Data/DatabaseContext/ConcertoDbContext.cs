@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Concerto.Server.Data.DatabaseContext;
 
-public class AppDataContext : DbContext
+public class ConcertoDbContext : DbContext
 {
-	public AppDataContext(DbContextOptions<AppDataContext> options) : base(options) { }
+	public ConcertoDbContext(DbContextOptions<ConcertoDbContext> options) : base(options) { }
 
 	public DbSet<User> Users { get; set; }
 	public DbSet<Post> ChatMessages { get; set; }
