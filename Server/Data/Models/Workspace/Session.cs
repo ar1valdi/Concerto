@@ -4,14 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Concerto.Server.Data.Models;
 
-[Index(nameof(CourseId))]
+[Index(nameof(WorkspaceId))]
 [Index(nameof(MeetingGuid))]
 public class Session : Entity
 {
 	public string Name { get; set; } = null!;
 	public DateTime ScheduledDate { get; set; }
-	public long CourseId { get; set; }
-	public Course Course { get; set; } = null!;
+	public long WorkspaceId { get; set; }
+	public Workspace Workspace { get; set; } = null!;
 
 	public long FolderId { get; set; }
 	public Folder Folder { get; set; } = null!;
@@ -27,10 +27,10 @@ public static partial class ViewModelConversions
 		return new Dto.Session(
 			session.Id,
 			session.Name,
-			CourseId: session.CourseId,
-			CourseName: session.Course.Name,
+			WorkspaceId: session.WorkspaceId,
+			WorkspaceName: session.Workspace.Name,
 			ScheduledDateTime: session.ScheduledDate,
-			CourseRootFolderId: session.Course.RootFolderId!.Value,
+			WorkspaceRootFolderId: session.Workspace.RootFolderId!.Value,
 			FolderId: session.FolderId,
 			MeetingGuid: session.MeetingGuid,
 			CanManage: canManage
