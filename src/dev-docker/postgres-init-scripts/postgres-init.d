@@ -1,0 +1,2 @@
+CREATE DATABASE Keycloak;
+CREATE DATABASE ConcertoDb;
