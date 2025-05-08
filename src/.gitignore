@@ -13,3 +13,5 @@ EdgeDebugUserData
 DockerCompose/data
 
 dev-docker/data
+
+Data/volume/storage
