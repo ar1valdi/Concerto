@@ -11,5 +11,11 @@
   "AdminPanelPageTitle": "Admin Panel",
   "AdminPanelPageUnverifiedUsersTxt": "Unverified users",
   "AdminPanelPageAllUsersTxt": "All users",
-  "AdminPanelPageMoreTxt": "More"
+  "AdminPanelPageMoreTxt": "More",
+
+  "AuthenticationPageLogInFailedTxt": "Your login was not successful.",
+  "AuthenticationPageLogOutTxt": "Logging out...",
+  "AuthenticationPageLogOutSucceededTxt": "You have been logged out successfully",
+  "AuthenticationPageLoggingInTxt": "Redirecting you to the login screen...",
+  "AuthenticationPageCompletingLoggingInTxt": "Login successful. One moment..."
 }

@@ -11,5 +11,11 @@
   "AdminPanelPageTitle": "Panel administratora",
   "AdminPanelPageUnverifiedUsersTxt": "Niezweryfikowani użytkownicy",
   "AdminPanelPageAllUsersTxt": "Wszyscy użytkownicy",
-  "AdminPanelPageMoreTxt": "Więcej"
+  "AdminPanelPageMoreTxt": "Więcej",
+
+  "AuthenticationPageLogInFailedTxt": "Logowanie się nie powiodło.",
+  "AuthenticationPageLogOutTxt": "Wylogowuję...",
+  "AuthenticationPageLogOutSucceededTxt": "Wylogowywanie powiodło się.",
+  "AuthenticationPageLoggingInTxt": "Przekierowanie do ekranu logowania...",
+  "AuthenticationPageCompletingLoggingInTxt": "Logowanie powiodło się. Poczekaj chwilę..."
 }
