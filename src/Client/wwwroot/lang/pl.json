@@ -3,7 +3,6 @@
   "NavMenuHomeTxt": "Strona główna",
   "NavMenuAdminPanelTxt": "Panel administracyjny",
   "NavMenuVideoRecorderTxt": "Rejestrator wideo",
-<<<<<<< HEAD
   "NavMenuWorkspacesTxt": "Przestrzenie robocze",
 
   "HomePageTitle": "Strona główna",
@@ -20,7 +19,3 @@
   "AuthenticationPageLoggingInTxt": "Przekierowanie do ekranu logowania...",
   "AuthenticationPageCompletingLoggingInTxt": "Logowanie powiodło się. Poczekaj chwilę..."
 }
-=======
-  "NavMenuWorkspacesTxt": "Przestrzenie robocze"
-}
->>>>>>> translations
