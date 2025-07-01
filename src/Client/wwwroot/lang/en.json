@@ -1,4 +1,7 @@
 {
-  "test1": "testing one",
-  "test2": "testing two"
+  "NavMenuMenuTxt": "Menu",
+  "NavMenuHomeTxt": "Home",
+  "NavMenuAdminPanelTxt": "Admin Panel",
+  "NavMenuVideoRecorderTxt": "Video Recorder",
+  "NavMenuWorkspacesTxt": "Workspaces"
 }
