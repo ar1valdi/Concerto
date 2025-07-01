@@ -1,4 +1,10 @@
 {
-  "test1": "testuje jedynke",
-  "test2": "testuje dwojke"
+  "NavMenuMenuTxt": "Menu",
+  "NavMenuHomeTxt": "Strona główna",
+  "NavMenuAdminPanelTxt": "Panel administracyjny",
+  "NavMenuVideoRecorderTxt": "Rejestrator wideo",
+  "NavMenuWorkspacesTxt": "Przestrzenie robocze",
+
+  "HomePageTitle": "Strona główna",
+  "HomePageAdminVerificationRequiredTxt": "Administrator musi zweryfikować twoje konto zanim skorzystasz z Concerto. Prosimy wrócić później lub skontaktować się z administratorem"
 }

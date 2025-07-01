@@ -1,4 +1,11 @@
 {
-  "test1": "testing one",
-  "test2": "testing two"
+  "NavMenuMenuTxt": "Menu",
+  "NavMenuHomeTxt": "Home",
+  "NavMenuAdminPanelTxt": "Admin Panel",
+  "NavMenuVideoRecorderTxt": "Video Recorder",
+  "NavMenuWorkspacesTxt": "Workspaces",
+
+  "HomePageTitle": "Home",
+  "HomePageAdminVerificationRequiredTxt": "An administrator must verify your account before accessing Concerto. Please come back later or contact your administrator."
+
 }
