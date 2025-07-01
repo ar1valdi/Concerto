@@ -3,5 +3,24 @@
   "NavMenuHomeTxt": "Strona główna",
   "NavMenuAdminPanelTxt": "Panel administracyjny",
   "NavMenuVideoRecorderTxt": "Rejestrator wideo",
+<<<<<<< HEAD
+  "NavMenuWorkspacesTxt": "Przestrzenie robocze",
+
+  "HomePageTitle": "Strona główna",
+  "HomePageAdminVerificationRequiredTxt": "Administrator musi zweryfikować twoje konto zanim skorzystasz z Concerto. Prosimy wrócić później lub skontaktować się z administratorem",
+
+  "AdminPanelPageTitle": "Panel administratora",
+  "AdminPanelPageUnverifiedUsersTxt": "Niezweryfikowani użytkownicy",
+  "AdminPanelPageAllUsersTxt": "Wszyscy użytkownicy",
+  "AdminPanelPageMoreTxt": "Więcej",
+
+  "AuthenticationPageLogInFailedTxt": "Logowanie się nie powiodło.",
+  "AuthenticationPageLogOutTxt": "Wylogowuję...",
+  "AuthenticationPageLogOutSucceededTxt": "Wylogowywanie powiodło się.",
+  "AuthenticationPageLoggingInTxt": "Przekierowanie do ekranu logowania...",
+  "AuthenticationPageCompletingLoggingInTxt": "Logowanie powiodło się. Poczekaj chwilę..."
+}
+=======
   "NavMenuWorkspacesTxt": "Przestrzenie robocze"
 }
+>>>>>>> translations
