@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using MudBlazor;
 using MudBlazor.Extensions;
+using Concerto.Shared.Models.Dto;
+using Microsoft.JSInterop;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -26,14 +28,22 @@ if (builder.HostEnvironment.Environment == "Development")
             .ConfigureHandler(new[] { baseAddress.ToString() });
         return handler;
     });
+
+    builder.Services.AddHttpClient("AnonymousClient", client =>
+    {
+        client.BaseAddress = new Uri(baseAddress.ToString());
+    });
 }
 else
 {
     builder.Services.AddHttpClient("WebAPI", client => client.BaseAddress = baseAddress)
     .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+
+    builder.Services.AddHttpClient("AnonymousClient", client =>
+    {
+        client.BaseAddress = new Uri(baseAddress.ToString());
+    });
 }
-
-
 
 // Register it as scoped, each service will use the same HTTP client provided by DI
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("WebAPI"));
@@ -49,6 +59,13 @@ builder.Services.AddScoped<IStorageService, StorageService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAccountClient, AccountClient>();
 builder.Services.AddScoped<IBreadcrumbsService, BreadcrumbsService>();
+builder.Services.AddScoped<ILanguageService, LanguageService>(sp =>
+{
+    var clientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var httpClient = clientFactory.CreateClient("AnonymousClient");
+    var jsRuntime = sp.GetRequiredService<IJSRuntime>();
+    return new LanguageService(httpClient, jsRuntime);
+});
 // builder.Services.AddScoped<ClientNotificationService, ClientNotificationService>();
 
 
@@ -85,4 +102,7 @@ builder.Services.AddAuthorizationCore(options =>
 });
 
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+var translationService = host.Services.GetRequiredService<ILanguageService>();
+await translationService.ChangeLanguage(Language.PL);
+await host.RunAsync();
