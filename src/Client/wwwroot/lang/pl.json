@@ -6,5 +6,10 @@
   "NavMenuWorkspacesTxt": "Przestrzenie robocze",
 
   "HomePageTitle": "Strona główna",
-  "HomePageAdminVerificationRequiredTxt": "Administrator musi zweryfikować twoje konto zanim skorzystasz z Concerto. Prosimy wrócić później lub skontaktować się z administratorem"
+  "HomePageAdminVerificationRequiredTxt": "Administrator musi zweryfikować twoje konto zanim skorzystasz z Concerto. Prosimy wrócić później lub skontaktować się z administratorem",
+
+  "AdminPanelPageTitle": "Panel administratora",
+  "AdminPanelPageUnverifiedUsersTxt": "Niezweryfikowani użytkownicy",
+  "AdminPanelPageAllUsersTxt": "Wszyscy użytkownicy",
+  "AdminPanelPageMoreTxt": "Więcej"
 }
