@@ -1,10 +1,11 @@
 FROM nginx:alpine
 
-RUN apk update && apk add bash
+RUN apk add --no-cache --upgrade bash
 
 COPY nginx.conf /etc/nginx/nginx.template.conf
 
 COPY wait-for-it.sh /wait-for-it.sh
+
 RUN chmod +x /wait-for-it.sh
 
 CMD set -a \

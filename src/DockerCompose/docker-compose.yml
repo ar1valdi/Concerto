@@ -7,7 +7,7 @@ networks:
 services:
   concerto.server:
     profiles:
-    - full
+      - full
     hostname: concerto_server
     image: ${DOCKER_REGISTRY-}concertoserver
     build:
@@ -56,9 +56,9 @@ services:
       context: ./nginx
       dockerfile: ./Dockerfile
     volumes:
-    # - ${CONCERTO_FILES_PATH:?}/acme:/etc/nginx/acme
-    - ${CONCERTO_CERT_PATH:?}:/etc/nginx/cert
-    # - ${CONCERTO_FILES_PATH:?}/nginx/nginx.conf:/etc/nginx/nginx.conf
+      #- ${CONCERTO_FILES_PATH:?}/acme:/etc/nginx/acme
+      - ${CONCERTO_CERT_PATH:?}:/etc/nginx/ssl
+      #- ${CONCERTO_FILES_PATH:?}/nginx/nginx.conf:/etc/nginx/nginx.template.conf
     ports:
       - 443:443
       - 80:80
@@ -67,6 +67,8 @@ services:
       CONCERTO_DOMAIN: ${CONCERTO_DOMAIN:?}
       JITSI_DOMAIN: ${JITSI_DOMAIN:?}
       KEYCLOAK_DOMAIN: ${KEYCLOAK_DOMAIN:?}
+      SSL_CERTIFICATE_FILENAME: ${SSL_CERTIFICATE_FILENAME:?}
+      SSL_CERTIFICATE_KEY_FILENAME: ${SSL_CERTIFICATE_FILENAME:?}
     networks:
       concerto:
       meet-jitsi:
