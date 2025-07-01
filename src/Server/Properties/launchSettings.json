@@ -4,12 +4,12 @@
       "commandName": "Project",
       "commandLineArgs": "watch run",
       "launchBrowser": true,
-      "launchUrl": "https://concerto.local:443",
+      "launchUrl": "https://concerto.local:5000",
       // "launchUrl": "https://concerto.local:443/workspaces/1/sessions/1",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "CONCERTO_BASE_PATH": "",
-        "CONCERTO_STORAGE_PATH": "D:\\studia\\inz\\Concerto\\src\\Data\\volume\\storage",
+        "CONCERTO_STORAGE_PATH": "", // enter path
         "DB_STRING": "Host=concerto.local;Port=5432;Database=ConcertoDb;username=admin;Password=admin;Include Error Detail=True;",
         "OIDC_AUDIENCE": "account",
         "OIDC_ADMIN_REST_API_BASE": "http://localhost:8080/admin/realms/concerto",
@@ -28,7 +28,7 @@
         "JITSI_RECORDER_PASSWORD": "0b4b5db6407df7b4f613c69b8fcecd90"
       },
       "inspectUri": "{wsProtocol}://localhost:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
-      "applicationUrl": "https://localhost:443",
+      "applicationUrl": "https://localhost:5000",
       "hotReloadEnabled": true,
       "dotnetRunMessages": true,
       "hotReloadProfile": "aspnetcore"

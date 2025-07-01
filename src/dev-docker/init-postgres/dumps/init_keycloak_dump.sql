@@ -1664,10 +1664,10 @@ edd1bb01-6648-440a-aa92-b1c51b766aad	t	f	security-admin-console	0	t	\N	/admin/ma
 25de7b22-1f9a-4008-a602-0f9d042b6cb5	t	f	broker	0	f	\N	\N	t	\N	f	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	openid-connect	0	f	f	${client_broker}	f	client-secret	\N	\N	\N	t	f	f	f
 07a8e7af-80f6-4672-abef-5786c95e7867	t	f	security-admin-console	0	t	\N	/admin/concerto/console/	f	\N	f	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	openid-connect	0	f	f	${client_security-admin-console}	f	client-secret	${authAdminUrl}	\N	\N	t	f	f	f
 e1851637-5a8a-4189-ac2e-6fa23c55c381	t	f	admin-cli	0	t	\N	\N	f	\N	f	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	openid-connect	0	f	f	${client_admin-cli}	f	client-secret	\N	\N	\N	f	f	t	f
-dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	t	t	concerto-client	0	t	\N	https://concerto.local	f	http://localhost:8080/	f	f751882b-adae-4e57-96a2-61fcd0497761	openid-connect	-1	t	f		f	client-secret	http://concerto.local		\N	t	f	t	f
-05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	t	t	concerto-server	0	f	p88W1d2Dbrug8BaAJaz41glSDARxaoXn	https://concerto.local/	f	http://localhost:8080/	f	f751882b-adae-4e57-96a2-61fcd0497761	openid-connect	-1	t	f		f	client-secret	http://concerto.local/		\N	t	f	t	f
-8ab49cf2-6f70-438e-81a3-6b679dd04c7f	t	t	concerto-client	0	t	\N	https://concerto.local/	f	http://localhost:8080/	f	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	openid-connect	-1	t	f		f	client-secret	https://concerto.local/		\N	t	f	t	f
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	t	t	concerto-server	0	f	Wxs9xJ3aFjPqCK9PsXsuHuriaS3MNf5j	https://concerto.local/	f	http://localhost:8080/admin/realms/concerto	f	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	openid-connect	-1	t	f		t	client-secret	https://concerto.local/		\N	t	f	t	f
+dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	t	t	concerto-client	0	t	\N	https://concerto.local:5000	f	http://localhost:8080/	f	f751882b-adae-4e57-96a2-61fcd0497761	openid-connect	-1	t	f		f	client-secret	https://concerto.local:5000		\N	t	f	t	f
+05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	t	t	concerto-server	0	f	p88W1d2Dbrug8BaAJaz41glSDARxaoXn	https://concerto.local:5000/	f	http://localhost:8080/	f	f751882b-adae-4e57-96a2-61fcd0497761	openid-connect	-1	t	f		f	client-secret	https://concerto.local:5000		\N	t	f	t	f
+8ab49cf2-6f70-438e-81a3-6b679dd04c7f	t	t	concerto-client	0	t	\N	https://concerto.local:5000/	f	http://localhost:8080/	f	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	openid-connect	-1	t	f		f	client-secret	https://concerto.local:5000/		\N	t	f	t	f
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	t	t	concerto-server	0	f	Wxs9xJ3aFjPqCK9PsXsuHuriaS3MNf5j	https://concerto.local:5000/	f	http://localhost:8080/admin/realms/concerto	f	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	openid-connect	-1	t	f		t	client-secret	https://concerto.local:5000/		\N	t	f	t	f
 \.
 
 
@@ -1686,36 +1686,42 @@ edd1bb01-6648-440a-aa92-b1c51b766aad	pkce.code.challenge.method	S256
 7bfaf0df-680c-4fb7-8b75-62b58880d428	pkce.code.challenge.method	S256
 07a8e7af-80f6-4672-abef-5786c95e7867	post.logout.redirect.uris	+
 07a8e7af-80f6-4672-abef-5786c95e7867	pkce.code.challenge.method	S256
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	acr.loa.map	{}
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	backchannel.logout.revoke.offline.tokens	false
-dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	backchannel.logout.revoke.offline.tokens	false
-dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	backchannel.logout.session.required	true
-dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	display.on.consent.screen	false
-dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	oauth2.device.authorization.grant.enabled	false
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	backchannel.logout.session.required	true
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	client.secret.creation.time	1744141612
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	client_credentials.use_refresh_token	false
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	display.on.consent.screen	false
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	oauth2.device.authorization.grant.enabled	false
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	oidc.ciba.grant.enabled	false
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	post.logout.redirect.uris	https://concerto.local/
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	require.pushed.authorization.requests	false
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	tls.client.certificate.bound.access.tokens	false
-dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	oidc.ciba.grant.enabled	false
-05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	backchannel.logout.revoke.offline.tokens	false
 05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	backchannel.logout.session.required	true
 05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	client.secret.creation.time	1744151634
 05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	display.on.consent.screen	false
 05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	oauth2.device.authorization.grant.enabled	false
 05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	oidc.ciba.grant.enabled	false
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	token.response.type.bearer.lower-case	false
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	use.refresh.tokens	true
+8ab49cf2-6f70-438e-81a3-6b679dd04c7f	post.logout.redirect.uris	https://concerto.local:5000/
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	acr.loa.map	{}
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	backchannel.logout.revoke.offline.tokens	false
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	backchannel.logout.session.required	true
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	client.secret.creation.time	1744141612
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	client_credentials.use_refresh_token	false
+dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	backchannel.logout.revoke.offline.tokens	false
+dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	backchannel.logout.session.required	true
+dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	display.on.consent.screen	false
+dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	oauth2.device.authorization.grant.enabled	false
+dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	oidc.ciba.grant.enabled	false
+05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	use.refresh.tokens	true
+05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	client_credentials.use_refresh_token	false
+05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	token.response.type.bearer.lower-case	false
+05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	tls.client.certificate.bound.access.tokens	false
+05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	require.pushed.authorization.requests	false
+05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	acr.loa.map	{}
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	display.on.consent.screen	false
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	oauth2.device.authorization.grant.enabled	false
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	oidc.ciba.grant.enabled	false
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	post.logout.redirect.uris	https://concerto.local:5000/
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	require.pushed.authorization.requests	false
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	tls.client.certificate.bound.access.tokens	false
+05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	backchannel.logout.revoke.offline.tokens	false
 8ab49cf2-6f70-438e-81a3-6b679dd04c7f	backchannel.logout.revoke.offline.tokens	false
 8ab49cf2-6f70-438e-81a3-6b679dd04c7f	backchannel.logout.session.required	true
 8ab49cf2-6f70-438e-81a3-6b679dd04c7f	display.on.consent.screen	false
 8ab49cf2-6f70-438e-81a3-6b679dd04c7f	oauth2.device.authorization.grant.enabled	false
 8ab49cf2-6f70-438e-81a3-6b679dd04c7f	oidc.ciba.grant.enabled	false
-8ab49cf2-6f70-438e-81a3-6b679dd04c7f	post.logout.redirect.uris	https://concerto.local/
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	token.response.type.bearer.lower-case	false
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	use.refresh.tokens	true
 \.
 
 
@@ -2070,7 +2076,6 @@ ff606c52-12b9-4905-8f17-4d06ad6c3483	Allowed Protocol Mapper Types	6c0e74d5-b41b
 8094336c-a339-4b71-a68d-6bea810b879b	Allowed Client Scopes	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	allowed-client-templates	org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	anonymous
 94c87219-58d7-4dc3-8a73-5e054a61e72a	Allowed Protocol Mapper Types	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	allowed-protocol-mappers	org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	authenticated
 43bf8e5b-817f-4844-8699-9d5fbfc0de74	Allowed Client Scopes	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	allowed-client-templates	org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	authenticated
-4a44e60b-f7d2-447d-92fa-944da8f0020d	\N	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	declarative-user-profile	org.keycloak.userprofile.UserProfileProvider	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N
 \.
 
 
@@ -2435,6 +2440,41 @@ ac35ed3d-a786-42f6-b515-ccfe8d40ba06	\N	{"redirect_uri":"https://concerto.local/
 f393f5d3-e201-4d0c-86b0-f979516250c9	concerto-server	{"grant_type":"client_credentials"}	invalid_client_credentials	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1746560831078	CLIENT_LOGIN_ERROR	\N
 50cf4f41-f1f7-48e0-b263-2299d6e6bb39	concerto-server	{"grant_type":"client_credentials","client_auth_method":"client-secret"}	invalid_client	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1746561080493	CLIENT_LOGIN_ERROR	\N
 8a2fd684-891e-4f3d-b721-11f360f5955b	concerto-client	{"auth_method":"openid-connect","auth_type":"code","redirect_uri":"https://concerto.local/authentication/login-callback","code_id":"bf6579d1-0093-4c4d-8817-246c29807f43","username":"admin admin"}	user_not_found	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1746730414334	LOGIN_ERROR	\N
+7ec080ad-7cac-4554-a568-39421f501629	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751387521611	LOGIN_ERROR	\N
+cda0b66e-95ee-4698-9ba4-1f708327295a	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751387597793	LOGIN_ERROR	\N
+9c268b30-d94d-469d-b213-1733a7b94ad5	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751387734901	LOGIN_ERROR	\N
+f9ecdb12-1c3e-4cbe-9a15-02b0583c5b8e	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751388104986	LOGIN_ERROR	\N
+afca82f9-dc99-4ded-8466-afe28d64114b	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751388350144	LOGIN_ERROR	\N
+94591a89-17b7-4d24-b749-065a875e0439	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751388971025	LOGIN_ERROR	\N
+361ac365-2cb5-4e26-9882-1a15a282acc4	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751389048404	LOGIN_ERROR	\N
+359d7958-d8d3-4a7f-9c5d-565394076e2b	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751389062372	LOGIN_ERROR	\N
+0d56c452-c95e-4765-886c-2754cfa14072	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751389072404	LOGIN_ERROR	\N
+c2981b74-f59d-43b8-9637-7b7c61ff772e	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751390449007	LOGIN_ERROR	\N
+02869c5a-05b4-4af7-97ec-4b11d0745903	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751390457957	LOGIN_ERROR	\N
+12a83140-9ee3-455f-b20d-7dd34615c3d5	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751390534718	LOGIN_ERROR	\N
+a441af12-34cc-417c-b0cd-87f444512826	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751390541498	LOGIN_ERROR	\N
+080270fb-dac5-4f29-beba-6e05077fcaa6	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751390639400	LOGIN_ERROR	\N
+c3a0fdcf-b190-41b3-a540-bde467b7a7cc	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751390648191	LOGIN_ERROR	\N
+84ef3fff-e1b4-435b-8a4c-de7db50f040c	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751390659937	LOGIN_ERROR	\N
+96e071da-526f-4fd2-970d-5c4db97cb8a1	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751390669998	LOGIN_ERROR	\N
+d7c4bfb7-e969-4255-9f73-6104c4b9110f	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751390716533	LOGIN_ERROR	\N
+0868f39d-3a6d-4e2b-b357-f7bec3aec69d	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751390741810	LOGIN_ERROR	\N
+9f77c73e-f4e0-4bd3-b61d-a4dc701c7261	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751390763928	LOGIN_ERROR	\N
+929c6551-3a73-430b-bec5-7923a1d41f67	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751390773903	LOGIN_ERROR	\N
+2106a15a-c99b-4209-a21f-0645b5ac49ac	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751391356201	LOGIN_ERROR	\N
+48d3a043-f37a-4112-856e-8baf1123edfb	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751391359489	LOGIN_ERROR	\N
+bc2610fb-edb1-4954-9551-08c928babf55	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751391372271	LOGIN_ERROR	\N
+d7d82163-ffb8-461b-8be3-4708db3f2262	concerto-client	{"redirect_uri":"https://localhost:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751391382283	LOGIN_ERROR	\N
+20976a75-325b-4de9-8ba2-da59054888d9	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751391543132	LOGIN_ERROR	\N
+8bc071bb-85e7-4276-a9a2-bba5c96bf8d5	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751391643940	LOGIN_ERROR	\N
+65a86179-1895-4a14-836c-65b5bbb9a6a1	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751391662220	LOGIN_ERROR	\N
+3108c609-bb8e-4e89-84bf-23fda7033139	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751391672216	LOGIN_ERROR	\N
+74b0ea53-b4de-49e7-80cf-2d3c0d344e76	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751392029274	LOGIN_ERROR	\N
+41ee9a34-cd49-403a-9db4-a50d66e9c8e9	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751392041146	LOGIN_ERROR	\N
+8e2ec7ab-ead1-486a-9223-83a3f55f6da8	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751392051151	LOGIN_ERROR	\N
+746927d5-83e8-4168-b836-323023dcf0f5	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751392412673	LOGIN_ERROR	\N
+d07d2fe7-59d8-42f7-b3cf-27d069b83d70	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751392684198	LOGIN_ERROR	\N
+693e8998-2a8b-4460-9799-f352317ef8c8	concerto-client	{"redirect_uri":"https://concerto.local:5000/authentication/login-callback"}	invalid_redirect_uri	172.19.0.1	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	\N	1751392694180	LOGIN_ERROR	\N
 \.
 
 
@@ -3096,8 +3136,8 @@ f212e8fb-0eba-4b7d-85c1-76d7d1b5a786	String	jsonType.label
 --
 
 COPY public.realm (id, access_code_lifespan, user_action_lifespan, access_token_lifespan, account_theme, admin_theme, email_theme, enabled, events_enabled, events_expiration, login_theme, name, not_before, password_policy, registration_allowed, remember_me, reset_password_allowed, social, ssl_required, sso_idle_timeout, sso_max_lifespan, update_profile_on_soc_login, verify_email, master_admin_client, login_lifespan, internationalization_enabled, default_locale, reg_email_as_username, admin_events_enabled, admin_events_details_enabled, edit_username_allowed, otp_policy_counter, otp_policy_window, otp_policy_period, otp_policy_digits, otp_policy_alg, otp_policy_type, browser_flow, registration_flow, direct_grant_flow, reset_credentials_flow, client_auth_flow, offline_session_idle_timeout, revoke_refresh_token, access_token_life_implicit, login_with_email_allowed, duplicate_emails_allowed, docker_auth_flow, refresh_token_max_reuse, allow_user_managed_access, sso_max_lifespan_remember_me, sso_idle_timeout_remember_me, default_role) FROM stdin;
-f751882b-adae-4e57-96a2-61fcd0497761	60	300	60	\N	\N	\N	t	f	0	\N	master	0	\N	f	f	f	f	EXTERNAL	1800	36000	f	f	ca13f022-86a6-4d5a-98d6-0f96164f7250	1800	f	\N	f	f	f	f	0	1	30	6	HmacSHA1	totp	7b61880c-3f9d-4a22-a4e7-2ac2802d642a	3f17f9eb-fc0b-45ed-a2cf-34191d7f7da3	726b8320-8b73-4ca3-86b5-d114d3f11812	730b542f-91a3-4708-ac65-7ca3b0375f6b	65bba1fb-f7c8-46be-bead-a96f6dce7773	2592000	f	900	t	f	a8953591-c0c7-42ad-aede-03f4a162451a	0	f	0	0	5a78721b-02ef-46e7-acd4-bf2eba624d5a
 6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	60	300	300	\N	\N	\N	t	f	0	\N	concerto	0	\N	t	f	t	f	EXTERNAL	1800	36000	f	t	1ab5abb8-c141-48bc-b3f1-4d728ec53376	1800	f	\N	f	f	f	f	0	1	30	6	HmacSHA1	totp	599d63b2-77d9-4107-b79f-28665ef64a47	fc74d967-3a8c-4e4b-a441-3fc96c1cc30f	79dd0b33-8051-499b-9e32-1aba2d7e8a12	48487858-647b-4a20-83f0-83489bc2bf87	2111e90a-c565-4db8-a03c-d96c01cd0fe4	2592000	f	900	t	f	9fe56abe-be8c-45d8-be97-78fc807644b3	0	f	0	0	b9781f4d-1f73-4b9c-9386-d4e1c1703a1d
+f751882b-adae-4e57-96a2-61fcd0497761	60	300	60	\N	\N	\N	t	f	0	\N	master	0	\N	f	f	f	f	EXTERNAL	1800	36000	f	f	ca13f022-86a6-4d5a-98d6-0f96164f7250	1800	f	\N	f	f	f	f	0	1	30	6	HmacSHA1	totp	7b61880c-3f9d-4a22-a4e7-2ac2802d642a	3f17f9eb-fc0b-45ed-a2cf-34191d7f7da3	726b8320-8b73-4ca3-86b5-d114d3f11812	730b542f-91a3-4708-ac65-7ca3b0375f6b	65bba1fb-f7c8-46be-bead-a96f6dce7773	2592000	f	900	t	f	a8953591-c0c7-42ad-aede-03f4a162451a	0	f	0	0	5a78721b-02ef-46e7-acd4-bf2eba624d5a
 \.
 
 
@@ -3106,28 +3146,6 @@ f751882b-adae-4e57-96a2-61fcd0497761	60	300	60	\N	\N	\N	t	f	0	\N	master	0	\N	f	f
 --
 
 COPY public.realm_attribute (name, realm_id, value) FROM stdin;
-_browser_header.contentSecurityPolicyReportOnly	f751882b-adae-4e57-96a2-61fcd0497761	
-_browser_header.xContentTypeOptions	f751882b-adae-4e57-96a2-61fcd0497761	nosniff
-_browser_header.xRobotsTag	f751882b-adae-4e57-96a2-61fcd0497761	none
-_browser_header.xFrameOptions	f751882b-adae-4e57-96a2-61fcd0497761	SAMEORIGIN
-_browser_header.contentSecurityPolicy	f751882b-adae-4e57-96a2-61fcd0497761	frame-src 'self'; frame-ancestors 'self'; object-src 'none';
-_browser_header.xXSSProtection	f751882b-adae-4e57-96a2-61fcd0497761	1; mode=block
-_browser_header.strictTransportSecurity	f751882b-adae-4e57-96a2-61fcd0497761	max-age=31536000; includeSubDomains
-bruteForceProtected	f751882b-adae-4e57-96a2-61fcd0497761	false
-permanentLockout	f751882b-adae-4e57-96a2-61fcd0497761	false
-maxFailureWaitSeconds	f751882b-adae-4e57-96a2-61fcd0497761	900
-minimumQuickLoginWaitSeconds	f751882b-adae-4e57-96a2-61fcd0497761	60
-waitIncrementSeconds	f751882b-adae-4e57-96a2-61fcd0497761	60
-quickLoginCheckMilliSeconds	f751882b-adae-4e57-96a2-61fcd0497761	1000
-maxDeltaTimeSeconds	f751882b-adae-4e57-96a2-61fcd0497761	43200
-failureFactor	f751882b-adae-4e57-96a2-61fcd0497761	30
-realmReusableOtpCode	f751882b-adae-4e57-96a2-61fcd0497761	false
-displayName	f751882b-adae-4e57-96a2-61fcd0497761	Keycloak
-displayNameHtml	f751882b-adae-4e57-96a2-61fcd0497761	<div class="kc-logo-text"><span>Keycloak</span></div>
-defaultSignatureAlgorithm	f751882b-adae-4e57-96a2-61fcd0497761	RS256
-offlineSessionMaxLifespanEnabled	f751882b-adae-4e57-96a2-61fcd0497761	false
-offlineSessionMaxLifespan	f751882b-adae-4e57-96a2-61fcd0497761	5184000
-_browser_header.strictTransportSecurity	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	max-age=31536000; includeSubDomains
 bruteForceProtected	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	false
 permanentLockout	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	false
 maxFailureWaitSeconds	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	900
@@ -3143,6 +3161,11 @@ oauth2DeviceCodeLifespan	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	600
 oauth2DevicePollingInterval	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	5
 offlineSessionMaxLifespanEnabled	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	false
 offlineSessionMaxLifespan	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	5184000
+clientOfflineSessionIdleTimeout	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	0
+clientOfflineSessionMaxLifespan	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	0
+clientSessionIdleTimeout	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	0
+clientSessionMaxLifespan	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	0
+realmReusableOtpCode	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	false
 webAuthnPolicyRpEntityName	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	keycloak
 webAuthnPolicySignatureAlgorithms	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	ES256
 webAuthnPolicyRpId	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	
@@ -3163,22 +3186,72 @@ webAuthnPolicyCreateTimeoutPasswordless	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	0
 webAuthnPolicyAvoidSameAuthenticatorRegisterPasswordless	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	false
 client-policies.profiles	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	{"profiles":[]}
 client-policies.policies	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	{"policies":[]}
+cibaAuthRequestedUserHint	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	login_hint
+cibaBackchannelTokenDeliveryMode	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	poll
+cibaExpiresIn	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	120
+oauth2DeviceCodeLifespan	f751882b-adae-4e57-96a2-61fcd0497761	600
+oauth2DevicePollingInterval	f751882b-adae-4e57-96a2-61fcd0497761	5
+cibaBackchannelTokenDeliveryMode	f751882b-adae-4e57-96a2-61fcd0497761	poll
+cibaExpiresIn	f751882b-adae-4e57-96a2-61fcd0497761	120
+cibaInterval	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	5
+parRequestUriLifespan	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	60
 _browser_header.contentSecurityPolicyReportOnly	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	
 _browser_header.xContentTypeOptions	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	nosniff
 _browser_header.xRobotsTag	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	none
 _browser_header.xFrameOptions	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	SAMEORIGIN
-_browser_header.contentSecurityPolicy	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	frame-src 'self'; frame-ancestors 'self'; object-src 'none';
+_browser_header.contentSecurityPolicy	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	frame-src 'self'; frame-ancestors 'self' https://localhost:5000 https://concerto.local:5000; object-src 'none';
 _browser_header.xXSSProtection	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	1; mode=block
-clientOfflineSessionIdleTimeout	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	0
-clientOfflineSessionMaxLifespan	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	0
-clientSessionIdleTimeout	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	0
-clientSessionMaxLifespan	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	0
-realmReusableOtpCode	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	false
-cibaAuthRequestedUserHint	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	login_hint
-cibaBackchannelTokenDeliveryMode	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	poll
-cibaExpiresIn	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	120
-cibaInterval	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	5
-parRequestUriLifespan	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	60
+_browser_header.strictTransportSecurity	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	max-age=31536000; includeSubDomains
+_browser_header.contentSecurityPolicy	f751882b-adae-4e57-96a2-61fcd0497761	frame-src 'self'; frame-ancestors 'self' https://localhost https://concerto.local; object-src 'none';
+offlineSessionMaxLifespanEnabled	f751882b-adae-4e57-96a2-61fcd0497761	false
+offlineSessionMaxLifespan	f751882b-adae-4e57-96a2-61fcd0497761	5184000
+clientOfflineSessionIdleTimeout	f751882b-adae-4e57-96a2-61fcd0497761	0
+clientOfflineSessionMaxLifespan	f751882b-adae-4e57-96a2-61fcd0497761	0
+clientSessionIdleTimeout	f751882b-adae-4e57-96a2-61fcd0497761	0
+clientSessionMaxLifespan	f751882b-adae-4e57-96a2-61fcd0497761	0
+realmReusableOtpCode	f751882b-adae-4e57-96a2-61fcd0497761	false
+webAuthnPolicyRpEntityName	f751882b-adae-4e57-96a2-61fcd0497761	keycloak
+displayName	f751882b-adae-4e57-96a2-61fcd0497761	Keycloak
+displayNameHtml	f751882b-adae-4e57-96a2-61fcd0497761	<div class="kc-logo-text"><span>Keycloak</span></div>
+bruteForceProtected	f751882b-adae-4e57-96a2-61fcd0497761	false
+permanentLockout	f751882b-adae-4e57-96a2-61fcd0497761	false
+maxFailureWaitSeconds	f751882b-adae-4e57-96a2-61fcd0497761	900
+minimumQuickLoginWaitSeconds	f751882b-adae-4e57-96a2-61fcd0497761	60
+waitIncrementSeconds	f751882b-adae-4e57-96a2-61fcd0497761	60
+quickLoginCheckMilliSeconds	f751882b-adae-4e57-96a2-61fcd0497761	1000
+maxDeltaTimeSeconds	f751882b-adae-4e57-96a2-61fcd0497761	43200
+failureFactor	f751882b-adae-4e57-96a2-61fcd0497761	30
+actionTokenGeneratedByAdminLifespan	f751882b-adae-4e57-96a2-61fcd0497761	43200
+actionTokenGeneratedByUserLifespan	f751882b-adae-4e57-96a2-61fcd0497761	300
+defaultSignatureAlgorithm	f751882b-adae-4e57-96a2-61fcd0497761	RS256
+webAuthnPolicySignatureAlgorithms	f751882b-adae-4e57-96a2-61fcd0497761	ES256
+webAuthnPolicyRpId	f751882b-adae-4e57-96a2-61fcd0497761	
+webAuthnPolicyAttestationConveyancePreference	f751882b-adae-4e57-96a2-61fcd0497761	not specified
+webAuthnPolicyAuthenticatorAttachment	f751882b-adae-4e57-96a2-61fcd0497761	not specified
+webAuthnPolicyRequireResidentKey	f751882b-adae-4e57-96a2-61fcd0497761	not specified
+webAuthnPolicyUserVerificationRequirement	f751882b-adae-4e57-96a2-61fcd0497761	not specified
+webAuthnPolicyCreateTimeout	f751882b-adae-4e57-96a2-61fcd0497761	0
+webAuthnPolicyAvoidSameAuthenticatorRegister	f751882b-adae-4e57-96a2-61fcd0497761	false
+webAuthnPolicyRpEntityNamePasswordless	f751882b-adae-4e57-96a2-61fcd0497761	keycloak
+webAuthnPolicySignatureAlgorithmsPasswordless	f751882b-adae-4e57-96a2-61fcd0497761	ES256
+webAuthnPolicyRpIdPasswordless	f751882b-adae-4e57-96a2-61fcd0497761	
+webAuthnPolicyAttestationConveyancePreferencePasswordless	f751882b-adae-4e57-96a2-61fcd0497761	not specified
+webAuthnPolicyAuthenticatorAttachmentPasswordless	f751882b-adae-4e57-96a2-61fcd0497761	not specified
+webAuthnPolicyRequireResidentKeyPasswordless	f751882b-adae-4e57-96a2-61fcd0497761	not specified
+webAuthnPolicyUserVerificationRequirementPasswordless	f751882b-adae-4e57-96a2-61fcd0497761	not specified
+webAuthnPolicyCreateTimeoutPasswordless	f751882b-adae-4e57-96a2-61fcd0497761	0
+webAuthnPolicyAvoidSameAuthenticatorRegisterPasswordless	f751882b-adae-4e57-96a2-61fcd0497761	false
+client-policies.profiles	f751882b-adae-4e57-96a2-61fcd0497761	{"profiles":[]}
+client-policies.policies	f751882b-adae-4e57-96a2-61fcd0497761	{"policies":[]}
+cibaAuthRequestedUserHint	f751882b-adae-4e57-96a2-61fcd0497761	login_hint
+cibaInterval	f751882b-adae-4e57-96a2-61fcd0497761	5
+parRequestUriLifespan	f751882b-adae-4e57-96a2-61fcd0497761	60
+_browser_header.contentSecurityPolicyReportOnly	f751882b-adae-4e57-96a2-61fcd0497761	
+_browser_header.xContentTypeOptions	f751882b-adae-4e57-96a2-61fcd0497761	nosniff
+_browser_header.xRobotsTag	f751882b-adae-4e57-96a2-61fcd0497761	none
+_browser_header.xFrameOptions	f751882b-adae-4e57-96a2-61fcd0497761	SAMEORIGIN
+_browser_header.xXSSProtection	f751882b-adae-4e57-96a2-61fcd0497761	1; mode=block
+_browser_header.strictTransportSecurity	f751882b-adae-4e57-96a2-61fcd0497761	max-age=31536000; includeSubDomains
 \.
 
 
@@ -3253,12 +3326,13 @@ edd1bb01-6648-440a-aa92-b1c51b766aad	/admin/master/console/*
 39b034e8-297a-4e48-adc3-0d53c0797cb7	/realms/concerto/account/*
 7bfaf0df-680c-4fb7-8b75-62b58880d428	/realms/concerto/account/*
 07a8e7af-80f6-4672-abef-5786c95e7867	/admin/concerto/console/*
-dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	https://concerto.local
-dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	https://concerto.local/authentication/login-callback
-05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	https://concerto.local
-05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	https://concerto.local/authentication/login-callback
-8ab49cf2-6f70-438e-81a3-6b679dd04c7f	https://concerto.local/authentication/login-callback
-9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	https://concerto.local/authentication/login-callback
+dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	https://concerto.local:5000/authentication/login-callback
+dd1c588b-e8d2-4eb6-91ba-b74964d31b4a	https://concerto.local:5000
+05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	https://concerto.local:5000/authentication/login-callback
+05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	https://concerto.local:5000
+05cccd8c-0c4b-400c-a7fd-f40a42b9f60b	*
+8ab49cf2-6f70-438e-81a3-6b679dd04c7f	https://concerto.local:5000/authentication/login-callback
+9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	https://concerto.local:5000/authentication/login-callback
 \.
 
 

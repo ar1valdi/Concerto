@@ -2,6 +2,7 @@
 obj
 bin
 .git
+.idea
 compose
 keycloak
 Client/NPM/node_modules
