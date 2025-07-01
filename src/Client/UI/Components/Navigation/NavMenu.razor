@@ -1,17 +1,19 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 
+@inject ILanguageService t
+
 <MudNavMenu>
-	<MudText Class="px-4" Typo="Typo.h6">Menu</MudText>
-	<MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+	<MudText Class="px-4" Typo="Typo.h6">@t.T("NavMenuMenuTxt")</MudText>
+	<MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">@t.T("NavMenuHomeTxt")</MudNavLink>
 	<AuthorizeView Policy="@AuthorizationPolicies.IsAdmin.Name">
-		<MudNavLink Href="admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin panel</MudNavLink>
+		<MudNavLink Href="admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AdminPanelSettings">@t.T("NavMenuAdminPanelTxt")</MudNavLink>
 	</AuthorizeView>
 	<AuthorizeView >
 		@if(!LayoutState.IsMobile)
 		{
-			<MudNavLink Href="recorder" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Camera">Video recorder</MudNavLink>
+			<MudNavLink Href="recorder" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Camera">@t.T("NavMenuVideoRecorderTxt")</MudNavLink>
 		}
-		<MudNavLink Href="workspaces" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Workspaces">Workspaces</MudNavLink>
+		<MudNavLink Href="workspaces" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Workspaces">@t.T("NavMenuWorkspacesTxt")</MudNavLink>
 		<WorkspacesNavGroup/>
 	</AuthorizeView>
 </MudNavMenu>

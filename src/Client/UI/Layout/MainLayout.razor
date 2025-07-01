@@ -9,6 +9,7 @@
 @inject ISyncLocalStorageService LocalStorage
 @inject IAppSettingsService AppSettingsService
 @inject IJSRuntime JS
+@inject ILanguageService LanguageService
 
 <CustomStyleProvider DarkMode="@_layoutState.DarkMode" />
 <MudThemeProvider @bind-IsDarkMode="@_layoutState.DarkMode" />
@@ -23,6 +24,12 @@
 		<MudAppBar Elevation="0" Dense="true">
 			<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@(e => DrawerToggle())" />
 			<NavigationToolbar />
+			<MudButton OnClick="@(() => ChangeLanguage(Language.PL))" Variant="Variant.Text" Color="Color.Secondary">
+				PL
+			</MudButton>
+			<MudButton OnClick="@(() => ChangeLanguage(Language.EN))" Variant="Variant.Text" Color="Color.Secondary">
+				EN
+			</MudButton>
 			<AuthorizeView Policy="@AuthorizationPolicies.IsAuthenticated.Name">
 				<Authorized>
 					<UploadManager />
@@ -89,6 +96,12 @@
 	Size AppbarIconSize => _layoutState.Xs ? Size.Medium : Size.Large;
 
 	bool _drawerOpen = true;
+
+	private async Task ChangeLanguage(Language lang)
+	{
+		await LanguageService.ChangeLanguage(lang);
+		StateHasChanged();
+	}
 
 	void DrawerToggle()
 	{
