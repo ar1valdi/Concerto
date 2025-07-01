@@ -2,6 +2,7 @@
 obj
 bin
 .git
+.idea
 compose
 keycloak
 Client/NPM/node_modules
@@ -9,3 +10,11 @@ Client/wwwroot/js/node
 
 ChromeDebugUserData
 EdgeDebugUserData
+
+DockerCompose/data
+
+dev-docker/data
+
+Data/volume/storage
+
+launchSettings.json
