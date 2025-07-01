@@ -1,4 +1,7 @@
 {
-  "test1": "testuje jedynke",
-  "test2": "testuje dwojke"
+  "NavMenuMenuTxt": "Menu",
+  "NavMenuHomeTxt": "Strona główna",
+  "NavMenuAdminPanelTxt": "Panel administracyjny",
+  "NavMenuVideoRecorderTxt": "Rejestrator wideo",
+  "NavMenuWorkspacesTxt": "Przestrzenie robocze"
 }
