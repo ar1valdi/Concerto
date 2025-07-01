@@ -16,3 +16,5 @@ DockerCompose/data
 dev-docker/data
 
 Data/volume/storage
+
+launchSettings.json
