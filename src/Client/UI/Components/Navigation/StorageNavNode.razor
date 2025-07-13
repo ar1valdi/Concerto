@@ -1,0 +1,96 @@
+﻿@inject IStorageService StorageService
+@inject NavigationManager Navigation
+
+<MudNavGroup Class="hidden" Title="Storage" Icon="@Icons.Material.Filled.MenuBook" ExpandIcon="@Icons.Material.Filled.ArrowDownward" Expanded="true">
+	@if (_folderContent is null)
+	{
+		<MudNavLink Href="#">
+			<MudProgressCircular Size="Size.Small" Color="Color.Primary" Indeterminate="true" />
+		</MudNavLink>
+	}
+	else
+	{
+
+		@foreach (var item in sortedItems)
+		{
+			@if (item is FolderItem folder)
+			{
+				<MudNavLink Class="treeNode" @onclick="() => ToogleExpand(item.Id)">
+					<div class="treeNodeContent">
+						<div>
+							<MudIcon Icon="@Icons.Material.Filled.Folder" />
+							<MudText Class="ml-2">@item.Name</MudText>
+						</div>
+						<MudIconButton Icon="@Icons.Material.Filled.ArrowForward"
+									   Color="Color.Primary"
+									   Size="Size.Small"
+									   Title="Go to folder"
+									   AriaLabel="Go to folder"
+									   OnClick="@(e => NavigateToFolder(item.Id))" />
+					</div>
+				</MudNavLink>
+				@if (IsExpanded(item.Id))
+				{
+					<StorageNavNode FolderId="@item.Id"/>
+				}
+			}
+			else if (item is FileItem file)
+			{
+				<MudNavLink Title="@file.Name" Icon="@Icons.Material.Filled.InsertDriveFile" Href="@($"files/{file.Id}")">
+					@file.Name
+				</MudNavLink>
+			}
+		}
+	}
+
+</MudNavGroup>
+
+@code {
+	[Parameter] public long FolderId { get; set; }
+
+	private FolderContent? _folderContent;
+	private IEnumerable<FolderContentItem> sortedItems = new List<FolderContentItem>();
+	private HashSet<long> expandedNodes = new HashSet<long>();
+	
+	private void NavigateToFolder(long folderId)
+	{
+		Navigation.NavigateTo($"/storage/{folderId}");
+	}
+
+	protected override async void OnInitialized()
+	{
+		_folderContent = await StorageService.GetFolderContentAsync(FolderId);
+		SortItems();
+		StateHasChanged();
+	}
+
+	private void SortItems()
+	{
+		if (_folderContent == null)
+		{
+			return;
+		}
+
+		sortedItems = _folderContent.SubFolders.Union<FolderContentItem>(_folderContent.Files)
+			.OrderByDescending(item => item is FolderItem)
+			.ThenBy(item => item.Name);
+	}
+
+	private void ToogleExpand(long id)
+	{
+		if (expandedNodes.Contains(id))
+		{
+			expandedNodes.Remove(id);
+		}
+		else
+		{
+			expandedNodes.Add(id);
+		}
+		StateHasChanged();
+	}
+
+	private bool IsExpanded(long id)
+	{
+		return expandedNodes.Contains(id);
+	}
+}

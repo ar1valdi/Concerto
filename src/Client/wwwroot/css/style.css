@@ -10,3 +10,18 @@ border-box *, border-box *:before, border-box *:after { box-sizing: inherit; }
     overflow: auto;
 }
 
+.treeNode {
+    width: 100%; 
+    box-sizing: border-box;
+}
+
+.treeNodeContent {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.custom-nav-link .mud-nav-link {
+    padding-inline-end: 0;
+}
