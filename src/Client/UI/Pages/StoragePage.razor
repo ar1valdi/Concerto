@@ -1,0 +1,16 @@
+﻿@attribute [Authorize]
+@page "/storage/{FolderId:long?}"
+
+@inject NavigationManager NavigationManager
+@inject IWorkspaceService WorkspaceService;
+@inject ISnackbar Snackbar;
+@inject IBreadcrumbsService BreadcrumbsService;
+
+<PageTitle>Storage</PageTitle>
+
+<FileManager InitialFolderId="FolderId ?? -1" Class="" Style="height: 100%;" Elevation="0" />
+
+@code {
+    [Parameter]
+    public long? FolderId { get; set; }
+}

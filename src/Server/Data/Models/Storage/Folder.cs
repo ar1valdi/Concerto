@@ -79,7 +79,7 @@ public static partial class ViewModelConversions
 			canEdit,
 			canDelete,
 			folder.Type.ToViewModel()
-		);
+        );
 	}
 
 	public static Dto.FolderType ToViewModel(this FolderType type)

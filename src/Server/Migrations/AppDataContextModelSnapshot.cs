@@ -406,8 +406,7 @@ namespace Concerto.Server.Migrations
                     b.HasOne("Concerto.Server.Data.Models.Workspace", "Workspace")
                         .WithMany()
                         .HasForeignKey("WorkspaceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.OwnsOne("Concerto.Server.Data.Models.FolderPermission", "WorkspacePermission", b1 =>
                         {
@@ -449,8 +448,7 @@ namespace Concerto.Server.Migrations
                     b.HasOne("Concerto.Server.Data.Models.Workspace", "Workspace")
                         .WithMany("Posts")
                         .HasForeignKey("WorkspaceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Author");
 
