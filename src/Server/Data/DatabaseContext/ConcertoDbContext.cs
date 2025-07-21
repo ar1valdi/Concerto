@@ -106,10 +106,10 @@ public class ConcertoDbContext : DbContext
 			.HasMany(c => c.UserPermissions)
 			.WithOne(up => up.Folder);
 
-		// UploadedFile entity configuration
+        // UploadedFile entity configuration
 
-		// UploadedFile n-1 Folder
-		modelBuilder.Entity<UploadedFile>()
+        // UploadedFile n-1 Folder
+        modelBuilder.Entity<UploadedFile>()
 			.HasOne(uf => uf.Folder)
 			.WithMany(f => f.Files)
 			.HasForeignKey(uf => uf.FolderId)

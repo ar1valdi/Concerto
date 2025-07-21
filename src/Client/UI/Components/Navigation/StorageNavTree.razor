@@ -13,13 +13,13 @@ ExpandOnClick="true">
 		<MudStack Row="true" AlignItems="AlignItems.Center" Class="tree-mudstack">
 
 			<MudTreeViewItem T="TreeItemData"
-				Value="@context"
-				Text="@context.Name"
-				@bind-Expanded="@context.Expanded"
-				CanExpand="@context.Expandable"
-				Icon="@(context.IsFolder ? Icons.Material.Filled.Folder : Icons.Material.Filled.FilePresent)"
-				OnClick="@(() => OnItemClick(context))"
-				LoadingIconColor="Color.Info"/>
+			Value="@context"
+			Text="@context.Name"
+			@bind-Expanded="@context.Expanded"
+			CanExpand="@context.Expandable"
+			Icon="@(context.IsFolder ? Icons.Material.Filled.Folder : Icons.Material.Filled.FilePresent)"
+			OnClick="@(() => OnItemClick(context))"
+			LoadingIconColor="Color.Info"/>
 
 		</MudStack>
 	</ItemTemplate>
@@ -46,9 +46,6 @@ ExpandOnClick="true">
 		var children = content.SubFolders.Union<FolderContentItem>(content.Files).ToHashSet();
 		var res = children.Select(x => new TreeItemData
 			{
-				Id = x.Id,
-				Name = x.Name,
-				IsFolder = x is FolderItem,
 				Expandable = x is FolderItem,
 				Item = x
 			}).ToHashSet();
@@ -73,12 +70,14 @@ ExpandOnClick="true">
 
 	private class TreeItemData
 	{
-		public long Id { get; set; }
-		public string Name { get; set; } = "";
-		public HashSet<TreeItemData> Children { get; set; } = new HashSet<TreeItemData>();
-		public bool Expanded { get; set; } = false;
-		public bool Expandable { get; set; }
-		public bool IsFolder { get; set; }
 		public FolderContentItem? Item { get; set; }
+		public HashSet<TreeItemData> Children { get; set; } = new HashSet<TreeItemData>();
+		
+		public bool Expanded { get; set; } = false;
+		public bool Expandable { get; set; } = false;
+
+		public long Id => Item?.Id ?? throw new NullReferenceException();
+		public string Name => Item?.Name ?? throw new NullReferenceException();
+		public bool IsFolder => Item is not null ? Item is FolderItem : throw new NullReferenceException();
 	}
 }
