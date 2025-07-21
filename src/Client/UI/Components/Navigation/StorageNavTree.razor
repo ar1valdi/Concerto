@@ -1,0 +1,84 @@
+﻿@inject IStorageService StorageService
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+
+<MudTreeView T="TreeItemData"
+Items="@rootNodes"
+ServerData="@LoadChildrenAsync"
+MultiSelection="false"
+Hover="true"
+Dense="true"
+ExpandOnClick="true">
+	<ItemTemplate>
+		<MudStack Row="true" AlignItems="AlignItems.Center" Class="tree-mudstack">
+
+			<MudTreeViewItem T="TreeItemData"
+				Value="@context"
+				Text="@context.Name"
+				@bind-Expanded="@context.Expanded"
+				CanExpand="@context.Expandable"
+				Icon="@(context.IsFolder ? Icons.Material.Filled.Folder : Icons.Material.Filled.FilePresent)"
+				OnClick="@(() => OnItemClick(context))"
+				LoadingIconColor="Color.Info"/>
+
+		</MudStack>
+	</ItemTemplate>
+</MudTreeView>
+
+@code {
+	private HashSet<TreeItemData> rootNodes = new();
+	[Inject] private IJSRuntime JS { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		rootNodes = await LoadNodesAsync(-1);
+		StateHasChanged();
+	}
+
+	private async Task<HashSet<TreeItemData>> LoadChildrenAsync(TreeItemData node)
+	{
+		return await LoadNodesAsync(node.Id);
+	}
+
+	private async Task<HashSet<TreeItemData>> LoadNodesAsync(long folderId)
+	{
+		var content = await StorageService.GetFolderContentAsync(folderId);
+		var children = content.SubFolders.Union<FolderContentItem>(content.Files).ToHashSet();
+		var res = children.Select(x => new TreeItemData
+			{
+				Id = x.Id,
+				Name = x.Name,
+				IsFolder = x is FolderItem,
+				Expandable = x is FolderItem,
+				Item = x
+			}).ToHashSet();
+		return res;
+	}
+
+	private async Task OnItemClick(TreeItemData node)
+	{
+		await JS.InvokeVoidAsync("console.log", $"OnItemClick, node: {node.Name}: isFolder = {node.IsFolder}");
+		// Add your custom logic here
+		if (node.IsFolder)
+		{
+			Navigation.NavigateTo($"storage/{node.Id}");
+		}
+		else if (node.Item is not null && node.Item is FileItem file)
+		{
+			await DialogService.ShowFilePreviewDialog(file);
+		}
+
+		await Task.CompletedTask;
+	}
+
+	private class TreeItemData
+	{
+		public long Id { get; set; }
+		public string Name { get; set; } = "";
+		public HashSet<TreeItemData> Children { get; set; } = new HashSet<TreeItemData>();
+		public bool Expanded { get; set; } = false;
+		public bool Expandable { get; set; }
+		public bool IsFolder { get; set; }
+		public FolderContentItem? Item { get; set; }
+	}
+}

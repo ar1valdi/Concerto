@@ -10,3 +10,11 @@ border-box *, border-box *:before, border-box *:after { box-sizing: inherit; }
     overflow: auto;
 }
 
+.mud-treeview-item {
+    width: 100%;
+    cursor: pointer;
+}
+
+.tree-mudstack {
+    width: 100%;
+}
