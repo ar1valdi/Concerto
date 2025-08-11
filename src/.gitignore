@@ -2,6 +2,10 @@
 obj
 bin
 .git
+*.crt
+*.pem
+*.key
+*.csr
 .idea
 .vscode
 compose
