@@ -106,8 +106,14 @@ builder.Services.AddAuthorization(options =>
 
 
 // Configure database context
+var connectionString = AppSettings.Database.DbString;
+if (string.IsNullOrEmpty(connectionString))
+{
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+}
+
 builder.Services.AddDbContext<ConcertoDbContext>(options =>
-	options.UseNpgsql(AppSettings.Database.DbString)
+	options.UseNpgsql(connectionString)
 );
 builder.Services.AddScoped<ConcertoDbContext>();
 

@@ -8,7 +8,7 @@ public record FolderContent
 	public FolderPermission WorkspacePermission { get; init; } = null!;
 	public FolderItem Self { get; init; } = null!;
 	public long WorkspaceId { get; init; }
-	public virtual IEnumerable<FolderItem> SubFolders { get; init; } = Enumerable.Empty<FolderItem>();
+    public virtual IEnumerable<FolderItem> SubFolders { get; init; } = Enumerable.Empty<FolderItem>();
 	public virtual IEnumerable<FileItem> Files { get; init; } = Enumerable.Empty<FileItem>();
 }
 

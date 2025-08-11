@@ -6,8 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Net;
 using MimeMapping;
-using Newtonsoft.Json.Linq;
-using static Concerto.Server.Services.DawService;
 
 namespace Concerto.Server.Services;
 
@@ -124,7 +122,7 @@ public class StorageService
 			WorkspaceId = folder.WorkspaceId,
 			Files = files,
 			WorkspacePermission = folder.WorkspacePermission.ToViewModel()
-		};
+        };
 	}
 
 	internal async Task<Dto.FolderSettings?> GetFolderSettings(long id)
