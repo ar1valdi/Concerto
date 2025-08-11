@@ -1,0 +1,21 @@
+{
+  "NavMenuMenuTxt": "Menu",
+  "NavMenuHomeTxt": "Home",
+  "NavMenuAdminPanelTxt": "Admin Panel",
+  "NavMenuVideoRecorderTxt": "Video Recorder",
+  "NavMenuStorageText": "Storage",
+
+  "HomePageTitle": "Home",
+  "HomePageAdminVerificationRequiredTxt": "An administrator must verify your account before accessing Concerto. Please come back later or contact your administrator.",
+
+  "AdminPanelPageTitle": "Admin Panel",
+  "AdminPanelPageUnverifiedUsersTxt": "Unverified users",
+  "AdminPanelPageAllUsersTxt": "All users",
+  "AdminPanelPageMoreTxt": "More",
+
+  "AuthenticationPageLogInFailedTxt": "Your login was not successful.",
+  "AuthenticationPageLogOutTxt": "Logging out...",
+  "AuthenticationPageLogOutSucceededTxt": "You have been logged out successfully",
+  "AuthenticationPageLoggingInTxt": "Redirecting you to the login screen...",
+  "AuthenticationPageCompletingLoggingInTxt": "Login successful. One moment..."
+}

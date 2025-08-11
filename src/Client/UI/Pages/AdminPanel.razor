@@ -3,18 +3,19 @@
 @attribute [Authorize(Policy = AuthorizationPolicies.IsAdmin.Name)]
 
 @inject IAppSettingsService AppSettingsService
+@inject ILanguageService t
 
-<PageTitle>Admin panel</PageTitle>
+<PageTitle>@t.T("AdminPanelPageTitle")</PageTitle>
 
 	<MudTabs @ref="_tabs" Outlined="true" Position="Position.Top" HeaderPosition="TabHeaderPosition.After" 
 	         ApplyEffectsToContainer="true" Class="" PanelClass="panel-height-maximum" Style="height: calc(100%);">
 
     <ChildContent>
-        <MudTabPanel Text="Unverified users">
+        <MudTabPanel Text=@t.T("AdminPanelPageUnverifiedUsersTxt")>
             <UserManager Unverified="true" Style="height: 100%;" />
         </MudTabPanel>
 
-        <MudTabPanel Text="All users">
+        <MudTabPanel Text=@t.T("AdminPanelPageAllUsersTxt")>
             <UserManager Style="height: 100%;" />
         </MudTabPanel>
     </ChildContent>
@@ -24,7 +25,7 @@
 				 Color="Color.Default" Underline="Underline.None" Target="_blank" Href="@AppSettingsService.AppSettings.AdminConsoleUrl">
 
 			<MudIcon Class="text-icon mr-2" Size="Size.Small" Icon="@Icons.Material.Filled.OpenInNew" />
-			More
+			@t.T("AdminPanelPageMoreTxt")
 		</MudLink>
 	</Header>
 

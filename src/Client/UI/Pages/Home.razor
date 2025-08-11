@@ -4,13 +4,14 @@
 @using Microsoft.AspNetCore.Components.Authorization
 
 @inject IBreadcrumbsService BreadcrumbsService
+@inject ILanguageService t
 
 <PageTitle>Concerto</PageTitle>
 
 <div class="pa-4" style="height: 100%; display:flex;flex-direction:column;">
-	<MudText Typo="Typo.h3" GutterBottom="true">Home</MudText>
+	<MudText Typo="Typo.h3" GutterBottom="true">@t.T("HomePageTitle")</MudText>
 	<AuthorizeView Policy="@AuthorizationPolicies.IsNotVerified.Name">
-		<MudAlert Severity="Severity.Warning">An administrator must verify your account before accessing Concerto. Please come back later or contact your administrator.</MudAlert>
+		<MudAlert Severity="Severity.Warning">@t.T("AdminVerificationRequiredTxt")</MudAlert>
 	</AuthorizeView>
 	<MudImage Src="home.svg" Style="@ImageStyle" Elevation="0" />
 </div>

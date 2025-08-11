@@ -2,7 +2,12 @@
 obj
 bin
 .git
+*.crt
+*.pem
+*.key
+*.csr
 .idea
+.vscode
 compose
 keycloak
 Client/NPM/node_modules
@@ -17,4 +22,4 @@ dev-docker/data
 
 Data/volume/storage
 
-launchSettings.json
+src/Server/Properties/launchSettings.json
