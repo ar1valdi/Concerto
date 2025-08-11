@@ -5,36 +5,37 @@
 @inject IAccountClient AccountService
 @inject IUserService UserService
 @inject NavigationManager Navigation
+@inject ILanguageService t
 
 
 <RemoteAuthenticatorView Action="@Action" OnLogInSucceeded="OnLogInSucceeded">
 	
 	<LogInFailed>
 		<div class="d-flex align-center justify-center" style="height: 100%">
-			<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@strLogInFailed</MudText>
+			<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@t.T("AuthenticationPageLogInFailedTxt")</MudText>
 		</div>
 	</LogInFailed>
 	<LogOut>
 		<div class="d-flex align-center justify-center" style="height: 100%">
 			<MudSkeleton Style="position: absolute" Animation="Animation.Wave" SkeletonType="SkeletonType.Rectangle" Width="100%" Height="100%" />
-			<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@strLogOut</MudText>
+			<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@t.T("AuthenticationPageLogOutTxt")</MudText>
 		</div>
 	</LogOut>
 	<LogOutSucceeded>
 		<div class="d-flex align-center justify-center" style="height: 100%">
-			<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@strLogOutSucceeded</MudText>
+			<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@t.T("AuthenticationPageLogOutSucceededTxt")</MudText>
 		</div>
 	</LogOutSucceeded>
 	<LoggingIn>
 		<div class="d-flex align-center justify-center" style="height: 100%">
 			<MudSkeleton Style="position: absolute" Animation="Animation.Wave" SkeletonType="SkeletonType.Rectangle" Width="100%" Height="100%" />
-			<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@strLoggingIn</MudText>
+			<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@t.T("AuthenticationPageLoggingInTxt")</MudText>
 		</div>
 	</LoggingIn>
 	<CompletingLoggingIn>
 		<div class="d-flex align-center justify-center" style="height: 100%">
 			<MudSkeleton Style="position: absolute" Animation="Animation.Wave" SkeletonType="SkeletonType.Rectangle" Width="100%" Height="100%" />
-			<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@strCompletingLoggingIn</MudText>
+			<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@t.T("AuthenticationPageCompletingLoggingInTxt")</MudText>
 		</div>
 	</CompletingLoggingIn>
 </RemoteAuthenticatorView>
@@ -46,12 +47,6 @@
 
 	[Parameter]
 	public string? Action { get; set; }
-
-	string strLogInFailed = "Your login was not successful.";
-	string strLogOut = "Logging out...";
-	string strLogOutSucceeded = "You have been logged out successfully";
-	string strLoggingIn = "Redirecting you to the login screen...";
-	string strCompletingLoggingIn = "Login successful. One moment...";
 
 	private async Task OnLogInSucceeded()
 	{

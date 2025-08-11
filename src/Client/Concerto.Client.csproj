@@ -38,4 +38,8 @@
 		<RunAOTCompilation>false</RunAOTCompilation>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
+	</PropertyGroup>
+
 </Project>
