@@ -12,13 +12,13 @@ ExpandOnClick="true">
 		<MudStack Row="true" AlignItems="AlignItems.Center" Style="width: calc(100% - 60px); padding-inline: 30px;">
 
 			<MudTreeViewItem T="TreeItemData"
-				Value="@context"
-				Text="@context.Name"
-				@bind-Expanded="@context.Expanded"
-				CanExpand="@context.Expandable"
-				Icon="@(context.IsFolder ? Icons.Material.Filled.Folder : Icons.Material.Filled.FilePresent)"
-				OnClick="@(() => OnItemClick(context))"
-				LoadingIconColor="Color.Info"/>
+			Value="@context"
+			Text="@context.Name"
+			@bind-Expanded="@context.Expanded"
+			CanExpand="@context.Expandable"
+			Icon="@(context.IsFolder ? Icons.Material.Filled.Folder : Icons.Material.Filled.FilePresent)"
+			OnClick="@(() => OnItemClick(context))"
+			LoadingIconColor="Color.Info"/>
 
 		</MudStack>
 	</ItemTemplate>
@@ -36,7 +36,9 @@ ExpandOnClick="true">
 
 	private async Task<HashSet<TreeItemData>> LoadChildrenAsync(TreeItemData node)
 	{
-		return await LoadNodesAsync(node.Id);
+		var nodes = await LoadNodesAsync(node.Id);
+		await InvokeAsync(StateHasChanged); // ensure UI update is queued
+		return nodes;
 	}
 
 	private async Task<HashSet<TreeItemData>> LoadNodesAsync(long folderId)
