@@ -20,6 +20,7 @@ public class ConcertoDbContext : DbContext
 
 	public DbSet<DawProject> DawProjects { get; set; }
 	public DbSet<Track> Tracks { get; set; }
+	public DbSet<Translation> Translations { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
@@ -153,6 +154,18 @@ public class ConcertoDbContext : DbContext
             .WithMany(p => p.Tracks)
             .HasForeignKey(t => t.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
+
+		// Translation entity configuration
+		modelBuilder.Entity<Translation>()
+			.HasKey(t => new { t.Language, t.View, t.Key });
+
+        modelBuilder.Entity<Translation>()
+			.Property(t => t.LastUpdated)
+			.HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+		modelBuilder.Entity<Translation>()
+			.HasIndex(t => t.LastUpdated)
+			.HasDatabaseName("IX_Translation_LastUpdated");
 
 		base.OnModelCreating(modelBuilder);
 	}

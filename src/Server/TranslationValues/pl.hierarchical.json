@@ -1,0 +1,26 @@
+{
+  "navigation": {
+    "menu": "Menu",
+    "home": "Strona główna",
+    "adminPanel": "Panel administracyjny",
+    "videoRecorder": "Rejestrator wideo",
+    "storage": "Zasoby"
+  },
+  "home": {
+    "title": "Strona główna",
+    "adminVerificationRequired": "Administrator musi zweryfikować twoje konto zanim skorzystasz z Concerto. Prosimy wrócić później lub skontaktować się z administratorem"
+  },
+  "admin": {
+    "title": "Panel administratora",
+    "unverifiedUsers": "Niezweryfikowani użytkownicy",
+    "allUsers": "Wszyscy użytkownicy",
+    "more": "Więcej"
+  },
+  "authentication": {
+    "logInFailed": "Logowanie się nie powiodło.",
+    "logOut": "Wylogowuję...",
+    "logOutSucceeded": "Wylogowywanie powiodło się.",
+    "loggingIn": "Przekierowanie do ekranu logowania...",
+    "completingLoggingIn": "Logowanie powiodło się. Poczekaj chwilę..."
+  }
+}

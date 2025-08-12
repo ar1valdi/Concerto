@@ -41,7 +41,7 @@ builder.Services.AddScoped<WorkspaceService>();
 builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<StorageService>();
 builder.Services.AddScoped<IdentityManagerService>();
-
+builder.Services.AddScoped<ITranslationsService, TranslationsService>();
 
 builder.Services.AddAuthentication(options =>
 		{
@@ -116,6 +116,7 @@ builder.Services.AddDbContext<ConcertoDbContext>(options =>
 	options.UseNpgsql(connectionString)
 );
 builder.Services.AddScoped<ConcertoDbContext>();
+builder.Services.AddTranslationSync(builder.Configuration);
 
 // Configure the HTTP request pipeline
 if (builder.Environment.IsDevelopment())
@@ -152,8 +153,7 @@ else
 	// app.UseHsts();
 }
 
-
-
+await app.InitializeTranslationSyncAsync();
 app.UseAuthentication();
 app.UseUserIdMapperMiddleware();
 app.UseBlazorFrameworkFiles();

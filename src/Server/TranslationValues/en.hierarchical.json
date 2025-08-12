@@ -1,0 +1,26 @@
+{
+  "navigation": {
+    "menu": "Menu",
+    "home": "Home",
+    "adminPanel": "Admin Panel",
+    "videoRecorder": "Video Recorder",
+    "storage": "Storage"
+  },
+  "home": {
+    "title": "Home",
+    "adminVerificationRequired": "An administrator must verify your account before accessing Concerto. Please come back later or contact your administrator."
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "unverifiedUsers": "Unverified users",
+    "allUsers": "All users",
+    "more": "More"
+  },
+  "authentication": {
+    "logInFailed": "Your login was not successful.",
+    "logOut": "Logging out...",
+    "logOutSucceeded": "You have been logged out successfully",
+    "loggingIn": "Redirecting you to the login screen...",
+    "completingLoggingIn": "Login successful. One moment..."
+  }
+}
