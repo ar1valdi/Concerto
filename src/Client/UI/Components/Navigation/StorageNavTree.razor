@@ -1,5 +1,6 @@
 ﻿@inject IStorageService StorageService
 @inject NavigationManager Navigation
+@inject IDialogService DialogService
 
 <MudTreeView T="TreeItemData"
 Items="@rootNodes"
@@ -9,16 +10,16 @@ Hover="true"
 Dense="true"
 ExpandOnClick="true">
 	<ItemTemplate>
-		<MudStack Row="true" AlignItems="AlignItems.Center" Style="width: calc(100% - 60px); padding-inline: 30px;">
+		<MudStack Row="true" AlignItems="AlignItems.Center" Class="tree-mudstack">
 
 			<MudTreeViewItem T="TreeItemData"
-				Value="@context"
-				Text="@context.Name"
-				@bind-Expanded="@context.Expanded"
-				CanExpand="@context.Expandable"
-				Icon="@(context.IsFolder ? Icons.Material.Filled.Folder : Icons.Material.Filled.FilePresent)"
-				OnClick="@(() => OnItemClick(context))"
-				LoadingIconColor="Color.Info"/>
+			Value="@context"
+			Text="@context.Name"
+			@bind-Expanded="@context.Expanded"
+			CanExpand="@context.Expandable"
+			Icon="@(context.IsFolder ? Icons.Material.Filled.Folder : Icons.Material.Filled.FilePresent)"
+			OnClick="@(() => OnItemClick(context))"
+			LoadingIconColor="Color.Info"/>
 
 		</MudStack>
 	</ItemTemplate>
@@ -36,7 +37,9 @@ ExpandOnClick="true">
 
 	private async Task<HashSet<TreeItemData>> LoadChildrenAsync(TreeItemData node)
 	{
-		return await LoadNodesAsync(node.Id);
+		var nodes = await LoadNodesAsync(node.Id);
+		await InvokeAsync(StateHasChanged); // ensure UI update is queued
+		return nodes;
 	}
 
 	private async Task<HashSet<TreeItemData>> LoadNodesAsync(long folderId)
@@ -45,10 +48,8 @@ ExpandOnClick="true">
 		var children = content.SubFolders.Union<FolderContentItem>(content.Files).ToHashSet();
 		var res = children.Select(x => new TreeItemData
 			{
-				Id = x.Id,
-				Name = x.Name,
-				IsFolder = x is FolderItem,
-				Expandable = x is FolderItem
+				Expandable = x is FolderItem,
+				Item = x
 			}).ToHashSet();
 		return res;
 	}
@@ -61,11 +62,9 @@ ExpandOnClick="true">
 		{
 			Navigation.NavigateTo($"storage/{node.Id}");
 		}
-		else
+		else if (node.Item is not null && node.Item is FileItem file)
 		{
-			// Custom action for files
-			Console.WriteLine($"Custom action for file: {node.Name}");
-			// Example: Show file properties, download, etc.
+			await DialogService.ShowFilePreviewDialog(file);
 		}
 
 		await Task.CompletedTask;
@@ -73,11 +72,14 @@ ExpandOnClick="true">
 
 	private class TreeItemData
 	{
-		public long Id { get; set; }
-		public string Name { get; set; } = "";
+		public FolderContentItem? Item { get; set; }
 		public HashSet<TreeItemData> Children { get; set; } = new HashSet<TreeItemData>();
+		
 		public bool Expanded { get; set; } = false;
-		public bool Expandable { get; set; }
-		public bool IsFolder { get; set; }
+		public bool Expandable { get; set; } = false;
+
+		public long Id => Item?.Id ?? throw new NullReferenceException();
+		public string Name => Item?.Name ?? throw new NullReferenceException();
+		public bool IsFolder => Item is not null ? Item is FolderItem : throw new NullReferenceException();
 	}
 }
