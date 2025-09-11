@@ -3,6 +3,7 @@ obj
 bin
 .git
 .idea
+.vscode
 compose
 keycloak
 Client/NPM/node_modules
@@ -16,5 +17,3 @@ DockerCompose/data
 dev-docker/data
 
 Data/volume/storage
-
-launchSettings.json
