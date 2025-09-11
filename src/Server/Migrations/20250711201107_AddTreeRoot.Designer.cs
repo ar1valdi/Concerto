@@ -3,6 +3,7 @@ using System;
 using Concerto.Server.Data.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,13 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Concerto.Server.Migrations
 {
     [DbContext(typeof(ConcertoDbContext))]
-    partial class AppDataContextModelSnapshot : ModelSnapshot
+    [Migration("20250711201107_AddTreeRoot")]
+    partial class AddTreeRoot
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "7.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -406,8 +409,7 @@ namespace Concerto.Server.Migrations
                     b.HasOne("Concerto.Server.Data.Models.Workspace", "Workspace")
                         .WithMany()
                         .HasForeignKey("WorkspaceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.OwnsOne("Concerto.Server.Data.Models.FolderPermission", "WorkspacePermission", b1 =>
                         {
@@ -449,8 +451,7 @@ namespace Concerto.Server.Migrations
                     b.HasOne("Concerto.Server.Data.Models.Workspace", "Workspace")
                         .WithMany("Posts")
                         .HasForeignKey("WorkspaceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Author");
 

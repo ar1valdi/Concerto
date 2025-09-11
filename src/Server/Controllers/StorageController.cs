@@ -1,12 +1,9 @@
 ﻿using Concerto.Server.Middlewares;
 using Concerto.Server.Services;
-using Concerto.Server.Settings;
 using Concerto.Shared.Extensions;
 using Concerto.Shared.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
-using System.Net.Mime;
 using System.Text.Json;
 
 namespace Concerto.Server.Controllers;
