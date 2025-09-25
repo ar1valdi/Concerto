@@ -21,6 +21,7 @@ public class ConcertoDbContext : DbContext
 	public DbSet<DawProject> DawProjects { get; set; }
 	public DbSet<Track> Tracks { get; set; }
 	public DbSet<Translation> Translations { get; set; }
+	public DbSet<Language> Languages { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
@@ -166,6 +167,24 @@ public class ConcertoDbContext : DbContext
 		modelBuilder.Entity<Translation>()
 			.HasIndex(t => t.LastUpdated)
 			.HasDatabaseName("IX_Translation_LastUpdated");
+
+		// Translation to Language foreign key relationship
+		modelBuilder.Entity<Translation>()
+			.HasOne(t => t.LanguageEntity)
+			.WithMany()
+			.HasForeignKey(t => t.Language)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		// Language entity configuration
+		modelBuilder.Entity<Language>()
+			.HasKey(l => l.Key);
+
+		modelBuilder.Entity<Language>()
+			.Property(l => l.Key);
+
+		modelBuilder.Entity<Language>()
+			.Property(l => l.Name)
+			.IsRequired();
 
 		base.OnModelCreating(modelBuilder);
 	}

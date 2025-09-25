@@ -1,3 +1,4 @@
+using Concerto.Client.Services;
 using Concerto.Server.Data.DatabaseContext;
 using Concerto.Server.Data.Models;
 using Concerto.Server.Settings;
@@ -22,23 +23,11 @@ public class TranslationsService : ITranslationsService
         _context = context;
         _logger = logger;
     }
-
-    /// <summary>
-    /// Get translations that have been updated since the last update
-    /// </summary>
-    /// <param name="lastUpdate">The last update time. If set to null, all translations will be returned.</param>
-    /// <returns>A list of translations</returns>
-    public async Task<List<Translation>> GetTranslationsDiff(DateTime? lastUpdate)
+    public async Task<List<Translation>> GetTranslationsDiff(DateTime? lastUpdate, string lang)
     {
         _logger.LogInformation("Getting translations diff for last update: {LastUpdate}", lastUpdate);
-        return await _context.Translations.Where(t => lastUpdate == null || t.LastUpdated >= lastUpdate).ToListAsync();
+        return await _context.Translations.Where(t => lastUpdate == null || t.LastUpdated >= lastUpdate && t.Language == lang).ToListAsync();
     }
-
-    /// <summary>
-    /// Update a range of translations. Last update time is set to the current date and time.
-    /// </summary>
-    /// <param name="translations">The translations to update</param>
-    /// <returns>A list of translations</returns>
     public async Task<List<Translation>> UpdateTranslationsRange(List<Translation> translations)
     {
         _logger.LogInformation("Updating translations range: {TranslationsCount}.", translations.Count);

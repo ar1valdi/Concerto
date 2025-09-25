@@ -62,11 +62,16 @@ builder.Services.AddScoped<ILanguageService, LanguageService>(sp =>
     var clientFactory = sp.GetRequiredService<IHttpClientFactory>();
     var httpClient = clientFactory.CreateClient("AnonymousClient");
     var jsRuntime = sp.GetRequiredService<IJSRuntime>();
-    return new LanguageService(httpClient, jsRuntime);
+    var localStorage = sp.GetRequiredService<ILocalStorageService>();
+    return new LanguageService(httpClient, localStorage);
 });
 builder.Services.AddScoped<IOverridableLanguageService, LanguageServiceOverridable>();
-// builder.Services.AddScoped<ClientNotificationService, ClientNotificationService>();
-
+builder.Services.AddScoped<ILanguageManagementService, LanguageManagementService>(sp =>
+{
+    var clientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var httpClient = clientFactory.CreateClient("AnonymousClient");
+    return new LanguageManagementService(httpClient);
+});
 
 builder.Services.AddMudServices(config => 
     {
@@ -103,5 +108,6 @@ builder.Services.AddAuthorizationCore(options =>
 
 var host = builder.Build();
 var translationService = host.Services.GetRequiredService<ILanguageService>();
-await translationService.ChangeLanguage(Language.PL);
+await translationService.InitializeAsync();
+await translationService.ChangeLanguage(translationService.GetCurrentLanguage());
 await host.RunAsync();

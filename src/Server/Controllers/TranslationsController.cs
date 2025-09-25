@@ -1,11 +1,7 @@
 using Concerto.Server.Data.Models;
-using Concerto.Server.Middlewares;
-using Concerto.Server.Services;
 using Concerto.Shared.Extensions;
-using Concerto.Shared.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 
 namespace Concerto.Server.Controllers;
 [Route("[controller]/[action]")]
@@ -22,16 +18,18 @@ public class TranlsationsController : ControllerBase
 
 	[HttpGet]
 	[AllowAnonymous]
-	public async Task<ActionResult> GetTranslationsDiff([FromQuery] DateTime lastUpdate)
+	public async Task<ActionResult<List<Dto.TranslationSlim>>> GetTranslationsDiff([FromQuery] string lang, [FromQuery] DateTime lastUpdate)
 	{
-		return Ok(await _translationsService.GetTranslationsDiff(lastUpdate));
+		var translations = await _translationsService.GetTranslationsDiff(lastUpdate, lang);
+		var translationsSlim = translations.Select(t => t.ToViewModelSlim());
+		return Ok(translationsSlim);
 	}
 
     [HttpPut]
     [Authorize(Policy = AuthorizationPolicies.IsAdmin.Name)]
-    public async Task<ActionResult> UpdateTranslationsRange([FromBody] List<Translation> translations)
+    public async Task<ActionResult> UpdateTranslationsRange([FromBody] List<Dto.Translation> translations)
     {
-        return Ok(await _translationsService.UpdateTranslationsRange(translations));
+        return Ok(await _translationsService.UpdateTranslationsRange(translations.Select(x => x.ToEntity()).ToList()));
     }
 }
 

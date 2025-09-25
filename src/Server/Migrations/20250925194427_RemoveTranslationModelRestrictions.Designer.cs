@@ -3,6 +3,7 @@ using System;
 using Concerto.Server.Data.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Concerto.Server.Migrations
 {
     [DbContext(typeof(ConcertoDbContext))]
-    partial class AppDataContextModelSnapshot : ModelSnapshot
+    [Migration("20250925194427_RemoveTranslationModelRestrictions")]
+    partial class RemoveTranslationModelRestrictions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -107,23 +110,6 @@ namespace Concerto.Server.Migrations
                     b.HasIndex("WorkspaceId");
 
                     b.ToTable("Folders");
-                });
-
-            modelBuilder.Entity("Concerto.Server.Data.Models.Language", b =>
-                {
-                    b.Property<string>("Key")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsPublic")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Key");
-
-                    b.ToTable("Languages");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.Post", b =>
@@ -539,17 +525,6 @@ namespace Concerto.Server.Migrations
                     b.Navigation("Project");
 
                     b.Navigation("SelectedByUser");
-                });
-
-            modelBuilder.Entity("Concerto.Server.Data.Models.Translation", b =>
-                {
-                    b.HasOne("Concerto.Server.Data.Models.Language", "LanguageEntity")
-                        .WithMany()
-                        .HasForeignKey("Language")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("LanguageEntity");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.UploadedFile", b =>

@@ -5,7 +5,6 @@
       "commandLineArgs": "watch run",
       "launchBrowser": true,
       "launchUrl": "https://concerto.local:5000",
-      // "launchUrl": "https://concerto.local:443/workspaces/1/sessions/1",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "CONCERTO_BASE_PATH": "",
@@ -49,6 +48,22 @@
     },
     "Profil 1": {
       "commandName": "IIS"
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "https://concerto.local:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  },
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:54293/",
+      "sslPort": 44365
     }
   }
 }

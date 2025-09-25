@@ -2,6 +2,8 @@
 @using Microsoft.Extensions.Options
 @using Microsoft.AspNetCore.Components.Authorization
 @using Blazored.LocalStorage
+@using Concerto.Client.Services
+@using Concerto.Shared.Models.Dto
 @inherits LayoutComponentBase
 
 @inject NavigationManager Navigation
@@ -10,6 +12,7 @@
 @inject IAppSettingsService AppSettingsService
 @inject IJSRuntime JS
 @inject ILanguageService LanguageService
+@inject ILanguageManagementService LanguageManagementService
 
 <CustomStyleProvider DarkMode="@_layoutState.DarkMode" />
 <MudThemeProvider @bind-IsDarkMode="@_layoutState.DarkMode" />
@@ -24,12 +27,18 @@
 		<MudAppBar Elevation="0" Dense="true">
 			<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@(e => DrawerToggle())" />
 			<NavigationToolbar />
-			<MudButton OnClick="@(() => ChangeLanguage(Language.PL))" Variant="Variant.Text" Color="Color.Secondary">
-				PL
-			</MudButton>
-			<MudButton OnClick="@(() => ChangeLanguage(Language.EN))" Variant="Variant.Text" Color="Color.Secondary">
-				EN
-			</MudButton>
+			<MudSelect SelectedValue="_selectedLanguage" 
+					   SelectedValueChanged="OnLanguageChanged"
+					   Variant="Variant.Outlined" 
+					   Color="Color.Secondary"
+					   Dense="true"
+					   Style="min-width: 80px; max-width: 120px;"
+					   T="string">
+				@foreach (var language in _availableLanguages)
+				{
+					<MudSelectItem Value="@language.Key">@language.Name</MudSelectItem>
+				}
+			</MudSelect>
 			<AuthorizeView Policy="@AuthorizationPolicies.IsAuthenticated.Name">
 				<Authorized>
 					<UploadManager />
@@ -97,10 +106,22 @@
 
 	bool _drawerOpen = true;
 
-	private async Task ChangeLanguage(Language lang)
+	private List<Language> _availableLanguages = new();
+	private string _selectedLanguage = string.Empty;
+
+	private async Task ChangeLanguage(string lang)
 	{
 		await LanguageService.ChangeLanguage(lang);
 		StateHasChanged();
+	}
+
+	private async Task OnLanguageChanged(string newLanguage)
+	{
+		if (!string.IsNullOrEmpty(newLanguage))
+		{
+			_selectedLanguage = newLanguage;
+			await ChangeLanguage(newLanguage);
+		}
 	}
 
 	void DrawerToggle()
@@ -131,7 +152,7 @@
 		_layoutState = _layoutState with { DarkMode = darkMode };
 	}
 
-	protected override void OnInitialized()
+	protected override async Task OnInitializedAsync()
 	{
 		var updatedLayout = _layoutState with { };
 
@@ -146,6 +167,25 @@
 			updatedLayout.IsIos = LocalStorage.GetItem<bool>("isIos");
 
 		_layoutState = updatedLayout;
+
+		await LoadAvailableLanguages();
+		_selectedLanguage = LanguageService.GetCurrentLanguage();
+	}
+
+	private async Task LoadAvailableLanguages()
+	{
+		try
+		{
+			_availableLanguages = await LanguageManagementService.GetAvailableLanguagesAsync();
+		}
+		catch
+		{
+			// fallback
+			_availableLanguages = new List<Language>
+			{
+				new Language { Key = "en", Name = "English", IsPublic = true },
+			};
+		}
 	}
 
 	private void OnBreakpointChanged(Breakpoint breakpoint)

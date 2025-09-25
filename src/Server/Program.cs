@@ -42,6 +42,7 @@ builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<StorageService>();
 builder.Services.AddScoped<IdentityManagerService>();
 builder.Services.AddScoped<ITranslationsService, TranslationsService>();
+builder.Services.AddScoped<ILanguageManagementService, LanguageManagementService>();
 
 builder.Services.AddAuthentication(options =>
 		{

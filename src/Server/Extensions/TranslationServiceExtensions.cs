@@ -54,11 +54,6 @@ public static class TranslationServiceExtensions
 
                 var syncedCount = await syncService.SyncAllTranslationsAsync(options.ForceOverwrite);
                 logger.LogInformation("Auto-sync completed. Synced {Count} translations.", syncedCount);
-
-                // Log current stats
-                var stats = await syncService.GetTranslationStatsAsync();
-                logger.LogInformation("Translation database stats: {Total} total translations across {Languages} languages.", 
-                    stats.TotalTranslations, stats.LanguageStats.Count);
             }
             catch (Exception ex)
             {

@@ -205,25 +205,4 @@ public class TranslationSyncService
 
         return allFilesExist;
     }
-
-    /// <summary>
-    /// Gets statistics about current translations in the database
-    /// </summary>
-    public async Task<TranslationStats> GetTranslationStatsAsync()
-    {
-        var stats = new TranslationStats();
-        
-        stats.TotalTranslations = await _context.Translations.CountAsync();
-        stats.LanguageStats = await _context.Translations
-            .GroupBy(t => t.Language)
-            .Select(g => new LanguageStats
-            {
-                Language = g.Key,
-                Count = g.Count(),
-                LastUpdated = g.Max(t => t.LastUpdated)
-            })
-            .ToListAsync();
-
-        return stats;
-    }
 }

@@ -12,28 +12,29 @@ public class Translation : Entity
     /// Language code (e.g., "en", "pl")
     /// </summary>
     [Required]
-    [MaxLength(10)]
     public string Language { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Navigation property to the Language entity
+    /// </summary>
+    public virtual Language LanguageEntity { get; set; } = null!;
 
     /// <summary>
     /// View/section name (e.g., "home", "admin", "navigation")
     /// </summary>
     [Required]
-    [MaxLength(50)]
     public string View { get; set; } = string.Empty;
 
     /// <summary>
     /// Translation key within the view (e.g., "title", "adminVerificationRequired")
     /// </summary>
     [Required]
-    [MaxLength(100)]
     public string Key { get; set; } = string.Empty;
 
     /// <summary>
     /// The translated text value
     /// </summary>
     [Required]
-    [MaxLength(2000)]
     public string Value { get; set; } = string.Empty;
 
     /// <summary>
@@ -42,22 +43,39 @@ public class Translation : Entity
     public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 }
 
-/// <summary>
-/// Statistics about translations in the database
-/// </summary>
-public class TranslationStats
-{
-    public int TotalTranslations { get; set; }
-    public List<LanguageStats> LanguageStats { get; set; } = new();
-}
 
-/// <summary>
-/// Statistics for a specific language
-/// </summary>
-public class LanguageStats
+public static partial class ViewModelConversions
 {
-    public string Language { get; set; } = string.Empty;
-    public int Count { get; set; }
-    public DateTime LastUpdated { get; set; }
-}
+    public static Dto.Translation ToViewModel(this Translation translation)
+    {
+        return new Dto.Translation(
+            translation.Id, 
+            translation.Language, 
+            translation.View, 
+            translation.Key, 
+            translation.Value, 
+            translation.LastUpdated
+        );
+    }
 
+    public static Dto.TranslationSlim ToViewModelSlim(this Translation translation)
+    {
+        return new Dto.TranslationSlim(
+            translation.View, 
+            translation.Key, 
+            translation.Value
+        );
+    }
+
+    public static Translation ToEntity(this Dto.Translation translation)
+    {
+        return new Translation {
+            Id = translation.Id, 
+            Language = translation.Language, 
+            View = translation.View, 
+            Key = translation.Key, 
+            Value = translation.Value, 
+            LastUpdated = translation.LastUpdated
+        };
+    }
+}
