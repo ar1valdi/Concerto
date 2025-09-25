@@ -11,6 +11,7 @@
   "AdminPanelPageTitle": "Panel administratora",
   "AdminPanelPageUnverifiedUsersTxt": "Niezweryfikowani użytkownicy",
   "AdminPanelPageAllUsersTxt": "Wszyscy użytkownicy",
+  "AdminPanelPageTranslationsTxt": "Zarządzanie tłumaczeniami",
   "AdminPanelPageMoreTxt": "Więcej",
 
   "AuthenticationPageLogInFailedTxt": "Logowanie się nie powiodło.",

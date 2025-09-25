@@ -7,6 +7,7 @@ namespace Concerto.Client.Services
     {
         public string T(string key);
         public Task ChangeLanguage(Language lang);
+        public Task<Dictionary<string, string>> FetchTranslationsAsync(Language lang);
     }
 
     public enum Language
@@ -33,6 +34,7 @@ namespace Concerto.Client.Services
         private Dictionary<string, string> translations;
         private readonly HttpClient httpClient;
         private IJSRuntime jsRuntime;
+        private Language lang = Language.PL;
 
         public LanguageService(HttpClient _httpClient, IJSRuntime _jSRuntime)
         {
@@ -41,7 +43,7 @@ namespace Concerto.Client.Services
             translations = new Dictionary<string, string>();
         }
 
-        private async Task LoadTranslationsAsync(Language lang)
+        public async Task<Dictionary<string, string>> FetchTranslationsAsync(Language lang)
         {
             var uri = $"lang/{lang.Stringify()}.json";
             var response = await httpClient.GetFromJsonAsync<Dictionary<string, string>>(uri);
@@ -50,13 +52,13 @@ namespace Concerto.Client.Services
             {
                 throw new Exception($"Couldn't load language {lang.Stringify()}");
             }
-
-            translations = response;
+            
+            return response;
         }
 
         public async Task ChangeLanguage(Language lang)
         {
-            await LoadTranslationsAsync(lang);
+            translations = await FetchTranslationsAsync(lang);
         }
 
         public string T(string key)

@@ -64,6 +64,7 @@ builder.Services.AddScoped<ILanguageService, LanguageService>(sp =>
     var jsRuntime = sp.GetRequiredService<IJSRuntime>();
     return new LanguageService(httpClient, jsRuntime);
 });
+builder.Services.AddScoped<IOverridableLanguageService, LanguageServiceOverridable>();
 // builder.Services.AddScoped<ClientNotificationService, ClientNotificationService>();
 
 
