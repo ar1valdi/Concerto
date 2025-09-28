@@ -5,7 +5,9 @@
   "description": "",
   "license": "ISC",
   "scripts": {
-    "build": "webpack --mode development --output-path ../wwwroot/js/node --devtool inline-source-map",
+    "build": "npm run build-main || npm run build-recorder",
+    "build-main": "webpack --mode development --output-path ../wwwroot/js/node --devtool inline-source-map",
+    "build-recorder": "webpack --config webpack.recorder.config.js --mode development",
     "build-release": "webpack --mode production --output-path ../wwwroot/js/node",
     "build-dev": "webpack --mode development --output-path ./out --devtool source-map"
   },

@@ -103,7 +103,7 @@ export class RecordingManager {
     recordingStore: RecordingStore; 
     recordingPreview: HTMLVideoElement = document.createElement("video");
 
-    canRecord = () => { return this.webcam.isActive() && this.microphone.isActive() };
+    canRecord = () => { return this.microphone.isActive() }; // Only require microphone, webcam is optional
 
     public constructor(dotnetCaller: DotNetObject) {
         this.dotnetCaller = dotnetCaller;
@@ -191,12 +191,16 @@ export class RecordingManager {
     public async startRecording() {
         if(!this.canRecord())
         {
-            alert("Please select a webcam and microphone.");
+            alert("Please select a microphone.");
             return;
         }
 
         this.audioContext.resume();
-        this.outputStream = new MediaStream([...this.canvasStream.getVideoTracks(), ...this.audioOutput.stream.getAudioTracks()]);
+        
+        const videoTracks = this.webcam.isActive() ? this.canvasStream.getVideoTracks() : [];
+        const audioTracks = this.audioOutput.stream.getAudioTracks();
+        this.outputStream = new MediaStream([...videoTracks, ...audioTracks]);
+        
         this.recorder = new MediaRecorder(this.outputStream, { mimeType: this.recordingStore.getMimeType() });
 
         const recordingManager = this;
