@@ -8,7 +8,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "CONCERTO_BASE_PATH": "",
-        "CONCERTO_STORAGE_PATH": "",
+        "CONCERTO_STORAGE_PATH": "/home/janek/Dokumenty/Studia/inz/ConcertoStorage",
         "DB_STRING": "Host=concerto.local;Port=5432;Database=ConcertoDb;username=admin;Password=admin;Include Error Detail=True;",
         "OIDC_AUDIENCE": "account",
         "OIDC_ADMIN_REST_API_BASE": "http://localhost:8080/admin/realms/concerto",

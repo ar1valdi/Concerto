@@ -27,13 +27,13 @@
 		<MudAppBar Elevation="0" Dense="true">
 			<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@(e => DrawerToggle())" />
 			<NavigationToolbar />
-			<MudSelect SelectedValue="_selectedLanguage" 
-					   SelectedValueChanged="OnLanguageChanged"
-					   Variant="Variant.Outlined" 
-					   Color="Color.Secondary"
-					   Dense="true"
-					   Style="min-width: 80px; max-width: 120px;"
-					   T="string">
+			<MudSelect 
+						Value="_selectedLanguage"
+						ValueChanged="OnLanguageChanged"
+						OpenIcon="@Icons.Material.Filled.Language"
+						Style="max-width: 120px;"
+						Margin="Margin.Dense"
+						T="string">
 				@foreach (var language in _availableLanguages)
 				{
 					<MudSelectItem Value="@language.Key">@language.Name</MudSelectItem>
@@ -107,7 +107,12 @@
 	bool _drawerOpen = true;
 
 	private List<Language> _availableLanguages = new();
-	private string _selectedLanguage = string.Empty;
+	private string _selectedLanguage;
+	
+	protected override void OnInitialized()
+	{
+		_selectedLanguage = LanguageService.GetCurrentLanguage();
+	}
 
 	private async Task ChangeLanguage(string lang)
 	{

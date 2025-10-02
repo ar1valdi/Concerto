@@ -16,4 +16,10 @@ public interface ITranslationsService
     /// <param name="translations">The translations to update</param>
     /// <returns>A list of translations</returns>
     Task<List<Translation>> UpdateTranslationsRange(List<Translation> translations);
+
+    /// <summary>
+    /// Get all translations
+    /// </summary>
+    /// <returns>A list of translations</returns>
+    Task<List<Translation>> GetAllTranslationsAsync();
 }

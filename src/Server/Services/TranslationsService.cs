@@ -23,6 +23,10 @@ public class TranslationsService : ITranslationsService
         _context = context;
         _logger = logger;
     }
+    public async Task<List<Translation>> GetAllTranslationsAsync()
+    {
+        return await _context.Translations.ToListAsync();
+    }
     public async Task<List<Translation>> GetTranslationsDiff(DateTime? lastUpdate, string lang)
     {
         _logger.LogInformation("Getting translations diff for last update: {LastUpdate}", lastUpdate);

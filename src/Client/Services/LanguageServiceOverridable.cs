@@ -3,12 +3,12 @@ using Microsoft.JSInterop;
 
 namespace Concerto.Client.Services
 {
-    public interface IOverridableLanguageService : ILanguageService
+    public interface IOverridableLanguageService
     {
         public void OverrideTranslation(string lang, string key, string value);
     }
 
-    public class LanguageServiceOverridable : ILanguageService, IOverridableLanguageService
+    public class LanguageServiceOverridable : IOverridableLanguageService
     {
         private Dictionary<string, Dictionary<string, string>> overridedTranslations;
         private Dictionary<string, Dictionary<string, string>> translations;
@@ -40,7 +40,7 @@ namespace Concerto.Client.Services
                 translations[lang] = new Dictionary<string, string>();
             }
 
-            await FetchTranslationsAsync(lang);
+            await FetchTranslationsFromLastUpdatedAsync(lang);
             translations[lang] = await localStorage.GetItemAsync<Dictionary<string, string>>($"{TranslationsKeyPrefix}{lang}");
         }
 
@@ -54,9 +54,9 @@ namespace Concerto.Client.Services
             overridedTranslations[lang][key] = value;
         }
 
-        public async Task FetchTranslationsAsync(string lang)
+        public async Task FetchTranslationsFromLastUpdatedAsync(string lang)
         {
-            await languageService.FetchTranslationsAsync(lang);
+            await languageService.FetchTranslationsFromLastUpdatedAsync(lang);
         }
 
         public string T(string view, string key)

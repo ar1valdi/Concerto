@@ -1,9 +1,54 @@
 @inherits MudComponentBase
 
-@inject IOverridableLanguageService languageService
+@inject ILanguageService languageService
+@inject ILanguageManagementService languageManagementService
 
 @using Concerto.Client.UI.Pages;
 
 <h1>Translations 1234</h1>
 
-<StoragePage />
+@foreach (var viewSection in viewSections)
+{
+    <h2>@viewSection.View</h2>
+    @foreach (var keySection in viewSection.KeySections)
+    {
+        <h3>@keySection.Key</h3>
+        @foreach (var translation in keySection.Translations)
+        {
+            <p>@translation.Value</p>
+        }
+    }
+}
+
+
+@code {
+    private class KeySection
+    {
+        public string Key { get; set; } = string.Empty;
+        public List<TranslationSlim> Translations { get; set; } = [];
+    }
+    private class ViewSection
+    {
+        public string View { get; set; } = string.Empty;
+        public List<KeySection> KeySections { get; set; } = [];
+    }
+
+    List<ViewSection> viewSections = new List<ViewSection>();
+    List<Language> languages = new List<Language>();
+    string selectedLanguage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        selectedLanguage = languageService.GetCurrentLanguage();
+        languages = await languageManagementService.GetAvailableLanguagesAsync();
+        var translations = await languageService.FetchFullTranslationsAsync();
+
+        viewSections = translations.GroupBy(t => t.View).Select(g => new ViewSection {
+            View = g.Key,
+            KeySections = g.GroupBy(t => t.Key).Select(k => new KeySection {
+                Key = k.Key,
+                Translations = k.ToList()
+            }).ToList()
+        }).ToList();
+    }
+}

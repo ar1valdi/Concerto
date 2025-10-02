@@ -9,14 +9,14 @@ namespace Concerto.Server.Controllers;
 [Route("[controller]")]
 [ApiController]
 [Authorize]
-public class LanguageController : ControllerBase
+public class LanguagesController : ControllerBase
 {
     private readonly ILanguageManagementService _languageManagementService;
-    private readonly ILogger<LanguageController> _logger;
+    private readonly ILogger<LanguagesController> _logger;
 
-    public LanguageController(
+    public LanguagesController(
         ILanguageManagementService languageManagementService,
-        ILogger<LanguageController> logger)
+        ILogger<LanguagesController> logger)
     {
         _languageManagementService = languageManagementService;
         _logger = logger;

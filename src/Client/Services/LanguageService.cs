@@ -9,8 +9,9 @@ namespace Concerto.Client.Services
         public string T(string view, string key);
         public Task ChangeLanguage(string lang);
         public string GetCurrentLanguage();
-        public Task FetchTranslationsAsync(string lang);
+        public Task FetchTranslationsFromLastUpdatedAsync(string lang);
         public Task InitializeAsync();
+        public Task<List<TranslationSlim>> FetchFullTranslationsAsync();
     }
 
     public class LanguageService : ILanguageService
@@ -46,9 +47,23 @@ namespace Concerto.Client.Services
             {
                 currentLanguage = await localStorage.GetItemAsync<string>(CurrentLanguageKey);
             }
+            await ChangeLanguage(currentLanguage);
         }
 
-        public async Task FetchTranslationsAsync(string lang)
+        public async Task<List<TranslationSlim>> FetchFullTranslationsAsync()
+        {
+            var uri = $"/Tranlsations/GetTranslationsFull";
+            var response = await httpClient.GetFromJsonAsync<List<TranslationSlim>>(uri);
+
+            if (response is null || response.Count == 0)
+            {
+                return new List<TranslationSlim>();
+            }
+            
+            return response;
+        }
+
+        public async Task FetchTranslationsFromLastUpdatedAsync(string lang)
         {
             var lastUpdateParam = "";
 
@@ -59,21 +74,35 @@ namespace Concerto.Client.Services
             }
 
             var uri = $"/Tranlsations/GetTranslationsDiff?lang={lang}{lastUpdateParam}";
-            var response = await httpClient.GetFromJsonAsync<List<Translation>>(uri);
+            var response = await httpClient.GetFromJsonAsync<List<TranslationSlim>>(uri);
 
-            if (response is null)
+            if (response is null || response.Count == 0)
             {
-                throw new Exception($"Couldn't load language {lang}");
+                return;
             }
          
             var now = DateTime.UtcNow;   
             await localStorage.SetItemAsync($"{LastUpdateKeyPrefix}{lang}", now);
-            await localStorage.SetItemAsync($"{TranslationsKeyPrefix}{lang}", response.ToDictionary(t => $"{t.View}:{t.Key}", t => t.Value));
+            
+            var currTranslations = await localStorage.ContainKeyAsync($"{TranslationsKeyPrefix}{lang}")
+                ? await localStorage.GetItemAsync<Dictionary<string, string>>($"{TranslationsKeyPrefix}{lang}")
+                : new Dictionary<string, string>();
+            var newTranslations = response.ToDictionary(t => $"{t.View}:{t.Key}", t => t.Value);
+
+            if (currTranslations != null)
+            {
+                foreach (var t in currTranslations)
+                {
+                    newTranslations.TryAdd(t.Key, t.Value);   
+                }
+            }
+            
+            await localStorage.SetItemAsync($"{TranslationsKeyPrefix}{lang}", newTranslations);
         }
 
         public async Task ChangeLanguage(string lang)
         {
-            await FetchTranslationsAsync(lang);
+            await FetchTranslationsFromLastUpdatedAsync(lang);
             currentLanguage = lang;
             await localStorage.SetItemAsync(CurrentLanguageKey, lang);
             translations = await localStorage.GetItemAsync<Dictionary<string, string>>($"{TranslationsKeyPrefix}{lang}");

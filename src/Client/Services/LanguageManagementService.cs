@@ -27,7 +27,7 @@ namespace Concerto.Client.Services
         {
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<List<Language>>("/Language/available");
+                var response = await _httpClient.GetFromJsonAsync<List<Language>>("/Languages/available");
                 return response ?? new List<Language>();
             }
             catch

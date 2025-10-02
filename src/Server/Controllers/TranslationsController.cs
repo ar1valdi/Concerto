@@ -25,6 +25,13 @@ public class TranlsationsController : ControllerBase
 		return Ok(translationsSlim);
 	}
 
+	[AllowAnonymous]
+	public async Task<ActionResult<List<Dto.TranslationSlim>>> GetTranslationsFull()
+	{
+		var translations = await _translationsService.GetAllTranslationsAsync();
+		return Ok(translations.Select(t => t.ToViewModelSlim()).ToList());
+	}
+
     [HttpPut]
     [Authorize(Policy = AuthorizationPolicies.IsAdmin.Name)]
     public async Task<ActionResult> UpdateTranslationsRange([FromBody] List<Dto.Translation> translations)
