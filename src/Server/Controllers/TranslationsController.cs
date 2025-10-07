@@ -20,11 +20,14 @@ public class TranlsationsController : ControllerBase
 	[AllowAnonymous]
 	public async Task<ActionResult<List<Dto.TranslationSlim>>> GetTranslationsDiff([FromQuery] string lang, [FromQuery] DateTime lastUpdate)
 	{
-		var translations = await _translationsService.GetTranslationsDiff(lastUpdate, lang);
+		var translations = await _translationsService.GetTranslationsDiff(
+			DateTime.SpecifyKind(lastUpdate, DateTimeKind.Utc), 
+			lang);
 		var translationsSlim = translations.Select(t => t.ToViewModelSlim());
 		return Ok(translationsSlim);
 	}
 
+	[HttpGet]
 	[AllowAnonymous]
 	public async Task<ActionResult<List<Dto.TranslationSlim>>> GetTranslationsFull()
 	{

@@ -1,5 +1,4 @@
 using Concerto.Shared.Models.Dto;
-using System.Net.Http.Json;
 
 namespace Concerto.Client.Services
 {
@@ -16,19 +15,19 @@ namespace Concerto.Client.Services
 
     public class LanguageManagementService : ILanguageManagementService
     {
-        private readonly HttpClient _httpClient;
+        private readonly ILanguagesClient _languagesClient;
 
-        public LanguageManagementService(HttpClient httpClient)
+        public LanguageManagementService(ILanguagesClient languagesClient)
         {
-            _httpClient = httpClient;
+            _languagesClient = languagesClient;
         }
 
         public async Task<List<Language>> GetAvailableLanguagesAsync()
         {
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<List<Language>>("/Languages/available");
-                return response ?? new List<Language>();
+                var response = await _languagesClient.AvailableGetAsync();
+                return response?.ToList() ?? new List<Language>();
             }
             catch
             {
@@ -40,8 +39,8 @@ namespace Concerto.Client.Services
         {
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<List<Language>>("/Language/all");
-                return response ?? new List<Language>();
+                var response = await _languagesClient.AllAsync();
+                return response?.ToList() ?? new List<Language>();
             }
             catch
             {
@@ -53,7 +52,7 @@ namespace Concerto.Client.Services
         {
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<Language>($"/Language/{key}");
+                var response = await _languagesClient.LanguagesGetAsync(key);
                 return response;
             }
             catch
@@ -66,7 +65,7 @@ namespace Concerto.Client.Services
         {
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<bool>($"/Language/{key}/available");
+                var response = await _languagesClient.AvailableGetAsync(key);
                 return response;
             }
             catch
@@ -77,23 +76,17 @@ namespace Concerto.Client.Services
 
         public async Task<Language> CreateLanguageAsync(CreateLanguageRequest request)
         {
-            var response = await _httpClient.PostAsJsonAsync("/Language/CreateLanguage", request);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<Language>() ?? throw new InvalidOperationException("Failed to create language");
+            return await _languagesClient.LanguagesPostAsync(request);
         }
 
         public async Task<Language> PublishLanguageAsync(string key)
         {
-            var response = await _httpClient.PutAsync($"/Language/{key}/publish", null);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<Language>() ?? throw new InvalidOperationException("Failed to publish language");
+            return await _languagesClient.PublishAsync(key);
         }
 
         public async Task<Language> HideLanguageAsync(string key)
         {
-            var response = await _httpClient.PutAsync($"/Language/{key}/hide", null);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<Language>() ?? throw new InvalidOperationException("Failed to hide language");
+            return await _languagesClient.HideAsync(key);
         }
     }
 }

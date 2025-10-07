@@ -3,7 +3,7 @@
 @attribute [Authorize(Policy = AuthorizationPolicies.IsAdmin.Name)]
 
 @inject IAppSettingsService AppSettingsService
-@inject ILanguageService t
+@inject ITranslationsService t
 
 <PageTitle>@t.T("admin", "title")</PageTitle>
 

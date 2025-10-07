@@ -1,6 +1,6 @@
 @inherits MudComponentBase
 
-@inject ILanguageService languageService
+@inject ITranslationsService languageService
 @inject ILanguageManagementService languageManagementService
 
 @using Concerto.Client.UI.Pages;
@@ -9,15 +9,21 @@
 
 @foreach (var viewSection in viewSections)
 {
-    <h2>@viewSection.View</h2>
-    @foreach (var keySection in viewSection.KeySections)
-    {
-        <h3>@keySection.Key</h3>
-        @foreach (var translation in keySection.Translations)
+    <MudExpansionPanel
+        Text="@viewSection.View"
+    >
+        @foreach (var keySection in viewSection.KeySections)
         {
-            <p>@translation.Value</p>
+            <MudExpansionPanel
+                Text="@keySection.Key"
+            >
+                @foreach (var translation in keySection.Translations)
+                {
+                    <p>@translation.Value</p><br/>
+                }
+            </MudExpansionPanel>
         }
-    }
+    </MudExpansionPanel>
 }
 
 

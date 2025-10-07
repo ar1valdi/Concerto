@@ -13,14 +13,14 @@ namespace Concerto.Client.Services
         private Dictionary<string, Dictionary<string, string>> overridedTranslations;
         private Dictionary<string, Dictionary<string, string>> translations;
         private IJSRuntime jsRuntime;
-        private ILanguageService languageService;
+        private ITranslationsService languageService;
         private string lang = "en";
         private const string TranslationsKeyPrefix = "lang_translations_";
         private ILocalStorageService localStorage;
 
         public LanguageServiceOverridable(
             IJSRuntime _jSRuntime,
-            ILanguageService _languageService,
+            ITranslationsService _languageService,
             ILocalStorageService _localStorage
             )
         {

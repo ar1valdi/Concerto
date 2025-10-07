@@ -18,7 +18,11 @@ var baseAddress = new Uri(builder.HostEnvironment.BaseAddress);
 // Add HTTP Client with base address and authorization handler 
 if (builder.HostEnvironment.Environment == "Development")
 {
-    baseAddress = new Uri(builder.Configuration["ServerlessBaseURL"]!);
+    var configuredBase = builder.Configuration["ServerlessBaseURL"];
+    if (!string.IsNullOrWhiteSpace(configuredBase))
+    {
+        baseAddress = new Uri(configuredBase);
+    }
     builder.Services.AddHttpClient("WebAPI", client => client.BaseAddress = baseAddress)
     .AddHttpMessageHandler(sp =>
     {
@@ -56,22 +60,20 @@ builder.Services.AddScoped<DawService, DawService>();
 builder.Services.AddScoped<IStorageService, StorageService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAccountClient, AccountClient>();
+builder.Services.AddScoped<ILanguagesClient>(sp =>
+{
+    var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("AnonymousClient");
+    return new LanguagesClient(http);
+});
+builder.Services.AddScoped<ITranlsationsClient>(sp =>
+{
+    var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("AnonymousClient");
+    return new TranlsationsClient(http);
+});
 builder.Services.AddScoped<IBreadcrumbsService, BreadcrumbsService>();
-builder.Services.AddScoped<ILanguageService, LanguageService>(sp =>
-{
-    var clientFactory = sp.GetRequiredService<IHttpClientFactory>();
-    var httpClient = clientFactory.CreateClient("AnonymousClient");
-    var jsRuntime = sp.GetRequiredService<IJSRuntime>();
-    var localStorage = sp.GetRequiredService<ILocalStorageService>();
-    return new LanguageService(httpClient, localStorage);
-});
+builder.Services.AddScoped<ITranslationsService, TranslationsService>();
 builder.Services.AddScoped<IOverridableLanguageService, LanguageServiceOverridable>();
-builder.Services.AddScoped<ILanguageManagementService, LanguageManagementService>(sp =>
-{
-    var clientFactory = sp.GetRequiredService<IHttpClientFactory>();
-    var httpClient = clientFactory.CreateClient("AnonymousClient");
-    return new LanguageManagementService(httpClient);
-});
+builder.Services.AddScoped<ILanguageManagementService, LanguageManagementService>();
 
 builder.Services.AddMudServices(config => 
     {
@@ -107,7 +109,14 @@ builder.Services.AddAuthorizationCore(options =>
 
 
 var host = builder.Build();
-var translationService = host.Services.GetRequiredService<ILanguageService>();
-await translationService.InitializeAsync();
-await translationService.ChangeLanguage(translationService.GetCurrentLanguage());
+var translationService = host.Services.GetRequiredService<ITranslationsService>();
+try
+{
+    await translationService.InitializeAsync();
+    await translationService.ChangeLanguage(translationService.GetCurrentLanguage());
+}
+catch (Exception ex)
+{
+    Console.Error.WriteLine($"Translations initialization failed: {ex}");
+}
 await host.RunAsync();

@@ -1,10 +1,9 @@
 ﻿using Blazored.LocalStorage;
 using Concerto.Shared.Models.Dto;
-using System.Net.Http.Json;
 
 namespace Concerto.Client.Services
 {
-    public interface ILanguageService
+    public interface ITranslationsService
     {
         public string T(string view, string key);
         public Task ChangeLanguage(string lang);
@@ -14,7 +13,7 @@ namespace Concerto.Client.Services
         public Task<List<TranslationSlim>> FetchFullTranslationsAsync();
     }
 
-    public class LanguageService : ILanguageService
+    public class TranslationsService : ITranslationsService
     {
         private const string LastUpdateKeyPrefix = "lang_lastUpdate_";
         private const string TranslationsKeyPrefix = "lang_translations_";
@@ -23,15 +22,15 @@ namespace Concerto.Client.Services
 
 
         private Dictionary<string, string> translations;
-        private readonly HttpClient httpClient;
+        private readonly ITranlsationsClient translationsClient;
         private ILocalStorageService localStorage;
         private string currentLanguage;
 
 
-        public LanguageService(HttpClient _httpClient, ILocalStorageService _localStorage)
+        public TranslationsService(ITranlsationsClient _translationsClient, ILocalStorageService _localStorage)
         {
             localStorage = _localStorage;
-            httpClient = _httpClient;
+            translationsClient = _translationsClient;
             translations = new Dictionary<string, string>();
             currentLanguage = DefaultLanguage;
         }
@@ -52,38 +51,33 @@ namespace Concerto.Client.Services
 
         public async Task<List<TranslationSlim>> FetchFullTranslationsAsync()
         {
-            var uri = $"/Tranlsations/GetTranslationsFull";
-            var response = await httpClient.GetFromJsonAsync<List<TranslationSlim>>(uri);
-
+            var response = await translationsClient.GetTranslationsFullAsync();
             if (response is null || response.Count == 0)
             {
                 return new List<TranslationSlim>();
             }
-            
-            return response;
+            return response.ToList();
         }
 
         public async Task FetchTranslationsFromLastUpdatedAsync(string lang)
         {
-            var lastUpdateParam = "";
-
+            DateTimeOffset? lastUpdate = null;
             if (await localStorage.ContainKeyAsync($"{LastUpdateKeyPrefix}{lang}"))
             {
                 var lastUpdatedAt = await localStorage.GetItemAsync<DateTime>($"{LastUpdateKeyPrefix}{lang}");
-                lastUpdateParam = $"&lastUpdate={lastUpdatedAt:yyyy-MM-ddTHH:mm:ss.fffZ}";
+                lastUpdate = new DateTimeOffset(DateTime.SpecifyKind(lastUpdatedAt, DateTimeKind.Utc));
             }
 
-            var uri = $"/Tranlsations/GetTranslationsDiff?lang={lang}{lastUpdateParam}";
-            var response = await httpClient.GetFromJsonAsync<List<TranslationSlim>>(uri);
+            var response = await translationsClient.GetTranslationsDiffAsync(lang, lastUpdate);
+            
+            var now = DateTime.UtcNow;
+            await localStorage.SetItemAsync($"{LastUpdateKeyPrefix}{lang}", now);
 
             if (response is null || response.Count == 0)
             {
                 return;
             }
-         
-            var now = DateTime.UtcNow;   
-            await localStorage.SetItemAsync($"{LastUpdateKeyPrefix}{lang}", now);
-            
+
             var currTranslations = await localStorage.ContainKeyAsync($"{TranslationsKeyPrefix}{lang}")
                 ? await localStorage.GetItemAsync<Dictionary<string, string>>($"{TranslationsKeyPrefix}{lang}")
                 : new Dictionary<string, string>();
@@ -93,10 +87,10 @@ namespace Concerto.Client.Services
             {
                 foreach (var t in currTranslations)
                 {
-                    newTranslations.TryAdd(t.Key, t.Value);   
+                    newTranslations.TryAdd(t.Key, t.Value);
                 }
             }
-            
+
             await localStorage.SetItemAsync($"{TranslationsKeyPrefix}{lang}", newTranslations);
         }
 
