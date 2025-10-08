@@ -29,10 +29,10 @@ public class TranlsationsController : ControllerBase
 
 	[HttpGet]
 	[AllowAnonymous]
-	public async Task<ActionResult<List<Dto.TranslationSlim>>> GetTranslationsFull()
+	public async Task<ActionResult<List<Dto.Translation>>> GetTranslationsFull()
 	{
 		var translations = await _translationsService.GetAllTranslationsAsync();
-		return Ok(translations.Select(t => t.ToViewModelSlim()).ToList());
+		return Ok(translations.Select(t => t.ToViewModel()).ToList());
 	}
 
     [HttpPut]

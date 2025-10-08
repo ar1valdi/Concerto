@@ -6804,12 +6804,12 @@ namespace Concerto.Client.Services
 
         /// <returns>Success</returns>
         /// <exception cref="TranlsationsException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TranslationSlim>> GetTranslationsFullAsync();
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Translation>> GetTranslationsFullAsync();
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>Success</returns>
         /// <exception cref="TranlsationsException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TranslationSlim>> GetTranslationsFullAsync(System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Translation>> GetTranslationsFullAsync(System.Threading.CancellationToken cancellationToken);
 
         /// <returns>Success</returns>
         /// <exception cref="TranlsationsException">A server side error occurred.</exception>
@@ -6944,7 +6944,7 @@ namespace Concerto.Client.Services
 
         /// <returns>Success</returns>
         /// <exception cref="TranlsationsException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TranslationSlim>> GetTranslationsFullAsync()
+        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Translation>> GetTranslationsFullAsync()
         {
             return GetTranslationsFullAsync(System.Threading.CancellationToken.None);
         }
@@ -6952,7 +6952,7 @@ namespace Concerto.Client.Services
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>Success</returns>
         /// <exception cref="TranlsationsException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TranslationSlim>> GetTranslationsFullAsync(System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Translation>> GetTranslationsFullAsync(System.Threading.CancellationToken cancellationToken)
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -6993,7 +6993,7 @@ namespace Concerto.Client.Services
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<TranslationSlim>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<Translation>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new TranlsationsException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);

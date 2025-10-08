@@ -1,37 +1,48 @@
 @inherits MudComponentBase
 
-@inject ITranslationsService languageService
+@inject ITranslationsService translationsService
 @inject ILanguageManagementService languageManagementService
 
-@using Concerto.Client.UI.Pages;
+<MudExpansionPanels MultiExpansion="true">
+    @foreach (var viewSection in viewSections)
+    {
+        <MudExpansionPanel
+            Text="@viewSection.View">
+            @foreach (var keySection in viewSection.KeySections)
+            {
+                <MudExpansionPanel
+                    Text="@keySection.Key">
+                    @foreach (var translation in keySection.Translations)
+                    {
+                        <MudTextField
+                            Value="@translation.Value"
+                            ValueChanged="((x) => OnTranslationChanged(x, translation))"
+                            Label="@translation.Language.ToUpper()"
+                            T="string"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Normal"/>
+                    }
+                </MudExpansionPanel>
+            }
+        </MudExpansionPanel>
+    }
+</MudExpansionPanels>
 
-<h1>Translations 1234</h1>
-
-@foreach (var viewSection in viewSections)
-{
-    <MudExpansionPanel
-        Text="@viewSection.View"
-    >
-        @foreach (var keySection in viewSection.KeySections)
-        {
-            <MudExpansionPanel
-                Text="@keySection.Key"
-            >
-                @foreach (var translation in keySection.Translations)
-                {
-                    <p>@translation.Value</p><br/>
-                }
-            </MudExpansionPanel>
-        }
-    </MudExpansionPanel>
-}
+<MudButton
+    Variant="Variant.Filled"
+    StartIcon="@Icons.Material.Filled.Save"
+    Color="Color.Primary"
+    Style="position: fixed; bottom: 20px; right: 20px;"
+    OnClick="@(async () => { await OnSubmit(); })">
+    Save
+</MudButton>
 
 
 @code {
     private class KeySection
     {
         public string Key { get; set; } = string.Empty;
-        public List<TranslationSlim> Translations { get; set; } = [];
+        public List<Translation> Translations { get; set; } = [];
     }
     private class ViewSection
     {
@@ -39,15 +50,17 @@
         public List<KeySection> KeySections { get; set; } = [];
     }
 
-    List<ViewSection> viewSections = new List<ViewSection>();
-    List<Language> languages = new List<Language>();
+    List<ViewSection> viewSections = [];
+    List<Language> languages = [];
     string selectedLanguage = string.Empty;
+    Dictionary<long, Translation> changedTranslations = [];
+    bool isSaving = false;
 
     protected override async Task OnInitializedAsync()
     {
-        selectedLanguage = languageService.GetCurrentLanguage();
+        selectedLanguage = translationsService.GetCurrentLanguage();
         languages = await languageManagementService.GetAvailableLanguagesAsync();
-        var translations = await languageService.FetchFullTranslationsAsync();
+        var translations = await translationsService.FetchFullTranslationsAsync();
 
         viewSections = translations.GroupBy(t => t.View).Select(g => new ViewSection {
             View = g.Key,
@@ -56,5 +69,34 @@
                 Translations = k.ToList()
             }).ToList()
         }).ToList();
+    }
+
+    public void OnTranslationChanged(string newValue, Translation changedTranslation)
+    {
+        if (newValue == changedTranslation.Value)
+        {
+            changedTranslations.Remove(changedTranslation.Id);
+        }
+        else
+        {
+            changedTranslations[changedTranslation.Id] = new Translation(
+                changedTranslation.Id,
+                changedTranslation.Language,
+                changedTranslation.View,
+                changedTranslation.Key,
+                newValue,
+                changedTranslation.LastUpdated);   
+        }
+    }
+
+    public async Task OnSubmit()
+    {
+        var changedTranslationsList = changedTranslations
+            .Select(x => x.Value)
+            .ToList();
+        
+        isSaving = true;
+        await translationsService.UpdateTranslations(changedTranslationsList);
+        isSaving = false;
     }
 }

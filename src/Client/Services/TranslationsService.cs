@@ -10,7 +10,8 @@ namespace Concerto.Client.Services
         public string GetCurrentLanguage();
         public Task FetchTranslationsFromLastUpdatedAsync(string lang);
         public Task InitializeAsync();
-        public Task<List<TranslationSlim>> FetchFullTranslationsAsync();
+        public Task<List<Translation>> FetchFullTranslationsAsync();
+        public Task UpdateTranslations(List<Translation> updatedTranslations);
     }
 
     public class TranslationsService : ITranslationsService
@@ -49,12 +50,12 @@ namespace Concerto.Client.Services
             await ChangeLanguage(currentLanguage);
         }
 
-        public async Task<List<TranslationSlim>> FetchFullTranslationsAsync()
+        public async Task<List<Translation>> FetchFullTranslationsAsync()
         {
             var response = await translationsClient.GetTranslationsFullAsync();
             if (response is null || response.Count == 0)
             {
-                return new List<TranslationSlim>();
+                return new List<Translation>();
             }
             return response.ToList();
         }
@@ -106,6 +107,11 @@ namespace Concerto.Client.Services
         {
             var val = translations.GetValueOrDefault($"{view}:{key}");
             return val ?? key;
+        }
+
+        public async Task UpdateTranslations(List<Translation> updatedTranslations)
+        {
+            await translationsClient.UpdateTranslationsRangeAsync(updatedTranslations);
         }
     }
 }

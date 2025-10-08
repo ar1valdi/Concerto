@@ -2417,7 +2417,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TranslationSlim"
+                    "$ref": "#/components/schemas/Translation"
                   }
                 }
               },
@@ -2425,7 +2425,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TranslationSlim"
+                    "$ref": "#/components/schemas/Translation"
                   }
                 }
               },
@@ -2433,7 +2433,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TranslationSlim"
+                    "$ref": "#/components/schemas/Translation"
                   }
                 }
               }
