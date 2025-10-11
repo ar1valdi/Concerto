@@ -69,7 +69,6 @@ builder.Services.AddScoped<ITranslationsService, TranslationsService>(
         return new TranslationsService(new TranlsationsClient(http), new TranlsationsClient(httpUnauthorized), localStorage);
     }
 );
-builder.Services.AddScoped<IOverridableLanguageService, LanguageServiceOverridable>();
 builder.Services.AddScoped<ILanguageManagementService, LanguageManagementService>(
     sp =>
     {
