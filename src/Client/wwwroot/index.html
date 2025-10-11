@@ -52,7 +52,11 @@
 		localStorage.setItem('isIos', isIos())
 	</script>
 
-	<script>navigator.serviceWorker.register('service-worker.js');</script>
+	<script>
+		if (!location.hostname.includes('local')) {
+			navigator.serviceWorker.register('service-worker.js');
+		}
+	</script>
 </body>
 
 </html>

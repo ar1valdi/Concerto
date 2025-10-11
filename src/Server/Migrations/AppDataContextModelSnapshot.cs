@@ -17,7 +17,7 @@ namespace Concerto.Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -107,6 +107,23 @@ namespace Concerto.Server.Migrations
                     b.HasIndex("WorkspaceId");
 
                     b.ToTable("Folders");
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.Language", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("Languages");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.Post", b =>
@@ -219,6 +236,61 @@ namespace Concerto.Server.Migrations
                     b.HasIndex("SelectedByUserId");
 
                     b.ToTable("Tracks");
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.Translation", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("View")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastUpdated")
+                        .HasDatabaseName("IX_Translation_LastUpdated");
+
+                    b.HasIndex("View", "Key");
+
+                    b.HasIndex("Language", "View", "Key")
+                        .IsUnique();
+
+                    b.ToTable("Translations");
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.TranslationLocation", b =>
+                {
+                    b.Property<string>("View")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Key")
+                        .HasColumnType("text");
+
+                    b.HasKey("View", "Key");
+
+                    b.ToTable("TranslationLocations");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.UploadedFile", b =>
@@ -406,7 +478,8 @@ namespace Concerto.Server.Migrations
                     b.HasOne("Concerto.Server.Data.Models.Workspace", "Workspace")
                         .WithMany()
                         .HasForeignKey("WorkspaceId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.OwnsOne("Concerto.Server.Data.Models.FolderPermission", "WorkspacePermission", b1 =>
                         {
@@ -448,7 +521,8 @@ namespace Concerto.Server.Migrations
                     b.HasOne("Concerto.Server.Data.Models.Workspace", "Workspace")
                         .WithMany("Posts")
                         .HasForeignKey("WorkspaceId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Author");
 
@@ -489,6 +563,25 @@ namespace Concerto.Server.Migrations
                     b.Navigation("Project");
 
                     b.Navigation("SelectedByUser");
+                });
+
+            modelBuilder.Entity("Concerto.Server.Data.Models.Translation", b =>
+                {
+                    b.HasOne("Concerto.Server.Data.Models.Language", "LanguageEntity")
+                        .WithMany()
+                        .HasForeignKey("Language")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Concerto.Server.Data.Models.TranslationLocation", "Location")
+                        .WithMany()
+                        .HasForeignKey("View", "Key")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LanguageEntity");
+
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.UploadedFile", b =>

@@ -11,6 +11,7 @@
   "AdminPanelPageTitle": "Admin Panel",
   "AdminPanelPageUnverifiedUsersTxt": "Unverified users",
   "AdminPanelPageAllUsersTxt": "All users",
+  "AdminPanelPageTranslationsTxt": "Translations management",
   "AdminPanelPageMoreTxt": "More",
 
   "AuthenticationPageLogInFailedTxt": "Your login was not successful.",

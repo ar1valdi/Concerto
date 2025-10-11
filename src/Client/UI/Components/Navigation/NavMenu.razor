@@ -1,19 +1,19 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 
-@inject ILanguageService t
+@inject ITranslationsService t
 
 <MudNavMenu>
-	<MudText Class="px-4" Typo="Typo.h6">@t.T("NavMenuMenuTxt")</MudText>
-	<MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">@t.T("NavMenuHomeTxt")</MudNavLink>
+	<MudText Class="px-4" Typo="Typo.h6">@t.T("navigation", "menu")</MudText>
+	<MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">@t.T("navigation", "home")</MudNavLink>
 	<AuthorizeView Policy="@AuthorizationPolicies.IsAdmin.Name">
-		<MudNavLink Href="admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AdminPanelSettings">@t.T("NavMenuAdminPanelTxt")</MudNavLink>
+		<MudNavLink Href="admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AdminPanelSettings">@t.T("navigation", "adminPanel")</MudNavLink>
 	</AuthorizeView>
 	<AuthorizeView >
 		@if(!LayoutState.IsMobile)
 		{
-			<MudNavLink Href="recorder" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Camera">@t.T("NavMenuVideoRecorderTxt")</MudNavLink>
+			<MudNavLink Href="recorder" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Camera">@t.T("navigation", "videoRecorder")</MudNavLink>
 		}
-		<MudNavLink Href="workspaces/-1" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Storage">@t.T("NavMenuStorageTxt")</MudNavLink>
+		<MudNavLink Href="workspaces/-1" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Storage">@t.T("navigation", "storage")</MudNavLink>
 		<StorageNavTree/>
 	</AuthorizeView>
 </MudNavMenu>
