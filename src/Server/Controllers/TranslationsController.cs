@@ -28,11 +28,19 @@ public class TranlsationsController : ControllerBase
 	}
 
 	[HttpGet]
-	[AllowAnonymous]
+    [Authorize(Policy = AuthorizationPolicies.IsAdmin.Name)]
 	public async Task<ActionResult<List<Dto.Translation>>> GetTranslationsFull()
 	{
 		var translations = await _translationsService.GetAllTranslationsAsync();
 		return Ok(translations.Select(t => t.ToViewModel()).ToList());
+	}
+
+	[HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.IsAdmin.Name)]
+	public async Task<ActionResult<List<Dto.TranslationLocation>>> GetTranslationLocations()
+	{
+		var locations = await _translationsService.GetAllTranslationLocationsAsync();
+		return Ok(locations.Select(l => l.ToViewModel()).ToList());
 	}
 
     [HttpPut]

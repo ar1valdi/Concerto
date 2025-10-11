@@ -11,6 +11,7 @@ namespace Concerto.Client.Services
         public Task FetchTranslationsFromLastUpdatedAsync(string lang);
         public Task InitializeAsync();
         public Task<List<Translation>> FetchFullTranslationsAsync();
+        public Task<List<TranslationLocation>> FetchAllTranslationLocationsAsync();
         public Task UpdateTranslations(List<Translation> updatedTranslations);
     }
 
@@ -24,14 +25,19 @@ namespace Concerto.Client.Services
 
         private Dictionary<string, string> translations;
         private readonly ITranlsationsClient translationsClient;
+        private readonly ITranlsationsClient translationsClientUnauthroized;
         private ILocalStorageService localStorage;
         private string currentLanguage;
 
 
-        public TranslationsService(ITranlsationsClient _translationsClient, ILocalStorageService _localStorage)
+        public TranslationsService(
+            ITranlsationsClient _translationsClient, 
+            ITranlsationsClient _translationsClientUnauthroized, 
+            ILocalStorageService _localStorage)
         {
             localStorage = _localStorage;
             translationsClient = _translationsClient;
+            translationsClientUnauthroized = _translationsClientUnauthroized;
             translations = new Dictionary<string, string>();
             currentLanguage = DefaultLanguage;
         }
@@ -60,6 +66,16 @@ namespace Concerto.Client.Services
             return response.ToList();
         }
 
+        public async Task<List<TranslationLocation>> FetchAllTranslationLocationsAsync()
+        {
+            var response = await translationsClient.GetTranslationLocationsAsync();
+            if (response is null || response.Count == 0)
+            {
+                return new List<TranslationLocation>();
+            }
+            return response.ToList();
+        }
+
         public async Task FetchTranslationsFromLastUpdatedAsync(string lang)
         {
             DateTimeOffset? lastUpdate = null;
@@ -69,7 +85,7 @@ namespace Concerto.Client.Services
                 lastUpdate = new DateTimeOffset(DateTime.SpecifyKind(lastUpdatedAt, DateTimeKind.Utc));
             }
 
-            var response = await translationsClient.GetTranslationsDiffAsync(lang, lastUpdate);
+            var response = await translationsClientUnauthroized.GetTranslationsDiffAsync(lang, lastUpdate);
             
             var now = DateTime.UtcNow;
             await localStorage.SetItemAsync($"{LastUpdateKeyPrefix}{lang}", now);

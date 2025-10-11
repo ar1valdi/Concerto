@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using MudBlazor;
-using Microsoft.JSInterop;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -60,20 +59,25 @@ builder.Services.AddScoped<DawService, DawService>();
 builder.Services.AddScoped<IStorageService, StorageService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAccountClient, AccountClient>();
-builder.Services.AddScoped<ILanguagesClient>(sp =>
-{
-    var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("AnonymousClient");
-    return new LanguagesClient(http);
-});
-builder.Services.AddScoped<ITranlsationsClient>(sp =>
-{
-    var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("AnonymousClient");
-    return new TranlsationsClient(http);
-});
 builder.Services.AddScoped<IBreadcrumbsService, BreadcrumbsService>();
-builder.Services.AddScoped<ITranslationsService, TranslationsService>();
+builder.Services.AddScoped<ITranslationsService, TranslationsService>(
+    sp =>
+    {
+        var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("WebAPI");
+        var httpUnauthorized = sp.GetRequiredService<IHttpClientFactory>().CreateClient("AnonymousClient");
+        var localStorage = sp.GetRequiredService<ILocalStorageService>();
+        return new TranslationsService(new TranlsationsClient(http), new TranlsationsClient(httpUnauthorized), localStorage);
+    }
+);
 builder.Services.AddScoped<IOverridableLanguageService, LanguageServiceOverridable>();
-builder.Services.AddScoped<ILanguageManagementService, LanguageManagementService>();
+builder.Services.AddScoped<ILanguageManagementService, LanguageManagementService>(
+    sp =>
+    {
+        var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("WebAPI");
+        var httpUnauthorized = sp.GetRequiredService<IHttpClientFactory>().CreateClient("AnonymousClient");
+        return new LanguageManagementService(new LanguagesClient(http), new LanguagesClient(httpUnauthorized));
+    }
+);
 
 builder.Services.AddMudServices(config => 
     {

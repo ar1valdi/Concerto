@@ -72,6 +72,20 @@ public class TranslationSyncService
 
         try
         {
+            var languageEntity = await _context.Languages.FindAsync(language);
+            if (languageEntity == null)
+            {
+                languageEntity = new Language
+                {
+                    Key = language,
+                    Name = GetLanguageName(language),
+                    IsPublic = true
+                };
+                _context.Languages.Add(languageEntity);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Added new language: {Language}", language);
+            }
+
             var jsonContent = await File.ReadAllTextAsync(jsonPath);
             var translationData = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonContent);
             
@@ -88,6 +102,19 @@ public class TranslationSyncService
             _logger.LogError(ex, "Error syncing translations for language {Language}", language);
             throw;
         }
+    }
+
+    /// <summary>
+    /// Gets a friendly name for a language code
+    /// </summary>
+    private string GetLanguageName(string languageCode)
+    {
+        return languageCode.ToLower() switch
+        {
+            "en" => "English",
+            "pl" => "Polski",
+            _ => languageCode.ToUpper()
+        };
     }
 
     /// <summary>
@@ -139,6 +166,22 @@ public class TranslationSyncService
         DateTime timestamp,
         bool force)
     {
+        // Ensure TranslationLocation exists
+        var location = await _context.TranslationLocations
+            .FirstOrDefaultAsync(tl => tl.View == view && tl.Key == key);
+
+        if (location == null)
+        {
+            location = new TranslationLocation
+            {
+                View = view,
+                Key = key
+            };
+            _context.TranslationLocations.Add(location);
+            _logger.LogInformation("Added new translation location: {View}_{Key}", view, key);
+        }
+
+        // Check if translation exists
         var existingTranslation = await _context.Translations
             .FirstOrDefaultAsync(t => 
                 t.Language == language && 

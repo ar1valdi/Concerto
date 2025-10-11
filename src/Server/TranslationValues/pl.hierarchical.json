@@ -14,7 +14,9 @@
     "title": "Panel administratora",
     "unverifiedUsers": "Niezweryfikowani użytkownicy",
     "allUsers": "Wszyscy użytkownicy",
-    "more": "Więcej"
+    "more": "Więcej",
+    "languages": "Języki",
+    "translations": "Tłumaczenia"
   },
   "authentication": {
     "logInFailed": "Logowanie się nie powiodło.",

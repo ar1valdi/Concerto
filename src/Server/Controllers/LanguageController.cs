@@ -86,22 +86,6 @@ public class LanguagesController : ControllerBase
         }
     }
 
-    [HttpGet("{key}/available")]
-    [AllowAnonymous]
-    public async Task<ActionResult<bool>> IsLanguageAvailable(string key)
-    {
-        try
-        {
-            var isAvailable = await _languageManagementService.IsLanguageAvailableAsync(key);
-            return Ok(isAvailable);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error checking language availability: {Key}", key);
-            return StatusCode(500, "Internal server error");
-        }
-    }
-
     [HttpGet("available")]
     [AllowAnonymous]
     public async Task<ActionResult<List<Dto.Language>>> GetAvailableLanguages()
@@ -135,7 +119,7 @@ public class LanguagesController : ControllerBase
     }
 
     [HttpGet("{key}")]
-    [AllowAnonymous]
+    [Authorize(Policy = AuthorizationPolicies.IsAdmin.Name)]
     public async Task<ActionResult<Dto.Language>> GetLanguage(string key)
     {
         try
@@ -151,6 +135,26 @@ public class LanguagesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting language: {Key}", key);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    [HttpDelete("{key}")]
+    [Authorize(Policy = AuthorizationPolicies.IsAdmin.Name)]
+    public async Task<ActionResult> DeleteLanguage(string key)
+    {
+        try
+        {
+            await _languageManagementService.DeleteLanguageAsync(key);
+            return Ok();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting language: {Key}", key);
             return StatusCode(500, "Internal server error");
         }
     }

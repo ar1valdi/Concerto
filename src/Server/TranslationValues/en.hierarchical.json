@@ -14,7 +14,9 @@
     "title": "Admin Panel",
     "unverifiedUsers": "Unverified users",
     "allUsers": "All users",
-    "more": "More"
+    "more": "More",
+    "languages": "Languages",
+    "translations": "Translations"
   },
   "authentication": {
     "logInFailed": "Your login was not successful.",

@@ -1,10 +1,6 @@
-using Concerto.Client.Services;
 using Concerto.Server.Data.DatabaseContext;
 using Concerto.Server.Data.Models;
-using Concerto.Server.Settings;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using System.Text.Json;
 
 namespace Concerto.Server.Services;
 
@@ -27,23 +23,90 @@ public class TranslationsService : ITranslationsService
     {
         return await _context.Translations.ToListAsync();
     }
+
+    public async Task<List<TranslationLocation>> GetAllTranslationLocationsAsync()
+    {
+        return await _context.TranslationLocations.ToListAsync();
+    }
+
     public async Task<List<Translation>> GetTranslationsDiff(DateTime? lastUpdate, string lang)
     {
         _logger.LogInformation("Getting translations diff for last update: {LastUpdate}", lastUpdate);
         return await _context.Translations.Where(t => lastUpdate == null || t.LastUpdated >= lastUpdate && t.Language == lang).ToListAsync();
     }
+
     public async Task<List<Translation>> UpdateTranslationsRange(List<Translation> translations)
     {
         _logger.LogInformation("Updating translations range: {TranslationsCount}.", translations.Count);
 
         var currDate = DateTime.UtcNow;
-        translations.ForEach(t => t.LastUpdated = currDate);
-        
-        _context.Translations.UpdateRange(translations);
+        var updatedTranslations = new List<Translation>();
+
+        foreach (var translation in translations)
+        {
+            // if already exists
+            var existingTranslation = await _context.Translations
+                .FirstOrDefaultAsync(t => 
+                    t.Language == translation.Language && 
+                    t.View == translation.View && 
+                    t.Key == translation.Key);
+
+            // delete if empty value
+            if (string.IsNullOrWhiteSpace(translation.Value))
+            {
+                if (existingTranslation != null)
+                {
+                    _logger.LogInformation("Deleting translation: {Language}/{View}/{Key}", 
+                        translation.Language, translation.View, translation.Key);
+                    _context.Translations.Remove(existingTranslation);
+                }
+            }
+            // update if exists
+            else if (existingTranslation != null)
+            {
+                _logger.LogInformation("Updating translation: {Language}/{View}/{Key}", 
+                    translation.Language, translation.View, translation.Key);
+                existingTranslation.Value = translation.Value;
+                existingTranslation.LastUpdated = currDate;
+                updatedTranslations.Add(existingTranslation);
+            }
+            // create if new
+            else
+            {
+                _logger.LogInformation("Creating translation: {Language}/{View}/{Key}", 
+                    translation.Language, translation.View, translation.Key);
+                
+                // Ensure TranslationLocation exists
+                var location = await _context.TranslationLocations
+                    .FirstOrDefaultAsync(tl => tl.View == translation.View && tl.Key == translation.Key);
+                
+                if (location == null)
+                {
+                    location = new TranslationLocation
+                    {
+                        View = translation.View,
+                        Key = translation.Key
+                    };
+                    _context.TranslationLocations.Add(location);
+                }
+
+                var newTranslation = new Translation
+                {
+                    Language = translation.Language,
+                    View = translation.View,
+                    Key = translation.Key,
+                    Value = translation.Value,
+                    LastUpdated = currDate
+                };
+                _context.Translations.Add(newTranslation);
+                updatedTranslations.Add(newTranslation);
+            }
+        }
+
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Translations range updated: {TranslationsCount}.", translations.Count);
+        _logger.LogInformation("Translations range processed: {TranslationsCount}.", updatedTranslations.Count);
 
-        return translations;
+        return updatedTranslations;
     }
 }

@@ -21,6 +21,7 @@ public class ConcertoDbContext : DbContext
 	public DbSet<DawProject> DawProjects { get; set; }
 	public DbSet<Track> Tracks { get; set; }
 	public DbSet<Translation> Translations { get; set; }
+	public DbSet<TranslationLocation> TranslationLocations { get; set; }
 	public DbSet<Language> Languages { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -156,9 +157,14 @@ public class ConcertoDbContext : DbContext
             .HasForeignKey(t => t.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
 
+		// TranslationLocation entity configuration
+		modelBuilder.Entity<TranslationLocation>()
+			.HasKey(tl => new { tl.View, tl.Key });
+
 		// Translation entity configuration
 		modelBuilder.Entity<Translation>()
-			.HasKey(t => new { t.Language, t.View, t.Key });
+			.HasIndex(t => new { t.Language, t.View, t.Key })
+			.IsUnique();
 
         modelBuilder.Entity<Translation>()
 			.Property(t => t.LastUpdated)
@@ -173,6 +179,13 @@ public class ConcertoDbContext : DbContext
 			.HasOne(t => t.LanguageEntity)
 			.WithMany()
 			.HasForeignKey(t => t.Language)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		// Translation to TranslationLocation foreign key relationship
+		modelBuilder.Entity<Translation>()
+			.HasOne(t => t.Location)
+			.WithMany()
+			.HasForeignKey(t => new { t.View, t.Key })
 			.OnDelete(DeleteBehavior.Cascade);
 
 		// Language entity configuration

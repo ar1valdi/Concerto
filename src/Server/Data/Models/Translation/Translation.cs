@@ -4,7 +4,7 @@ namespace Concerto.Server.Data.Models;
 
 /// <summary>
 /// Database model for storing translations in a normalized format
-/// Each row represents one translation key-value pair for a specific language and view
+/// Each row represents one translation value for a specific language and location (view+key)
 /// </summary>
 public class Translation : Entity
 {
@@ -21,15 +21,22 @@ public class Translation : Entity
 
     /// <summary>
     /// View/section name (e.g., "home", "admin", "navigation")
+    /// Part of the composite foreign key to TranslationLocation
     /// </summary>
     [Required]
     public string View { get; set; } = string.Empty;
 
     /// <summary>
     /// Translation key within the view (e.g., "title", "adminVerificationRequired")
+    /// Part of the composite foreign key to TranslationLocation
     /// </summary>
     [Required]
     public string Key { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Navigation property to the TranslationLocation entity
+    /// </summary>
+    public virtual TranslationLocation Location { get; set; } = null!;
 
     /// <summary>
     /// The translated text value

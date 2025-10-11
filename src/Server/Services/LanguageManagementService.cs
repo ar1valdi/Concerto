@@ -77,14 +77,6 @@ public class LanguageManagementService : ILanguageManagementService
         return language;
     }
 
-    public async Task<bool> IsLanguageAvailableAsync(string key)
-    {
-        var language = await _context.Languages
-            .FirstOrDefaultAsync(l => l.Key == key && l.IsPublic);
-
-        return language != null;
-    }
-
     public async Task<List<Language>> GetAvailableLanguagesAsync()
     {
         return await _context.Languages
@@ -103,5 +95,21 @@ public class LanguageManagementService : ILanguageManagementService
     public async Task<Language?> GetLanguageByKeyAsync(string key)
     {
         return await _context.Languages.FindAsync(key);
+    }
+
+    public async Task DeleteLanguageAsync(string key)
+    {
+        _logger.LogInformation("Deleting language: {Key}", key);
+
+        var language = await _context.Languages.FindAsync(key);
+        if (language == null)
+        {
+            throw new InvalidOperationException($"Language with key '{key}' not found");
+        }
+
+        _context.Languages.Remove(language);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Language deleted successfully: {Key}", key);
     }
 }

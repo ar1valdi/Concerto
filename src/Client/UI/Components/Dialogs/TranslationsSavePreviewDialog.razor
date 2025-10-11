@@ -1,0 +1,111 @@
+@using Concerto.Shared.Models.Dto
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Preview" Class="mr-3 mb-n1" />
+            Review Changes
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body1" Class="mb-3">
+            You are about to save @ChangedTranslations.Count translation(s). Please review the changes below:
+        </MudText>
+
+        <MudPaper Elevation="0" Class="pa-3" Style="max-height: 60vh; overflow-y: auto;">
+            <MudTable Items="@ChangedTranslations" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" 
+                      Elevation="0" FixedHeader="true">
+                <HeaderContent>
+                    <MudTh>View</MudTh>
+                    <MudTh>Key</MudTh>
+                    <MudTh>Language</MudTh>
+                    <MudTh>New Value</MudTh>
+                    <MudTh>Action</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="View">@context.View</MudTd>
+                    <MudTd DataLabel="Key">@context.Key</MudTd>
+                    <MudTd DataLabel="Language">
+                        @{
+                            var lang = Languages.FirstOrDefault(l => l.Key == context.LanguageKey);
+                            var langDisplay = lang != null ? $"{lang.Name} ({lang.Key.ToUpper()})" : context.LanguageKey.ToUpper();
+                        }
+                        @langDisplay
+                    </MudTd>
+                    <MudTd DataLabel="New Value">
+                        @if (string.IsNullOrWhiteSpace(context.NewValue))
+                        {
+                            <MudChip Size="Size.Small" Color="Color.Warning">Will be deleted</MudChip>
+                        }
+                        else if (context.IsNew)
+                        {
+                            <div>
+                                <MudChip Size="Size.Small" Color="Color.Success" Class="mb-1">New</MudChip>
+                                <MudText Typo="Typo.body2">@context.NewValue</MudText>
+                            </div>
+                        }
+                        else
+                        {
+                            <div>
+                                <MudChip Size="Size.Small" Color="Color.Info" Class="mb-1">Updated</MudChip>
+                                <MudText Typo="Typo.body2" Class="text-muted" Style="text-decoration: line-through;">
+                                    @context.OriginalValue
+                                </MudText>
+                                <MudText Typo="Typo.body2">@context.NewValue</MudText>
+                            </div>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Action">
+                        @if (string.IsNullOrWhiteSpace(context.NewValue))
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Warning">Delete</MudText>
+                        }
+                        else if (context.IsNew)
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Success">Create</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Info">Update</MudText>
+                        }
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+
+        <MudAlert Severity="Severity.Info" Class="mt-3">
+            After saving, you will need to refresh the page to see the changes reflected in the application.
+        </MudAlert>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Confirm">
+            Confirm and Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    public class TranslationChangePreview
+    {
+        public string LanguageKey { get; set; } = string.Empty;
+        public string View { get; set; } = string.Empty;
+        public string Key { get; set; } = string.Empty;
+        public string NewValue { get; set; } = string.Empty;
+        public string OriginalValue { get; set; } = string.Empty;
+        public bool IsNew { get; set; }
+    }
+
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public List<TranslationChangePreview> ChangedTranslations { get; set; } = [];
+
+    [Parameter]
+    public List<Language> Languages { get; set; } = [];
+
+    void Cancel() => MudDialog.Cancel();
+    void Confirm() => MudDialog.Close(DialogResult.Ok(true));
+}

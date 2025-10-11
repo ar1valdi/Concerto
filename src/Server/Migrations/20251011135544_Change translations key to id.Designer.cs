@@ -3,6 +3,7 @@ using System;
 using Concerto.Server.Data.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Concerto.Server.Migrations
 {
     [DbContext(typeof(ConcertoDbContext))]
-    partial class AppDataContextModelSnapshot : ModelSnapshot
+    [Migration("20251011135544_Change translations key to id")]
+    partial class Changetranslationskeytoid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -272,25 +275,10 @@ namespace Concerto.Server.Migrations
                     b.HasIndex("LastUpdated")
                         .HasDatabaseName("IX_Translation_LastUpdated");
 
-                    b.HasIndex("View", "Key");
-
                     b.HasIndex("Language", "View", "Key")
                         .IsUnique();
 
                     b.ToTable("Translations");
-                });
-
-            modelBuilder.Entity("Concerto.Server.Data.Models.TranslationLocation", b =>
-                {
-                    b.Property<string>("View")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Key")
-                        .HasColumnType("text");
-
-                    b.HasKey("View", "Key");
-
-                    b.ToTable("TranslationLocations");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.UploadedFile", b =>
@@ -573,15 +561,7 @@ namespace Concerto.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Concerto.Server.Data.Models.TranslationLocation", "Location")
-                        .WithMany()
-                        .HasForeignKey("View", "Key")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("LanguageEntity");
-
-                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.UploadedFile", b =>

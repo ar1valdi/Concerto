@@ -28,13 +28,6 @@ public interface ILanguageManagementService
     Task<Language> HideLanguageAsync(string key);
 
     /// <summary>
-    /// Checks if a language key is available in the application
-    /// </summary>
-    /// <param name="key">Language key to check</param>
-    /// <returns>True if language exists and is public, false otherwise</returns>
-    Task<bool> IsLanguageAvailableAsync(string key);
-
-    /// <summary>
     /// Gets all available (public) languages
     /// </summary>
     /// <returns>List of available languages</returns>
@@ -52,4 +45,11 @@ public interface ILanguageManagementService
     /// <param name="key">Language key</param>
     /// <returns>Language entity or null if not found</returns>
     Task<Language?> GetLanguageByKeyAsync(string key);
+
+    /// <summary>
+    /// Deletes a language and all its associated translations (through db cascade delete)
+    /// </summary>
+    /// <param name="key">Language key to delete</param>
+    /// <returns>Task representing the async operation</returns>
+    Task DeleteLanguageAsync(string key);
 }

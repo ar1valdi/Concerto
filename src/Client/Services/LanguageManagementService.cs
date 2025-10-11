@@ -7,26 +7,28 @@ namespace Concerto.Client.Services
         Task<List<Language>> GetAvailableLanguagesAsync();
         Task<List<Language>> GetAllLanguagesAsync();
         Task<Language?> GetLanguageByKeyAsync(string key);
-        Task<bool> IsLanguageAvailableAsync(string key);
         Task<Language> CreateLanguageAsync(CreateLanguageRequest request);
         Task<Language> PublishLanguageAsync(string key);
         Task<Language> HideLanguageAsync(string key);
+        Task DeleteLanguageAsync(string key);
     }
 
     public class LanguageManagementService : ILanguageManagementService
     {
         private readonly ILanguagesClient _languagesClient;
+        private readonly ILanguagesClient _languagesClientUnauthroized;
 
-        public LanguageManagementService(ILanguagesClient languagesClient)
+        public LanguageManagementService(ILanguagesClient languagesClient, ILanguagesClient languagesClientUnauthroized )
         {
             _languagesClient = languagesClient;
+            _languagesClientUnauthroized = languagesClientUnauthroized;
         }
 
         public async Task<List<Language>> GetAvailableLanguagesAsync()
         {
             try
             {
-                var response = await _languagesClient.AvailableGetAsync();
+                var response = await _languagesClientUnauthroized.AvailableAsync();
                 return response?.ToList() ?? new List<Language>();
             }
             catch
@@ -61,19 +63,6 @@ namespace Concerto.Client.Services
             }
         }
 
-        public async Task<bool> IsLanguageAvailableAsync(string key)
-        {
-            try
-            {
-                var response = await _languagesClient.AvailableGetAsync(key);
-                return response;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
         public async Task<Language> CreateLanguageAsync(CreateLanguageRequest request)
         {
             return await _languagesClient.LanguagesPostAsync(request);
@@ -87,6 +76,11 @@ namespace Concerto.Client.Services
         public async Task<Language> HideLanguageAsync(string key)
         {
             return await _languagesClient.HideAsync(key);
+        }
+
+        public async Task DeleteLanguageAsync(string key)
+        {
+            await _languagesClient.LanguagesDeleteAsync(key);
         }
     }
 }
