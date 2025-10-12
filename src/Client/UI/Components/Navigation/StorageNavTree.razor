@@ -1,42 +1,110 @@
-﻿@inject IStorageService StorageService
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@inject IStorageService StorageService
 @inject NavigationManager Navigation
 @inject IDialogService DialogService
+@inject HubConnection HubConnection
 
 <MudTreeView T="TreeItemData"
-Items="@rootNodes"
-ServerData="@LoadChildrenAsync"
-MultiSelection="false"
-Hover="true"
-Dense="true"
-ExpandOnClick="true">
-	<ItemTemplate>
-		<MudStack Row="true" AlignItems="AlignItems.Center" Class="tree-mudstack">
-
+    Items="@rootNodes"
+    ServerData="@LoadChildrenAsync"
+    MultiSelection="false"
+    Hover="true"
+    Dense="true"
+    ExpandOnClick="true">
+    <ItemTemplate>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="tree-mudstack">
 			<MudTreeViewItem T="TreeItemData"
-			Value="@context"
-			Text="@context.Name"
-			@bind-Expanded="@context.Expanded"
-			CanExpand="@context.Expandable"
-			Icon="@(context.IsFolder ? Icons.Material.Filled.Folder : Icons.Material.Filled.FilePresent)"
-			OnClick="@(() => OnItemClick(context))"
+							 Value="@context"
+							 Text="@context.Name"
+							 @bind-Expanded="@context.Expanded"
+							 CanExpand="@context.Expandable"
+							 Icon="@(context.IsFolder ? Icons.Material.Filled.Folder : Icons.Material.Filled.FilePresent)"
+							 OnClick="@(() => OnItemClick(context))"
 			LoadingIconColor="Color.Info"/>
-
-		</MudStack>
-	</ItemTemplate>
+        </MudStack>
+    </ItemTemplate>
 </MudTreeView>
 
 @code {
 	private HashSet<TreeItemData> rootNodes = new();
 	[Inject] private IJSRuntime JS { get; set; }
 
+	private void LogTreeStructure(IEnumerable<TreeItemData> nodes, string indent = "")
+	{
+		foreach (var node in nodes)
+		{
+			Console.WriteLine($"{indent}Node: {node.Name} (id={node.Id})");
+			Console.WriteLine($"{indent}|- Expandable: {node.Expandable}");
+			Console.WriteLine($"{indent}|- IsFolder: {node.IsFolder}");
+			Console.WriteLine($"{indent}|- Expanded: {node.Expanded}");
+			Console.WriteLine($"{indent}|- Children count: {node.Children.Count}");
+
+			if (node.Children.Any())
+			{
+				Console.WriteLine($"{indent}|- Children:");
+				LogTreeStructure(node.Children, indent + "   ");
+			}
+			Console.WriteLine($"{indent}-------------------");
+		}
+	}
+
 	protected override async Task OnInitializedAsync()
 	{
-		rootNodes = await LoadNodesAsync(-1);
-		StateHasChanged();
+		// Subskrybuj lokalny event uploadu
+		StorageService.OnUploadedToFolderEventHandler += OnUploadedToFolder;
+
+		// Subskrybuj SignalR (serwer wysyła "TreeUpdated", hub mapowany jest na "/notifications")
+		HubConnection.On<long?>("TreeUpdated", async (parentId) =>
+		{
+			Console.WriteLine($"TreeUpdated received for parentId: {parentId}");
+			
+			Console.WriteLine("=== Tree structure BEFORE update ===");
+			LogTreeStructure(rootNodes);
+			
+			await InvokeAsync(async () => await RefreshTree(parentId ?? -1));
+			
+			Console.WriteLine("=== Tree structure AFTER update ===");
+			LogTreeStructure(rootNodes);
+		});
+
+		
+
+		// Start hubu jeśli jeszcze nie uruchomiony
+		if (HubConnection.State == HubConnectionState.Disconnected)
+		{
+			try
+			{
+				await HubConnection.StartAsync();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Nie udało się połączyć z hubem: {ex.Message}");
+			}
+		}
+
+		// Przed wywołaniem
+		Console.WriteLine("rootNodes BEFORE: " + string.Join(", ", rootNodes.Select(r => r.Name + " (" + r.Id + ")")));
+		Console.WriteLine("MudTreeView Items BEFORE: " + string.Join(", ", rootNodes.Select(r => r.Name + " (" + r.Id + ")")));
+
+		// Wywołanie
+		rootNodes = new HashSet<TreeItemData>(await LoadNodesAsync(-1));
+
+		// Po wywołaniu
+		Console.WriteLine("rootNodes AFTER: " + string.Join(", ", rootNodes.Select(r => r.Name + " (" + r.Id + ")")));
+		Console.WriteLine("MudTreeView Items AFTER: " + string.Join(", ", rootNodes.Select(r => r.Name + " (" + r.Id + ")")));
+
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private void OnUploadedToFolder(object? sender, long folderId)
+	{
+		// event może pochodzić z uploadu klienta -> odśwież drzewo
+		_ = InvokeAsync(async () => await RefreshTree(folderId));
 	}
 
 	private async Task<HashSet<TreeItemData>> LoadChildrenAsync(TreeItemData node)
 	{
+        Console.WriteLine($"LoadChildrenAsync for node: {node.Name} (id={node.Id})");
 		var nodes = await LoadNodesAsync(node.Id);
 		await InvokeAsync(StateHasChanged); // ensure UI update is queued
 		return nodes;
@@ -44,20 +112,152 @@ ExpandOnClick="true">
 
 	private async Task<HashSet<TreeItemData>> LoadNodesAsync(long folderId)
 	{
+		Console.WriteLine("LoadNodesAsync: " + folderId);
 		var content = await StorageService.GetFolderContentAsync(folderId);
 		var children = content.SubFolders.Union<FolderContentItem>(content.Files).ToHashSet();
 		var res = children.Select(x => new TreeItemData
-			{
-				Expandable = x is FolderItem,
-				Item = x
-			}).ToHashSet();
+	{
+		Expandable = x is FolderItem,
+		Item = x
+	}).ToHashSet();
+		Console.WriteLine("TreeItemData: " + string.Join(", ", res.Select(r => r.Name + " (" + r.Id + ")")));
 		return res;
+	}
+
+	private async Task<HashSet<TreeItemData>> BuildFullTreeAsync()
+	{
+		Console.WriteLine("=== BuildFullTreeAsync START ===");
+		var rootContent = await StorageService.GetFolderContentAsync(-1);
+		Console.WriteLine($"Root folder: id=-1, subfolders={rootContent.SubFolders.Count()}, files={rootContent.Files.Count()}");
+
+		var nodes = new HashSet<TreeItemData>();
+
+		foreach (var rootFolder in rootContent.SubFolders)
+		{
+			Console.WriteLine($"Root subfolder: {rootFolder.Name} (id={rootFolder.Id})");
+			var children = await BuildTreeAsync(rootFolder.Id);
+			Console.WriteLine($"Built children for {rootFolder.Name} (id={rootFolder.Id}): {children.Count}");
+			var node = new TreeItemData
+        {
+            Expandable = true,
+            Item = rootFolder,
+            Children = children
+        };
+			nodes.Add(node);
+		}
+
+		foreach (var file in rootContent.Files)
+		{
+			Console.WriteLine($"Root file: {file.Name} (id={file.Id})");
+			nodes.Add(new TreeItemData
+        {
+            Expandable = false,
+            Item = file
+        });
+		}
+
+		Console.WriteLine("=== BuildFullTreeAsync END ===");
+		Console.WriteLine("Root nodes: " + string.Join(", ", nodes.Select(n => n.Name + " (" + n.Id + ")")));
+		return nodes;
+	}
+
+	// Rekurencyjnie buduje poddrzewo dla folderu
+	private async Task<HashSet<TreeItemData>> BuildTreeAsync(long folderId)
+	{
+		Console.WriteLine($"-- BuildTreeAsync for folderId={folderId} --");
+		var content = await StorageService.GetFolderContentAsync(folderId);
+		Console.WriteLine($"Folder {folderId}: subfolders={content.SubFolders.Count()}, files={content.Files.Count()}");
+
+		var nodes = new HashSet<TreeItemData>();
+
+		foreach (var subFolder in content.SubFolders)
+		{
+			Console.WriteLine($"Subfolder: {subFolder.Name} (id={subFolder.Id}) in parent {folderId}");
+			var children = await BuildTreeAsync(subFolder.Id);
+			Console.WriteLine($"Built children for {subFolder.Name} (id={subFolder.Id}): {children.Count}");
+			var node = new TreeItemData
+        {
+            Expandable = true,
+            Item = subFolder,
+            Children = children
+        };
+			nodes.Add(node);
+		}
+
+		foreach (var file in content.Files)
+		{
+			Console.WriteLine($"File: {file.Name} (id={file.Id}) in folder {folderId}");
+			nodes.Add(new TreeItemData
+        {
+            Expandable = false,
+            Item = file
+        });
+		}
+
+		Console.WriteLine($"-- BuildTreeAsync END for folderId={folderId}, nodes={nodes.Count} --");
+		Console.WriteLine("Nodes: " + string.Join(", ", nodes.Select(n => n.Name + " (" + n.Id + ")")));
+		return nodes;
+	}
+
+	private async Task RefreshTree(long folderId)
+	{
+		Console.WriteLine($"RefreshTree called with folderId: {folderId}");
+
+		// Snapshot expanded states
+		var expandedNodes = new Dictionary<long, bool>();
+		foreach (var node in rootNodes)
+			CollectExpandedStates(node, expandedNodes);
+
+		// Build a NEW rootNodes reference
+		var rebuilt = await BuildFullTreeAsync();
+		rootNodes = new HashSet<TreeItemData>(rebuilt);
+
+		// Restore expanded states
+		foreach (var node in rootNodes)
+			RestoreExpandedStates(node, expandedNodes);
+
+		await InvokeAsync(StateHasChanged);
+	}
+
+	// Helper do zapisywania stanu rozwinięcia węzłów
+	private void CollectExpandedStates(TreeItemData node, Dictionary<long, bool> states)
+	{
+		states[node.Id] = node.Expanded;
+		foreach (var child in node.Children)
+		{
+			CollectExpandedStates(child, states);
+		}
+	}
+
+	// Helper do przywracania stanu rozwinięcia węzłów
+	private void RestoreExpandedStates(TreeItemData node, Dictionary<long, bool> states)
+	{
+		if (states.TryGetValue(node.Id, out bool wasExpanded))
+		{
+			node.Expanded = wasExpanded;
+		}
+		foreach (var child in node.Children)
+		{
+			RestoreExpandedStates(child, states);
+		}
+	}
+
+	private TreeItemData? FindNodeById(HashSet<TreeItemData> nodes, long id)
+	{
+		foreach (var node in nodes)
+		{
+			if (node.Id == id)
+				return node;
+			var childNode = FindNodeById(node.Children, id);
+			if (childNode != null)
+				return childNode;
+		}
+		return null;
 	}
 
 	private async Task OnItemClick(TreeItemData node)
 	{
 		await JS.InvokeVoidAsync("console.log", $"OnItemClick, node: {node.Name}: isFolder = {node.IsFolder}");
-		// Add your custom logic here
 		if (node.IsFolder)
 		{
 			Navigation.NavigateTo($"storage/{node.Id}");
@@ -66,8 +266,21 @@ ExpandOnClick="true">
 		{
 			await DialogService.ShowFilePreviewDialog(file);
 		}
+	}
 
-		await Task.CompletedTask;
+	public async ValueTask DisposeAsync()
+	{
+		// odsubskrybuj eventy
+		StorageService.OnUploadedToFolderEventHandler -= OnUploadedToFolder;
+		try
+		{
+			if (HubConnection is not null)
+			{
+				// usuń handler SignalR - opcjonalne, HubConnection.ResetHandlers() nie istnieje, więc możesz ZWRÓCIĆ uwagę
+				await HubConnection.StopAsync();
+			}
+		}
+		catch { }
 	}
 
 	private class TreeItemData
