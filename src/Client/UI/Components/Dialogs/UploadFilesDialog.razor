@@ -4,6 +4,7 @@
 
 @inject ISnackbar Snackbar
 @inject IStorageService StorageService
+@inject ITranslationsService t
 
 <MudDialog Style="max-width: 100vw">
 	<DialogContent>
@@ -13,9 +14,9 @@
 						   @ondragenter="@SetDragClass" @ondragleave="@ClearDragClass" @ondragend="@ClearDragClass">
 				<ButtonTemplate>
 					<div style="height: 200px;">
-						<MudText Style="position: sticky;" Typo="Typo.h6">
-							Click here or drag files
-						</MudText>
+					<MudText Style="position: sticky;" Typo="Typo.h6">
+						@t.T("uploadFilesDialog", "clickHereOrDragFiles")
+					</MudText>
 						@foreach (var file in _fileNames)
 						{
 							<MudChip Class="" Color="Color.Dark" Text="@file" />
@@ -27,9 +28,9 @@
 	</DialogContent>
 
 	<DialogActions>
-		<MudButton OnClick="Cancel" Color="Color.Error" Variant="Variant.Filled">Cancel</MudButton>
-		<MudButton OnClick="Clear" Disabled="@(!_fileNames.Any())" Color="Color.Warning" Variant="Variant.Filled">Clear</MudButton>
-		<MudButton OnClick="Upload" Disabled="@(!_fileNames.Any())" Color="Color.Primary" Variant="Variant.Filled">Upload</MudButton>
+		<MudButton OnClick="Cancel" Color="Color.Error" Variant="Variant.Filled">@t.T("uploadFilesDialog", "cancel")</MudButton>
+		<MudButton OnClick="Clear" Disabled="@(!_fileNames.Any())" Color="Color.Warning" Variant="Variant.Filled">@t.T("uploadFilesDialog", "clear")</MudButton>
+		<MudButton OnClick="Upload" Disabled="@(!_fileNames.Any())" Color="Color.Primary" Variant="Variant.Filled">@t.T("uploadFilesDialog", "upload")</MudButton>
 	</DialogActions>
 </MudDialog>
 

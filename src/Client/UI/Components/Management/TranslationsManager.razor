@@ -15,12 +15,12 @@ else
 {
     <div>
     <MudPaper Class="pa-4 mb-4" Elevation="2">
-        <MudText Typo="Typo.h6" Class="mb-3">Filters</MudText>
+        <MudText Typo="Typo.h6" Class="mb-3">@translationsService.T("translationsManager", "filtersHeader")</MudText>
         <MudGrid>
             <MudItem xs="12" sm="6" md="3">
                 <MudTextField 
                     @bind-Value="filterView" 
-                    Label="Filter by View" 
+                    Label="@translationsService.T("translationsManager", "filterViewLabel")" 
                     Variant="Variant.Outlined"
                     Margin="Margin.Dense"
                     Clearable="true"
@@ -32,7 +32,7 @@ else
             <MudItem xs="12" sm="6" md="3">
                 <MudTextField 
                     @bind-Value="filterKey" 
-                    Label="Filter by Key" 
+                    Label="@translationsService.T("translationsManager", "filterKeyLabel")" 
                     Variant="Variant.Outlined"
                     Margin="Margin.Dense"
                     Clearable="true"
@@ -44,7 +44,7 @@ else
             <MudItem xs="12" sm="6" md="3">
                 <MudSelect 
                     @bind-Value="filterValueLanguage" 
-                    Label="Language for Value Filter" 
+                    Label="@translationsService.T("translationsManager", "filterValueLanguageLabel")" 
                     Variant="Variant.Outlined"
                     Margin="Margin.Dense"
                     Clearable="true"
@@ -58,7 +58,7 @@ else
             <MudItem xs="12" sm="6" md="3">
                 <MudTextField 
                     @bind-Value="filterValue" 
-                    Label="Filter by Value" 
+                    Label="@translationsService.T("translationsManager", "filterValueLabel")" 
                     Variant="Variant.Outlined"
                     Margin="Margin.Dense"
                     Clearable="true"
@@ -71,7 +71,7 @@ else
             <MudItem xs="12">
                 <MudSelect 
                     @bind-SelectedValues="selectedLanguageKeys" 
-                    Label="Show Only Selected Languages" 
+                    Label="@translationsService.T("translationsManager", "showOnlySelectedLanguagesLabel")" 
                     Variant="Variant.Outlined"
                     Margin="Margin.Dense"
                     MultiSelection="true"
@@ -117,7 +117,7 @@ else
 
     @if (!filteredViewSections.Any())
     {
-        <MudText Typo="Typo.body1" Class="pa-4">No translations match the current filters.</MudText>
+        <MudText Typo="Typo.body1" Class="pa-4">@translationsService.T("translationsManager", "noMatches")</MudText>
     }
     </div>
 
@@ -128,7 +128,7 @@ else
         Disabled="!changedTranslations.Any()"
     Style="position: fixed; bottom: 20px; right: 20px;"
         OnClick="@ShowSavePreview">
-        Save (@changedTranslations.Count)
+        @translationsService.T("translationsManager", "saveCta") (@changedTranslations.Count)
 </MudButton>
 }
 
@@ -283,7 +283,7 @@ else
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to load translations: {ex.Message}", Severity.Error);
+            Snackbar.Add($"{translationsService.T("translationsManager", "failedToLoadTranslations")}: {ex.Message}", Severity.Error);
             isLoading = false;
         }
     }
@@ -362,7 +362,7 @@ else
     {
         if (!changedTranslations.Any())
         {
-            Snackbar.Add("No changes to save", Severity.Info);
+            Snackbar.Add(translationsService.T("translationsManager", "noChangesToSave"), Severity.Info);
             return;
         }
 
@@ -384,7 +384,7 @@ else
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<TranslationsSavePreviewDialog>("Review Changes", parameters, options);
+        var dialog = await DialogService.ShowAsync<TranslationsSavePreviewDialog>(translationsService.T("translationsManager", "reviewChangesTitle"), parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
@@ -412,9 +412,9 @@ else
 
             await translationsService.UpdateTranslations(translationsToUpdate);
             
-            var message = $"Successfully saved {translationsToUpdate.Count} translation(s).\n\nPlease refresh the page to see the changes reflected in the application.";
+            var message = translationsService.T("translationsManager", "successfullySavedMessage", translationsToUpdate.Count);
             await DialogService.ShowMessageBox(
-                "Translations Saved", 
+                translationsService.T("translationsManager", "translationsSavedTitle"), 
                 message, 
                 yesText: "OK");
 
@@ -422,7 +422,7 @@ else
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Failed to save translations: {ex.Message}", Severity.Error);
+            Snackbar.Add($"{translationsService.T("translationsManager", "failedToSaveTranslations")}: {ex.Message}", Severity.Error);
         }
         finally
         {

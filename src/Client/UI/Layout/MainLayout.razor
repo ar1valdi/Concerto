@@ -12,6 +12,7 @@
 @inject IAppSettingsService AppSettingsService
 @inject IJSRuntime JS
 @inject ITranslationsService LanguageService
+@inject ITranslationsService t
 @inject ILanguageManagementService LanguageManagementService
 
 <CustomStyleProvider DarkMode="@_layoutState.DarkMode" />
@@ -58,21 +59,21 @@
 							<MudLink Color="Color.Default" Underline="Underline.None" Target="_blank" Href="@AppSettingsService.AppSettings.AccountManagementUrl">
 							<MudMenuItemW Icon="@Icons.Material.Filled.ManageAccounts">
 									<MudStack Row="true" Class="">
-										<MudText Typo="Typo.body2">Manage account</MudText>
+										<MudText Typo="Typo.body2">@t.T("mainLayout", "manageAccount")</MudText>
 										<MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.OpenInNew" />
 									</MudStack>
 							</MudMenuItemW>
 							</MudLink>
-							<MudMenuItemW Icon="@(_layoutState.DarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" OnTouch="()=> toggleDarkMode(!_layoutState.DarkMode)" OnClick="() => toggleDarkMode(!_layoutState.DarkMode)">Toggle theme</MudMenuItemW>
-							<MudMenuItemW Icon="@Icons.Material.Filled.Help" OnTouch="GoToManual" OnClick="GoToManual">User manual</MudMenuItemW>
-							<MudMenuItemW Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error" OnTouch="BeginLogout" OnClick="BeginLogout">Log out</MudMenuItemW>
+							<MudMenuItemW Icon="@(_layoutState.DarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" OnTouch="()=> toggleDarkMode(!_layoutState.DarkMode)" OnClick="() => toggleDarkMode(!_layoutState.DarkMode)">@t.T("mainLayout", "toggleTheme")</MudMenuItemW>
+							<MudMenuItemW Icon="@Icons.Material.Filled.Help" OnTouch="GoToManual" OnClick="GoToManual">@t.T("mainLayout", "userManual")</MudMenuItemW>
+							<MudMenuItemW Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error" OnTouch="BeginLogout" OnClick="BeginLogout">@t.T("mainLayout", "logOut")</MudMenuItemW>
 						</ChildContent>
 					</MudMenu>
 				</Authorized>
 				<NotAuthorized>
-					<MudButton Href="manual" Variant="Variant.Text" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Help">User manual</MudButton>
+					<MudButton Href="manual" Variant="Variant.Text" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Help">@t.T("mainLayout", "userManual")</MudButton>
 					<MudStack Row="true">
-						<MudButton Href="authentication/login" Variant="Variant.Text" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Login">Sign in</MudButton>
+						<MudButton Href="authentication/login" Variant="Variant.Text" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Login">@t.T("mainLayout", "signIn")</MudButton>
 					</MudStack>
 				</NotAuthorized>
 			</AuthorizeView>

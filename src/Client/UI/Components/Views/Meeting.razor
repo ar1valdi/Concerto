@@ -4,6 +4,7 @@
 @inject IJSRuntime JS
 @inject IAppSettingsService AppSettingsService
 @inject ISessionService SessionService
+@inject ITranslationsService t
 
 <div style="@MeetingStyle">
     @if (!LayoutState.IsMobile)
@@ -31,10 +32,10 @@
     {
         <div style="height: 100%; display: grid; grid-template-rows: min-content 1fr;">
             <MudButton StartIcon="@Icons.Material.Filled.OpenInNew" Color="Color.Default" Variant="Variant.Filled" DisableElevation="true" Href="@_downloadJitsiUrl" Target="_blank">
-                Download Jitsi Meet app
+                @t.T("meeting", "downloadJitsiApp")
             </MudButton>
             <MudButton StartIcon="@Icons.Material.Filled.OpenInNew" Color="Color.Default" Variant="Variant.Filled" DisableElevation="true" OnClick="OpenInApp">
-                Open meeting in Jitsi Meet app (needs to be installed)
+                @t.T("meeting", "openInApp")
             </MudButton>
         </div>
     }

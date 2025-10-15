@@ -6,6 +6,7 @@ namespace Concerto.Client.Services
     public interface ITranslationsService
     {
         public string T(string view, string key);
+        public string T(string view, string key, params object[] args);
         public Task ChangeLanguage(string lang);
         public string GetCurrentLanguage();
         public Task FetchTranslationsFromLastUpdatedAsync(string lang);
@@ -123,6 +124,13 @@ namespace Concerto.Client.Services
         {
             var val = translations.GetValueOrDefault($"{view}:{key}");
             return val ?? key;
+        }
+
+        public string T(string view, string key, params object[] args)
+        {
+            var val = translations.GetValueOrDefault($"{view}:{key}");
+            if (val is null) return key;
+            return string.Format(val, args);
         }
 
         public async Task UpdateTranslations(List<Translation> updatedTranslations)

@@ -1,7 +1,8 @@
 ﻿@implements IDisposable
 @inject IWorkspaceService WorkspaceService
+@inject ITranslationsService t
 
-<MudNavGroup Class="hidden" Title="Workspaces" Icon="@Icons.Material.Filled.MenuBook" ExpandIcon="@Icons.Material.Filled.ArrowDownward" Expanded="true">
+<MudNavGroup Class="hidden" Title="@t.T("navigation", "workspaces")" Icon="@Icons.Material.Filled.MenuBook" ExpandIcon="@Icons.Material.Filled.ArrowDownward" Expanded="true">
 	@if (_workspacesList is null)
 	{
 		<MudNavLink Href="#">

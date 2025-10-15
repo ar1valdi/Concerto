@@ -1,12 +1,13 @@
 ﻿@inject ISnackbar Snackbar
 @inject IStorageService StorageService
+@inject ITranslationsService t
 
 <MudDialog>
 	<TitleContent>
-		<MudText Typo="Typo.h6">
-			<MudIcon Icon="@Icons.Material.Filled.Settings" Class="mr-3 mb-n1"/>
-			File settings
-		</MudText>
+			<MudText Typo="Typo.h6">
+				<MudIcon Icon="@Icons.Material.Filled.Settings" Class="mr-3 mb-n1"/>
+				@t.T("updateFileDialog", "title")
+			</MudText>
 	</TitleContent>
 	<DialogContent>
 		@if (Loading)
@@ -15,12 +16,12 @@
 		}
 		else
 		{
-			<MudTextField @bind-Value="_request.Name" T="string" Label="File name"></MudTextField>
+			<MudTextField @bind-Value="_request.Name" T="string" Label="@t.T("updateFileDialog", "fileNameLabel")"></MudTextField>
 		}
 	</DialogContent>
 	<DialogActions>
-		<MudButton OnClick="Cancel">Cancel</MudButton>
-		<MudButton Color="Color.Primary" OnClick="Submit">Update</MudButton>
+		<MudButton OnClick="Cancel">@t.T("updateFileDialog", "cancel")</MudButton>
+		<MudButton Color="Color.Primary" OnClick="Submit">@t.T("updateFileDialog", "update")</MudButton>
 	</DialogActions>
 </MudDialog>
 
@@ -57,18 +58,18 @@
 	{
 		if (string.IsNullOrEmpty(_request.Name))
 		{
-			Snackbar.Add("File name cannot be empty", Severity.Error);
+			Snackbar.Add(@t.T("updateFileDialog", "fileNameCannotBeEmpty"), Severity.Error);
 			return;
 		}
 		try
 		{
 			await StorageService.UpdateFileAsync(_request);
-			Snackbar.Add($"File {_settings.Name} updated", Severity.Success);
+			Snackbar.Add($"{@t.T("updateFileDialog", "file")} {_settings.Name} {@t.T("updateFileDialog", "updated")}", Severity.Success);
 			Dialog.Close(DialogResult.Ok(true));
 		}
 		catch
 		{
-			Snackbar.Add($"Failed to update file {_settings.Name}", Severity.Error);
+			Snackbar.Add($"{@t.T("updateFileDialog", "failedToUpdateFile")} {_settings.Name}", Severity.Error);
 		}
 	}
 

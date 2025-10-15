@@ -2,34 +2,35 @@
 
 @inject IAccountClient AccountService
 @inject ISnackbar Snackbar
+@inject ITranslationsService t
 
 
 <MudDialog>
 	<TitleContent>
-		<MudText Typo="Typo.h6" Class="mr-8">
+        <MudText Typo="Typo.h6" Class="mr-8">
 			<MudIcon Class="text-icon" Icon="@Icons.Material.Filled.Settings"/>
-			User settings
+            @t.T("updateUserDialog", "title")
 		</MudText>
 	</TitleContent>
 	<DialogContent>
         <MudStack Spacing="2">
 
 			<MudStack Justify="Justify.Center" Spacing="0">
-				<MudText Typo="Typo.caption">Name</MudText>
+                <MudText Typo="Typo.caption">@t.T("updateUserDialog", "nameLabel")</MudText>
 				<MudText Class="pl-1" Typo="Typo.body1">@user.FullName</MudText>
 			</MudStack>
 
 			<MudStack Justify="Justify.Center" Spacing="0">
-				<MudText Typo="Typo.caption">Username</MudText>
+                <MudText Typo="Typo.caption">@t.T("updateUserDialog", "usernameLabel")</MudText>
 				<MudText Class="pl-1"  Typo="Typo.body1">@user.Username</MudText>
 			</MudStack>
 
 			<MudStack Justify="Justify.Center" Spacing="0">
-				<MudText Typo="Typo.caption">Email</MudText>
+                <MudText Typo="Typo.caption">@t.T("updateUserDialog", "emailLabel")</MudText>
 				<MudText Class="pl-1" Typo="Typo.body1">@user.Email</MudText>
 			</MudStack>
 
-			<MudSelect @bind-Value="newRole" Margin="Margin.Dense" Variant="Variant.Outlined" Label="Role">
+            <MudSelect @bind-Value="newRole" Margin="Margin.Dense" Variant="Variant.Outlined" Label="@t.T("updateUserDialog", "roleLabel")">
 				<MudSelectItem Value="Role.User">@Role.User.ToDisplayString()</MudSelectItem>
 				<MudSelectItem Value="Role.Teacher">@Role.Teacher.ToDisplayString()</MudSelectItem>
                 <MudSelectItem Value="Role.Admin">@Role.Admin.ToDisplayString()</MudSelectItem>
@@ -38,8 +39,8 @@
         </MudStack>
 	</DialogContent>
 	<DialogActions>
-		<MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
-		<MudButton Color="Color.Success" Variant="Variant.Filled" Disabled="!Changed" OnClick="Submit">Update</MudButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="Cancel">@t.T("common", "cancelButton")</MudButton>
+        <MudButton Color="Color.Success" Variant="Variant.Filled" Disabled="!Changed" OnClick="Submit">@t.T("common", "updateButton")</MudButton>
 	</DialogActions>
 </MudDialog>
 
