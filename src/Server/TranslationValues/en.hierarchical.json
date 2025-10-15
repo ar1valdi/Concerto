@@ -74,7 +74,9 @@
     "saveInWorkspace": "Save in workspace",
     "saveOnComputer": "Save on computer",
     "discardButton": "Discard",
-    "noneOption": "None"
+    "noneOption": "None",
+    "audioOnlyRecording": "Audio only recording",
+    "noneAudioOnly": "None (Audio only)"
   },
   "tokenDebug": {
     "pageTitle": "Index",

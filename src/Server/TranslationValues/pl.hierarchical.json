@@ -74,7 +74,9 @@
     "saveInWorkspace": "Zapisz w przestrzeni roboczej",
     "saveOnComputer": "Zapisz na komputerze",
     "discardButton": "Odrzuć",
-    "noneOption": "Brak"
+    "noneOption": "Brak",
+    "audioOnlyRecording": "Nagrywanie tylko audio",
+    "noneAudioOnly": "Brak (tylko audio)"
   },
   "tokenDebug": {
     "pageTitle": "Indeks",
