@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using MudBlazor;
 using Microsoft.JSInterop;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.AspNetCore.Components;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -63,6 +65,25 @@ builder.Services.AddScoped<ILanguageService, LanguageService>(sp =>
     var httpClient = clientFactory.CreateClient("AnonymousClient");
     var jsRuntime = sp.GetRequiredService<IJSRuntime>();
     return new LanguageService(httpClient, jsRuntime);
+});
+builder.Services.AddScoped<HubConnection>(sp =>
+{
+    var navigation = sp.GetRequiredService<NavigationManager>();
+    var accessTokenProvider = sp.GetRequiredService<IAccessTokenProvider>();
+    var hubConnection = new HubConnectionBuilder()
+        .WithUrl(navigation.ToAbsoluteUri("/notifications"), options =>
+        {
+            options.AccessTokenProvider = async () =>
+            {
+                var result = await accessTokenProvider.RequestAccessToken();
+                if (result.TryGetToken(out var token))
+                    return token.Value;
+                return null;
+            };
+        })
+        .WithAutomaticReconnect()
+        .Build();
+    return hubConnection;
 });
 // builder.Services.AddScoped<ClientNotificationService, ClientNotificationService>();
 
