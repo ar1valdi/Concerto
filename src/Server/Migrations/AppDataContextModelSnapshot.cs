@@ -17,7 +17,7 @@ namespace Concerto.Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -406,7 +406,8 @@ namespace Concerto.Server.Migrations
                     b.HasOne("Concerto.Server.Data.Models.Workspace", "Workspace")
                         .WithMany()
                         .HasForeignKey("WorkspaceId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.OwnsOne("Concerto.Server.Data.Models.FolderPermission", "WorkspacePermission", b1 =>
                         {
@@ -448,7 +449,8 @@ namespace Concerto.Server.Migrations
                     b.HasOne("Concerto.Server.Data.Models.Workspace", "Workspace")
                         .WithMany("Posts")
                         .HasForeignKey("WorkspaceId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Author");
 

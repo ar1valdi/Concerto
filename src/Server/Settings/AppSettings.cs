@@ -1,5 +1,4 @@
 ﻿using Concerto.Server.Extensions;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Concerto.Server.Settings;
 
@@ -9,7 +8,7 @@ public static class AppSettings
 	{
 		public static string AppUrl => $"{PublicUrl}{BasePath}";
 		public static string PublicUrl = EnvironmentHelper.GetVariable("CONCERTO_BASE_URL");
-		public static string BasePath = EnvironmentHelper.GetVariable("CONCERTO_BASE_PATH").IsNullOrEmpty()
+		public static string BasePath = string.IsNullOrEmpty(EnvironmentHelper.GetVariable("CONCERTO_BASE_PATH"))
 										? ""
 										: EnvironmentHelper.GetVariable("CONCERTO_BASE_PATH");
 	}
@@ -22,7 +21,7 @@ public static class AppSettings
 
 	public static class Storage
 	{
-		public static string StoragePath = EnvironmentHelper.GetVariable("CONCERTO_STORAGE_PATH").IsNullOrEmpty()
+		public static string StoragePath = string.IsNullOrEmpty(EnvironmentHelper.GetVariable("CONCERTO_STORAGE_PATH"))
 										   ? "/srv/concerto/storage"
 										   : EnvironmentHelper.GetVariable("CONCERTO_STORAGE_PATH");
 		public static string TempPath = Path.Combine(StoragePath, "tmp");
