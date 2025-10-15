@@ -83,16 +83,18 @@ public class StorageService
 		var subFolders = new List<Dto.FolderItem>();
 		foreach (var subFolder in folder.SubFolders)
 		{
+			await _context.Entry(subFolder).Collection(f => f.SubFolders).LoadAsync();
+			await _context.Entry(subFolder).Collection(f => f.Files).LoadAsync();
 			if (isAdmin)
 			{
-				subFolders.Add(subFolder.ToFolderItem(true, true, await CanDeleteFolder(userId, subFolder.Id)));
+				subFolders.Add(subFolder.ToFolderItem(true, true, await CanDeleteFolder(userId, subFolder.Id), hasChildren: subFolder.SubFolders.Any() || subFolder.Files.Any()));
 			}
 			else
 			{
 				var canWrite = await CanWriteInFolder(userId, subFolder.Id);
 				var canEdit = await CanEditFolder(userId, subFolder.Id);
 				var canDelete = await CanDeleteFolder(userId, subFolder.Id);
-				subFolders.Add(subFolder.ToFolderItem(canWrite, canEdit, canDelete));
+				subFolders.Add(subFolder.ToFolderItem(canWrite, canEdit, canDelete, hasChildren: subFolder.SubFolders.Any() || subFolder.Files.Any()));
 			}
 		}
 
@@ -109,14 +111,14 @@ public class StorageService
 		Dto.FolderItem selfFolderItem;
 		if (isAdmin)
 		{
-			selfFolderItem = folder.ToFolderItem(true, true, true);
+			selfFolderItem = folder.ToFolderItem(true, true, true, hasChildren: subFolders.Any() || files.Any());
 		}
 		else
 		{
 			var canWrite = await CanWriteInFolder(userId, folder.Id);
 			var canEdit = await CanEditFolder(userId, folder.Id);
 			var canDelete = await CanDeleteFolder(userId, folder.Id);
-			selfFolderItem = folder.ToFolderItem(canWrite, canEdit, canDelete);
+			selfFolderItem = folder.ToFolderItem(canWrite, canEdit, canDelete, hasChildren: subFolders.Any() || files.Any());
 		}
 
 		return new Dto.FolderContent
