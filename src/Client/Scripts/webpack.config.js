@@ -4,7 +4,8 @@ const webpack = require('webpack');
 
 module.exports = {
     entry: {
-        bundle: './src/bundle.js'
+        bundle: './src/bundle.js',
+        recorder: './src/recorder-bundle.js'
     },
     module: {
       rules: [
