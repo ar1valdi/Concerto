@@ -1,12 +1,8 @@
-const { type } = require("os");
 const path = require("path");
 const webpack = require('webpack');
 
 module.exports = {
-    entry: {
-        bundle: './src/bundle.js',
-        recorder: './src/recorder-bundle.js'
-    },
+    entry: './src/recorder-bundle.js',
     module: {
       rules: [
         {
@@ -55,11 +51,10 @@ module.exports = {
       extensions: ['.tsx', '.ts', '.js', '.css', '.html'],
     },
     output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: '[name].js'
+        path: path.resolve(__dirname, '../wwwroot/js/node'),
+        filename: 'recorder.js'
     },
     node: {
       global: true
     }
-
-  };
+};
