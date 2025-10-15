@@ -2,14 +2,16 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 
-<PageTitle>Index</PageTitle>
+@inject ITranslationsService t
 
-<MudText Typo="Typo.h3" GutterBottom="true">Home</MudText>
-<MudText Class="mb-8">Welcome to Concerto</MudText>
+<PageTitle>@t.T("tokenDebug", "pageTitle")</PageTitle>
 
-<h3>ClaimsPrincipal Data</h3>
+<MudText Typo="Typo.h3" GutterBottom="true">@t.T("tokenDebug", "homeHeader")</MudText>
+<MudText Class="mb-8">@t.T("tokenDebug", "welcome")</MudText>
 
-<button @onclick="GetClaimsPrincipalData">Get ClaimsPrincipal Data</button>
+<h3>@t.T("tokenDebug", "claimsHeader")</h3>
+
+<button @onclick="GetClaimsPrincipalData">@t.T("tokenDebug", "getClaimsButton")</button>
 
 <p>@authMessage</p>
 
@@ -45,14 +47,14 @@
 
 		if (user.Identity!.IsAuthenticated)
 		{
-			authMessage = $"{user.Identity.Name} is authenticated.";
+            authMessage = $"{user.Identity.Name}{t.T("tokenDebug", "isAuthenticatedSuffix")}";
 			claims = user.Claims;
 			surnameMessage =
 				$"Surname: {user.FindFirst(c => c.Type == ClaimTypes.Surname)?.Value}";
 		}
 		else
 		{
-			authMessage = "The user is NOT authenticated.";
+            authMessage = t.T("tokenDebug", "notAuthenticated");
 		}
 	}
 

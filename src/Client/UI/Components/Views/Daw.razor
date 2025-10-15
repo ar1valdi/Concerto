@@ -1,5 +1,6 @@
 ﻿@using Concerto.Shared.Constants;
 @using Microsoft.AspNetCore.SignalR.Client;
+@inject ITranslationsService t
 
 <style>
     .daw-container {
@@ -370,7 +371,7 @@
 
                         </div>
 
-                        <input value="@track.Name" placeholder="Unnamed track"
+                        <input value="@track.Name" placeholder="@t.T("daw", "unnamedTrack")"
                                 @onchange="async (e) => await SetTrackName(track, e.GetStringValue())" disabled="@(!track.IsSelected)"  class="daw-track-controls-name" />
 
 
@@ -378,13 +379,13 @@
                             <MudButton OnClick="() => DawInterop.ToggleMute(track)"
                                DisableElevation="true" Variant="Variant.Filled" Size="Size.Small"
                                Color="track.IsMuted ? Color.Primary : Color.Default">
-                                Mute
+                                @t.T("daw", "mute")
                             </MudButton>
 
                             <MudButton OnClick="() => DawInterop.ToggleSolo(track)"
                                DisableElevation="true" Variant="Variant.Filled" Size="Size.Small"
                                Color="track.IsSolo ? Color.Primary : Color.Default">
-                                Solo
+                                @t.T("daw", "solo")
                             </MudButton>
                         </div>
 
@@ -419,7 +420,7 @@
                 <MudButton OnClick="AddTrack" Class="flex-grow-1" Disabled="IsPlaying || IsRecording || IsRecordingPending"
                        DisableElevation="true" Variant="Variant.Filled" Size="Size.Small"
                        Color="Color.Success" StartIcon="@Icons.Material.Filled.Add">
-                    Add Track
+                    @t.T("daw", "addTrack")
                 </MudButton>
             }
 

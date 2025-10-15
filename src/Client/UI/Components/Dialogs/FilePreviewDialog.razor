@@ -2,6 +2,7 @@
 
 @inject IStorageService StorageService
 @inject NavigationManager Navigation
+@inject ITranslationsService t
 
 		<style>
 			.preview {
@@ -55,12 +56,12 @@
 					if(_fullMimeType == "application/pdf" && !LayoutState.IsIos)
 					{
 						<object data="@_url" type="@_fullMimeType" class="@previewClass">
-							<p>Your browser doesn't support PDF preview</p>
+							<p>@t.T("filePreviewDialog", "browserDoesntSupportPdf")</p>
 						</object>
 					}
 					else
 					{
-                        <p>Cannot preview this file</p>
+					<p>@t.T("filePreviewDialog", "cannotPreviewFile")</p>
                     }
                 break;
             
@@ -70,8 +71,8 @@
 	</DialogContent>
 	
 	<DialogActions>
-		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">Close</MudButton>
-		<MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Submit">Download</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">@t.T("filePreviewDialog", "close")</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Submit">@t.T("filePreviewDialog", "download")</MudButton>
 	</DialogActions>
 </MudDialog>
 

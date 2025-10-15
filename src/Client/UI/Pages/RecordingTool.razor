@@ -6,7 +6,9 @@
 @inject IDialogService DialogService
 @implements IAsyncDisposable
 
-<PageTitle>@($"Video recorder")</PageTitle>
+@inject ITranslationsService t
+
+<PageTitle>@t.T("recordingTool", "pageTitle")</PageTitle>
 
 <style>
     .container {
@@ -43,7 +45,7 @@
 @if (LayoutState.IsMobile)
 {
     <div class="d-flex align-center justify-center" style="height: 100%">
-        <MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">Feature unavailable on mobile devices</MudText>
+        <MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@t.T("recordingTool", "mobileUnavailable")</MudText>
     </div>
 }
 else
@@ -51,7 +53,7 @@ else
     <div class="container pa-1">
         <div class="buttons d-flex py-1 ">
             <MudText Typo="Typo.caption" Style="align-self: center; margin-right: 8px; color: #666;">
-                Audio only recording
+                @t.T("recordingTool", "audioOnlyRecording")
             </MudText>
 
             @if(!IsRecordingPending)
@@ -59,29 +61,29 @@ else
                 @if (!IsRecording)
                 {
                     <MudButton StartIcon="@Icons.Material.Filled.FiberManualRecord" IconColor="Color.Error" Color="Color.Success" Variant="Variant.Filled" DisableElevation="true" OnClick="StartRecording">
-                        Record
+                        @t.T("recordingTool", "recordButton")
                     </MudButton>
                 }
                 else
                 {
                     <MudButton StartIcon="@Icons.Material.Filled.Stop" IconColor="Color.Default" Color="Color.Error" Variant="Variant.Filled" DisableElevation="true" OnClick="StopRecording">
-                        Stop
+                        @t.T("recordingTool", "stopButton")
                     </MudButton>
                 }
             }
             else
             {
                 <MudButton StartIcon="@Icons.Material.Filled.CloudUpload" Color="Color.Success" Variant="Variant.Filled" DisableElevation="true" OnClick="SaveRecording"  Disabled="@string.IsNullOrWhiteSpace(RecordingName)">
-                    Save in workspace
+                    @t.T("recordingTool", "saveInWorkspace")
                 </MudButton>
                 <MudButton StartIcon="@Icons.Material.Filled.Save" Color="Color.Success" Variant="Variant.Filled" DisableElevation="true" OnClick="SaveRecordingLocally" Disabled="@string.IsNullOrWhiteSpace(RecordingName)">
-                    Save on computer
+                    @t.T("recordingTool", "saveOnComputer")
                 </MudButton>
                 <MudButton StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" Variant="Variant.Filled" DisableElevation="true" OnClick="DiscardRecording"> 
-                    Discard
+                    @t.T("recordingTool", "discardButton")
                 </MudButton>
 
-                <MudInput @bind-Value="RecordingName" Placeholder="Recording name" Immediate="true" Label="Recording name" Variant="Variant.Filled" Margin="Margin.None" Class="pa-0" />
+                <MudInput @bind-Value="RecordingName" Placeholder=@t.T("recordingTool", "recordingName") Immediate="true" Label=@t.T("recordingTool", "recordingName") Variant="Variant.Filled" Margin="Margin.None" Class="pa-0" />
 
             }
 
@@ -96,7 +98,7 @@ else
                         }
                         @if (!audioInputs.Any())
                         {
-                            <option value="@string.Empty">None</option>
+                            <option value="@string.Empty">@t.T("recordingTool", "noneOption")</option>
                         }
                     </select>
                 </div>
@@ -104,7 +106,7 @@ else
                 <div class="d-flex ">
                     <MudIcon Style="align-self: center; margin-right: 2px;" Icon="@Icons.Material.Filled.CameraAlt" />
                     <select style="align-self: stretch; flex-shrink: 1; max-width: 150px;" onclick="@(() => FetchMediaInputs())" @bind="SelectedVideoInputId">
-                        <option value="@string.Empty">None (Audio only)</option>
+                        <option value="@string.Empty">@t.T("recordingTool", "noneAudioOnly")</option>
                         @foreach (var input in videoInputs)
                         {
                             <option value="@input.Id">@input.Name</option>
@@ -246,7 +248,7 @@ else
         IsRecordingPending = true;
         _recording = recording;
         _extension = extension;
-        RecordingName = $"Recording-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}";
+        RecordingName = $"{t.T("recordingTool", "recordingPrefix")}{DateTime.Now:yyyy-MM-dd-HH-mm-ss}";
         StateHasChanged();
     }
 
@@ -257,7 +259,7 @@ else
 
     public async Task SaveRecording()
     {
-        var destinationFolder = await DialogService.ShowSelectFolderDialog("Select folder for recording", "Save here");
+        var destinationFolder = await DialogService.ShowSelectFolderDialog(t.T("recordingTool", "selectFolderDialogTitle"), t.T("recordingTool", "selectFolderDialogConfirm"));
         if (destinationFolder is null) return;
         if (_recording is null) return;
         if (string.IsNullOrWhiteSpace(RecordingName)) return;

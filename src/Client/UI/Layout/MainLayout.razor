@@ -2,6 +2,8 @@
 @using Microsoft.Extensions.Options
 @using Microsoft.AspNetCore.Components.Authorization
 @using Blazored.LocalStorage
+@using Concerto.Client.Services
+@using Concerto.Shared.Models.Dto
 @inherits LayoutComponentBase
 
 @inject NavigationManager Navigation
@@ -9,7 +11,9 @@
 @inject ISyncLocalStorageService LocalStorage
 @inject IAppSettingsService AppSettingsService
 @inject IJSRuntime JS
-@inject ILanguageService LanguageService
+@inject ITranslationsService LanguageService
+@inject ITranslationsService t
+@inject ILanguageManagementService LanguageManagementService
 
 <CustomStyleProvider DarkMode="@_layoutState.DarkMode" />
 <MudThemeProvider @bind-IsDarkMode="@_layoutState.DarkMode" />
@@ -24,12 +28,18 @@
 		<MudAppBar Elevation="0" Dense="true">
 			<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@(e => DrawerToggle())" />
 			<NavigationToolbar />
-			<MudButton OnClick="@(() => ChangeLanguage(Language.PL))" Variant="Variant.Text" Color="Color.Secondary">
-				PL
-			</MudButton>
-			<MudButton OnClick="@(() => ChangeLanguage(Language.EN))" Variant="Variant.Text" Color="Color.Secondary">
-				EN
-			</MudButton>
+			<MudSelect 
+						Value="_selectedLanguage"
+						ValueChanged="OnLanguageChanged"
+						OpenIcon="@Icons.Material.Filled.Language"
+						Style="max-width: 120px;"
+						Margin="Margin.Dense"
+						T="string">
+				@foreach (var language in _availableLanguages)
+				{
+					<MudSelectItem Value="@language.Key">@language.Name</MudSelectItem>
+				}
+			</MudSelect>
 			<AuthorizeView Policy="@AuthorizationPolicies.IsAuthenticated.Name">
 				<Authorized>
 					<UploadManager />
@@ -49,21 +59,21 @@
 							<MudLink Color="Color.Default" Underline="Underline.None" Target="_blank" Href="@AppSettingsService.AppSettings.AccountManagementUrl">
 							<MudMenuItemW Icon="@Icons.Material.Filled.ManageAccounts">
 									<MudStack Row="true" Class="">
-										<MudText Typo="Typo.body2">Manage account</MudText>
+										<MudText Typo="Typo.body2">@t.T("mainLayout", "manageAccount")</MudText>
 										<MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.OpenInNew" />
 									</MudStack>
 							</MudMenuItemW>
 							</MudLink>
-							<MudMenuItemW Icon="@(_layoutState.DarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" OnTouch="()=> toggleDarkMode(!_layoutState.DarkMode)" OnClick="() => toggleDarkMode(!_layoutState.DarkMode)">Toggle theme</MudMenuItemW>
-							<MudMenuItemW Icon="@Icons.Material.Filled.Help" OnTouch="GoToManual" OnClick="GoToManual">User manual</MudMenuItemW>
-							<MudMenuItemW Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error" OnTouch="BeginLogout" OnClick="BeginLogout">Log out</MudMenuItemW>
+							<MudMenuItemW Icon="@(_layoutState.DarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" OnTouch="()=> toggleDarkMode(!_layoutState.DarkMode)" OnClick="() => toggleDarkMode(!_layoutState.DarkMode)">@t.T("mainLayout", "toggleTheme")</MudMenuItemW>
+							<MudMenuItemW Icon="@Icons.Material.Filled.Help" OnTouch="GoToManual" OnClick="GoToManual">@t.T("mainLayout", "userManual")</MudMenuItemW>
+							<MudMenuItemW Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error" OnTouch="BeginLogout" OnClick="BeginLogout">@t.T("mainLayout", "logOut")</MudMenuItemW>
 						</ChildContent>
 					</MudMenu>
 				</Authorized>
 				<NotAuthorized>
-					<MudButton Href="manual" Variant="Variant.Text" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Help">User manual</MudButton>
+					<MudButton Href="manual" Variant="Variant.Text" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Help">@t.T("mainLayout", "userManual")</MudButton>
 					<MudStack Row="true">
-						<MudButton Href="authentication/login" Variant="Variant.Text" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Login">Sign in</MudButton>
+						<MudButton Href="authentication/login" Variant="Variant.Text" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Login">@t.T("mainLayout", "signIn")</MudButton>
 					</MudStack>
 				</NotAuthorized>
 			</AuthorizeView>
@@ -97,10 +107,27 @@
 
 	bool _drawerOpen = true;
 
-	private async Task ChangeLanguage(Language lang)
+	private List<Language> _availableLanguages = new();
+	private string _selectedLanguage;
+	
+	protected override void OnInitialized()
+	{
+		_selectedLanguage = LanguageService.GetCurrentLanguage();
+	}
+
+	private async Task ChangeLanguage(string lang)
 	{
 		await LanguageService.ChangeLanguage(lang);
 		StateHasChanged();
+	}
+
+	private async Task OnLanguageChanged(string newLanguage)
+	{
+		if (!string.IsNullOrEmpty(newLanguage))
+		{
+			_selectedLanguage = newLanguage;
+			await ChangeLanguage(newLanguage);
+		}
 	}
 
 	void DrawerToggle()
@@ -131,7 +158,7 @@
 		_layoutState = _layoutState with { DarkMode = darkMode };
 	}
 
-	protected override void OnInitialized()
+	protected override async Task OnInitializedAsync()
 	{
 		var updatedLayout = _layoutState with { };
 
@@ -146,6 +173,25 @@
 			updatedLayout.IsIos = LocalStorage.GetItem<bool>("isIos");
 
 		_layoutState = updatedLayout;
+
+		await LoadAvailableLanguages();
+		_selectedLanguage = LanguageService.GetCurrentLanguage();
+	}
+
+	private async Task LoadAvailableLanguages()
+	{
+		try
+		{
+			_availableLanguages = await LanguageManagementService.GetAvailableLanguagesAsync();
+		}
+		catch
+		{
+			// fallback
+			_availableLanguages = new List<Language>
+			{
+				new Language { Key = "en", Name = "English", IsPublic = true },
+			};
+		}
 	}
 
 	private void OnBreakpointChanged(Breakpoint breakpoint)

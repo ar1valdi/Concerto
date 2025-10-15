@@ -1,4 +1,6 @@
-﻿<CascadingAuthenticationState>
+﻿@inject ITranslationsService t
+
+<CascadingAuthenticationState>
 	<Router AppAssembly="@typeof(App).Assembly"
 	        AdditionalAssemblies="new[] { typeof(MainLayout).Assembly }">
 
@@ -7,21 +9,21 @@
 				<Authorizing>
 					<div class="d-flex align-center justify-center" style="height: 100%">
 						<MudSkeleton Style="position: absolute" Animation="Animation.Wave" SkeletonType="SkeletonType.Rectangle" Width="100%" Height="100%" />
-						<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">Authorizing...</MudText>
+						<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@t.T("app", "authorizing")</MudText>
 					</div>
 				</Authorizing>
 				<NotAuthorized>
 					<div class="d-flex align-center justify-center" style="height: 100%">
-						<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">Please log in to continue.</MudText>
+						<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@t.T("app", "pleaseLogIn")</MudText>
 					</div>
 				</NotAuthorized>
 			</AuthorizeRouteView>
 		</Found>
 		<NotFound>
-			<PageTitle>Not found</PageTitle>
+			<PageTitle>@t.T("app", "notFoundTitle")</PageTitle>
 			<LayoutView Layout="@typeof(MainLayout)">
 				<div class="d-flex align-center justify-center" style="height: 100%">
-					<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">Sorry, there's nothing at this address.</MudText>
+					<MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">@t.T("app", "notFoundBody")</MudText>
 				</div>
 			</LayoutView>
 		</NotFound>

@@ -1,19 +1,20 @@
 ﻿@inherits MudComponentBase
 
 @inject IAccountClient AccountService
+@inject ITranslationsService translationsService
 @inject IDialogService DialogService
 
 <MudTable T="UserIdentity" Items="Users" Loading="Loading"
 		  Height="100%" Class="@Class" Style="@($"height: 100%; display: grid; grid-template-rows: min-content 1fr; {Style}")" RowsPerPage="PageSize.Default" Filter="new Func<UserIdentity, bool>(UserFilter)"
 		  FixedHeader="true" FixedFooter="true" Outlined="true" Hover="true" Elevation="0">
 
-	<ToolBarContent>
-		<MudText Class="mr-2" Typo="Typo.subtitle1">Users</MudText>
+    <ToolBarContent>
+        <MudText Class="mr-2" Typo="Typo.subtitle1">@translationsService.T("userManager", "title")</MudText>
 		<MudSpacer />
-		<MudTextField @bind-Value="_searchString" Immediate="true" DebounceInterval="200" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
+        <MudTextField @bind-Value="_searchString" Immediate="true" DebounceInterval="200" Placeholder="@translationsService.T("common", "search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
 					  Class="mt-0 mr-2" Style="" />
 		<MudSpacer />
-		<MudIconButton Title="Refresh" Variant="Variant.Filled" Color="Color.Default" DisableElevation="true" Icon="@Icons.Material.Filled.Refresh"
+        <MudIconButton Title="@translationsService.T("common", "refresh")" Variant="Variant.Filled" Color="Color.Default" DisableElevation="true" Icon="@Icons.Material.Filled.Refresh"
 					   OnClick="Load" />
 	</ToolBarContent>
 
@@ -27,34 +28,34 @@
 	</ColGroup>
 
 	<HeaderContent>
-		<MudTh>
-			<MudTableSortLabel SortBy="new Func<UserIdentity, object>(x => x.FirstName)">Name</MudTableSortLabel>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<UserIdentity, object>(x => x.FirstName)">@translationsService.T("userManager", "nameColumn")</MudTableSortLabel>
 		</MudTh>
 		<MudTh>
-			<MudTableSortLabel SortBy="new Func<UserIdentity, object>(x => x.LastName)" InitialDirection="SortDirection.Ascending">Surname</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<UserIdentity, object>(x => x.LastName)" InitialDirection="SortDirection.Ascending">@translationsService.T("userManager", "surnameColumn")</MudTableSortLabel>
 		</MudTh>
 		<MudTh>
-			<MudTableSortLabel SortBy="new Func<UserIdentity, object>(x => x.Username)">Username</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<UserIdentity, object>(x => x.Username)">@translationsService.T("userManager", "usernameColumn")</MudTableSortLabel>
 		</MudTh>
 		<MudTh>
-			<MudTableSortLabel SortBy="new Func<UserIdentity, object>(x => x.Email)">Email</MudTableSortLabel>
-		</MudTh>
-
-		<MudTh>
-			<MudTableSortLabel SortBy="new Func<UserIdentity, object>(x => x.Role.ToDisplayString())">Role</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<UserIdentity, object>(x => x.Email)">@translationsService.T("userManager", "emailColumn")</MudTableSortLabel>
 		</MudTh>
 
 		<MudTh>
-			Actions
+            <MudTableSortLabel SortBy="new Func<UserIdentity, object>(x => x.Role.ToDisplayString())">@translationsService.T("userManager", "roleColumn")</MudTableSortLabel>
+		</MudTh>
+
+		<MudTh>
+            @translationsService.T("common", "actions")
 		</MudTh>
 
 	</HeaderContent>
 
 	<RowTemplate>
-		<MudTd DataLabel="Name">@context.FirstName</MudTd>
-		<MudTd DataLabel="Surname">@context.LastName</MudTd>
-		<MudTd DataLabel="Username">@context.Username</MudTd>
-		<MudTd DataLabel="Email">
+        <MudTd DataLabel="@translationsService.T("userManager", "nameColumn")">@context.FirstName</MudTd>
+        <MudTd DataLabel="@translationsService.T("userManager", "surnameColumn")">@context.LastName</MudTd>
+        <MudTd DataLabel="@translationsService.T("userManager", "usernameColumn")">@context.Username</MudTd>
+        <MudTd DataLabel="@translationsService.T("userManager", "emailColumn")">
 			<div>
 				@if (context.EmailVerified)
 				{
@@ -69,7 +70,7 @@
 		</MudTd>
 
 
-		<MudTd DataLabel="Role">
+        <MudTd DataLabel="@translationsService.T("userManager", "roleColumn")">
 			<div>
 				@if (context.Role is Role.Unverified)
 				{
@@ -83,21 +84,21 @@
 			</div>
 		</MudTd>
 
-		<MudTd DataLabel="Actions">
+        <MudTd DataLabel="@translationsService.T("common", "actions")">
 
 			<div>
 				@if (Unverified && context.Role == Role.Unverified)
 				{
-					<MudIconButton Title="Confirm user" Disabled="!context.EmailVerified" Variant="Variant.Filled" Color="Color.Success" DisableElevation="true" Icon="@Icons.Material.Filled.Check"
+                    <MudIconButton Title="@translationsService.T("userManager", "confirmUser")" Disabled="!context.EmailVerified" Variant="Variant.Filled" Color="Color.Success" DisableElevation="true" Icon="@Icons.Material.Filled.Check"
 							   OnClick="async () => await VerifyUser(context)" />
-					<MudIconButton Title="Reject user" Variant="Variant.Filled" Color="Color.Error" DisableElevation="true" Icon="@Icons.Material.Filled.Close"
+                    <MudIconButton Title="@translationsService.T("userManager", "rejectUser")" Variant="Variant.Filled" Color="Color.Error" DisableElevation="true" Icon="@Icons.Material.Filled.Close"
 							   OnClick="async () => await DeleteUser(context)" />
 				}
 				else
 				{
-					<MudIconButton Title="Settings" Variant="Variant.Filled" Color="Color.Info" DisableElevation="true" Icon="@Icons.Material.Filled.Settings"
+                    <MudIconButton Title="@translationsService.T("common", "settings")" Variant="Variant.Filled" Color="Color.Info" DisableElevation="true" Icon="@Icons.Material.Filled.Settings"
 							   OnClick="async () => await UpdateUser(context)" />
-					<MudIconButton Title="Delete user" Variant="Variant.Filled" Color="Color.Error" DisableElevation="true" Icon="@Icons.Material.Filled.PersonRemove"
+                    <MudIconButton Title="@translationsService.T("userManager", "deleteUser")" Variant="Variant.Filled" Color="Color.Error" DisableElevation="true" Icon="@Icons.Material.Filled.PersonRemove"
 							   OnClick="async () => await DeleteUser(context)" />
 				}
 			</div>
@@ -137,7 +138,7 @@
 
 	private async Task VerifyUser(UserIdentity user)
 	{
-		if (!await DialogService.ShowConfirmationDialog("Verify user", "confirm", "user", $"{user.FullName} ({user.Username}) ({user.Email})"))
+		if (!await DialogService.ShowConfirmationDialog(translationsService.T("userManager", "verifyUserTitle"), translationsService.T("userManager", "confirm"), translationsService.T("userManager", "user"), $"{user.FullName} ({user.Username}) ({user.Email})"))
 			return;
 		await AccountService.VerifiyUserAsync(user.SubjectId);
 		await Load();
@@ -145,7 +146,7 @@
 
 	private async Task DeleteUser(UserIdentity user)
 	{
-		if (!await DialogService.ShowConfirmationDialog("Delete user", "delete", "user", $"{user.FullName} ({user.Username}) ({user.Email})", true))
+		if (!await DialogService.ShowConfirmationDialog(translationsService.T("userManager", "deleteUserTitle"), translationsService.T("common", "delete"), translationsService.T("userManager", "user"), $"{user.FullName} ({user.Username}) ({user.Email})", true))
 			return;
 		await AccountService.DeleteUserAsync(user.SubjectId);
 		await Load();

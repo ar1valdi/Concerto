@@ -3,6 +3,7 @@
 @using Concerto.Shared.Models.Dto
 @inject ISessionService SessionService
 @inject ISnackbar Snackbar
+@inject ITranslationsService translationsService
 @inject IDialogService DialogService
 @inject NavigationManager Navigation
 
@@ -17,17 +18,17 @@ else
 		<MudStack Spacing="4" Class="pa-4" Style="overflow: auto; justify-items: start;">
 			<MudStack Row="true" Style="background-color: var(--mud-palette-default)" Justify="Justify.SpaceBetween">
 				<MudButtonGroup OverrideStyles="false">
-					<MudButton OnClick="Discard" Disabled="!Changed" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Restore" Color="Color.Error">Discard</MudButton>
-					<MudButton OnClick="Save" Disabled="!Changed" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Success">Save</MudButton>
+                <MudButton OnClick="Discard" Disabled="!Changed" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Restore" Color="Color.Error">@translationsService.T("sessionSettingsManager", "discard")</MudButton>
+                <MudButton OnClick="Save" Disabled="!Changed" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Success">@translationsService.T("sessionSettingsManager", "save")</MudButton>
 				</MudButtonGroup>
 				<MudButtonGroup OverrideStyles="false">
-					<MudButton OnClick="Delete" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Delete session</MudButton>
+                <MudButton OnClick="Delete" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">@translationsService.T("sessionSettingsManager", "deleteSession")</MudButton>
 				</MudButtonGroup>
 			</MudStack>
 
-			<MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Title" Immediate="true" @bind-Value="_request.Name" T="string" Label="Name" />
-			<MudDatePicker Adornment="Adornment.Start" Label="Date" @bind-Date="Date" />
-			<MudTimePicker Adornment="Adornment.Start" Label="Time" @bind-Time="Time" />
+            <MudTextField Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Title" Immediate="true" @bind-Value="_request.Name" T="string" Label="@translationsService.T("sessionSettingsManager", "nameLabel")" />
+            <MudDatePicker Adornment="Adornment.Start" Label="@translationsService.T("sessionSettingsManager", "dateLabel")" @bind-Date="Date" />
+            <MudTimePicker Adornment="Adornment.Start" Label="@translationsService.T("sessionSettingsManager", "timeLabel")" @bind-Time="Time" />
 
 		</MudStack>
 	</div>
@@ -113,28 +114,28 @@ else
 		try
 		{
 			await SessionService.UpdateSessionAsync(_request);
-			Snackbar.Add("Session updated", Severity.Success);
+			Snackbar.Add(translationsService.T("sessionSettingsManager", "sessionUpdated"), Severity.Success);
 			OnSessionUpdated.InvokeAsync().AndForget();
 		}
 		catch
 		{
-			Snackbar.Add("Failed to update session", Severity.Error);
+			Snackbar.Add(translationsService.T("sessionSettingsManager", "failedToUpdateSession"), Severity.Error);
 		}
 		await Initialize();
 	}
 
 	private async Task Delete()
 	{
-		if (!await DialogService.ShowConfirmationDialog("Delete session", "delete", "session", _sessionSettings!.Name, true)) return;
+		if (!await DialogService.ShowConfirmationDialog(translationsService.T("sessionSettingsManager", "deleteSessionTitle"), translationsService.T("common", "delete"), translationsService.T("sessionSettingsManager", "session"), _sessionSettings!.Name, true)) return;
 		try
 		{
 			await SessionService.DeleteSessionAsync(_sessionSettings.Id);
-			Snackbar.Add($"Session {_sessionSettings!.Name} deleted", Severity.Success);
+			Snackbar.Add(translationsService.T("sessionSettingsManager", "sessionDeleted", _sessionSettings!.Name), Severity.Success);
 			await OnSessionDeleted.InvokeAsync();
 		}
 		catch
 		{
-			Snackbar.Add($"Failed to delete session {_sessionSettings!.Name}.", Severity.Error);
+			Snackbar.Add(translationsService.T("sessionSettingsManager", "failedToDeleteSession", _sessionSettings!.Name), Severity.Error);
 		}
 	}
 

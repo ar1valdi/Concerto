@@ -1,16 +1,17 @@
 ﻿@inject IUserService UserService
+@inject ITranslationsService t
 @inherits MudComponentBase
 
 
 	<MudTable @ref="table" T="User" Items="Users" MultiSelection="true" @bind-SelectedItems="SelectedUsers" Filter="new Func<User, bool>(Filter)"
 			  RowsPerPage="PageSize.Default"
-			  SortLabel="Sort By" Dense="true" Hover="true" Outlined="true" FixedFooter="true" FixedHeader="true"
+			  SortLabel="@t.T("workspaceMemberPicker", "sortBy")" Dense="true" Hover="true" Outlined="true" FixedFooter="true" FixedHeader="true"
 			 Style="@TableStyle" Class="@Class" Height="@TableContentHeight" RowStyle="text-align: right;">
 
 		<ToolBarContent>
-			<MudText Typo="Typo.subtitle1">Workspace members</MudText>
+			<MudText Typo="Typo.subtitle1">@t.T("workspaceMemberPicker", "workspaceMembers")</MudText>
 			<MudSpacer/>
-			<MudTextField @bind-Value="_searchString" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Class="ma-0"></MudTextField>
+			<MudTextField @bind-Value="_searchString" Immediate="true" Placeholder="@t.T("workspaceMemberPicker", "search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Class="ma-0"></MudTextField>
 		</ToolBarContent>
 
 		<ColGroup>
@@ -36,31 +37,31 @@
 
 		<HeaderContent>
 			<MudTh>
-				<MudTableSortLabel SortBy="new Func<User, object>(x => SelectedUsers.Contains(x))">Selected</MudTableSortLabel>
+			<MudTableSortLabel SortBy="new Func<User, object>(x => SelectedUsers.Contains(x))">@t.T("workspaceMemberPicker", "selectedHeader")</MudTableSortLabel>
 			</MudTh>
 			<MudTh>
-				<MudTableSortLabel SortBy="new Func<User, object>(x => x.FirstName)">Name</MudTableSortLabel>
+			<MudTableSortLabel SortBy="new Func<User, object>(x => x.FirstName)">@t.T("workspaceMemberPicker", "nameHeader")</MudTableSortLabel>
 			</MudTh>
 			<MudTh>
-				<MudTableSortLabel SortBy="new Func<User, object>(x => x.LastName)" InitialDirection="SortDirection.Ascending">Surname</MudTableSortLabel>
+			<MudTableSortLabel SortBy="new Func<User, object>(x => x.LastName)" InitialDirection="SortDirection.Ascending">@t.T("workspaceMemberPicker", "surnameHeader")</MudTableSortLabel>
 			</MudTh>
 			<MudTh>
-				<MudTableSortLabel SortBy="new Func<User, object>(x => x.Username)">Username</MudTableSortLabel>
+			<MudTableSortLabel SortBy="new Func<User, object>(x => x.Username)">@t.T("workspaceMemberPicker", "usernameHeader")</MudTableSortLabel>
 			</MudTh>
 		</HeaderContent>
 
 		<RowTemplate>
 			@if (LayoutState.SmAndUp)
 			{
-				<MudTd DataLabel="Selected">←</MudTd>
+				<MudTd DataLabel="@t.T("workspaceMemberPicker", "selectedColumn")">←</MudTd>
 			}
-			<MudTd DataLabel="Name">@context.FirstName</MudTd>
-			<MudTd DataLabel="Surname">@context.LastName</MudTd>
-			<MudTd DataLabel="Username">@context.Username</MudTd>
+			<MudTd DataLabel="@t.T("workspaceMemberPicker", "nameColumn")">@context.FirstName</MudTd>
+			<MudTd DataLabel="@t.T("workspaceMemberPicker", "surnameColumn")">@context.LastName</MudTd>
+			<MudTd DataLabel="@t.T("workspaceMemberPicker", "usernameColumn")">@context.Username</MudTd>
 		</RowTemplate>
 
 		<FooterContent>
-				<MudTd colspan="4">Select All</MudTd>
+				<MudTd colspan="4">@t.T("workspaceMemberPicker", "selectAll")</MudTd>
 		</FooterContent>
 
 		<PagerContent>

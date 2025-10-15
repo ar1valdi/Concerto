@@ -5,6 +5,7 @@
 @inject IWorkspaceService WorkspaceService;
 @inject ISnackbar Snackbar;
 @inject IBreadcrumbsService BreadcrumbsService;
+@inject ITranslationsService t;
 
 <PageTitle>@($"{SelectedWorkspace?.Name}")</PageTitle>
 
@@ -26,22 +27,22 @@ else
         </Header>
 
         <ChildContent>
-            <MudTabPanel Text="Content">
+            <MudTabPanel Text=@t.T("workspace", "contentTab")>
                 <FileManager InitialFolderId="SelectedWorkspace!.RootFolderId"
                          Class="" Style="height: 100%;" Elevation="0" />
             </MudTabPanel>
 
-            <MudTabPanel Text="Sessions">
+            <MudTabPanel Text=@t.T("workspace", "sessionsTab")>
                 <SessionList Style="flex: 1 1 auto; height: 100%; width: 100%;" Class="flex-shrink-1 pa-2" WorkspaceId="SelectedWorkspaceId" OnSessionSelected="OnSessionSelected" />
             </MudTabPanel>
 
-            <MudTabPanel Text="Forum">
-                <Forum WorkspaceId="SelectedWorkspaceId" Title="Workspace forum" />
+            <MudTabPanel Text=@t.T("workspace", "forumTab")>
+                <Forum WorkspaceId="SelectedWorkspaceId" Title=@t.T("workspace", "forumTitle") />
             </MudTabPanel>
 
             @if (SelectedWorkspace!.CanManage)
             {
-                <MudTabPanel Text="Settings">
+                <MudTabPanel Text=@t.T("workspace", "settingsTab")>
                     <WorkspaceSettingsManager WorkspaceId="SelectedWorkspaceId" OnWorkspaceDeleted="OnWorkspaceDeleted" OnWorkspaceUpdated="OnWorkspaceUpdated" />
                 </MudTabPanel>
             }
@@ -76,7 +77,7 @@ else
         }
         catch (WorkspaceException)
         {
-            Snackbar.Add("Workspace does not exist or you don't have access", Severity.Error);
+            Snackbar.Add(t.T("workspace", "errorNoAccess"), Severity.Error);
             NavigationManager.NavigateTo("workspaces");
         }
         _loading = false;
@@ -84,7 +85,7 @@ else
             BreadcrumbsService.Set(
                 Icons.Material.Filled.MenuBook,
                 SelectedWorkspace?.Name ?? string.Empty,
-                new BreadcrumbItem("Workspaces", "workspaces"),
+                new BreadcrumbItem(t.T("navigation", "workspaces"), "workspaces"),
                 new BreadcrumbItem(SelectedWorkspace?.Name, null, true)
                 );
     }

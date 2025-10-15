@@ -1,0 +1,114 @@
+@using Concerto.Shared.Models.Dto
+
+@inject ITranslationsService t
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Preview" Class="mr-3 mb-n1" />
+            @t.T("translationsSavePreviewDialog", "title")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body1" Class="mb-3">
+            @* dynamic text - contains count; left as-is for now *@
+            @string.Format(t.T("translationsSavePreviewDialog", "saveConfirmationMessage"), @ChangedTranslations.Count)
+        </MudText>
+
+        <MudPaper Elevation="0" Class="pa-3" Style="max-height: 60vh; overflow-y: auto;">
+            <MudTable Items="@ChangedTranslations" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" 
+                      Elevation="0" FixedHeader="true">
+                <HeaderContent>
+                    <MudTh>@t.T("translationsSavePreviewDialog", "tableView")</MudTh>
+                    <MudTh>@t.T("translationsSavePreviewDialog", "tableKey")</MudTh>
+                    <MudTh>@t.T("translationsSavePreviewDialog", "tableLanguage")</MudTh>
+                    <MudTh>@t.T("translationsSavePreviewDialog", "tableNewValue")</MudTh>
+                    <MudTh>@t.T("translationsSavePreviewDialog", "tableAction")</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="@t.T("translationsSavePreviewDialog", "tableView")">@context.View</MudTd>
+                    <MudTd DataLabel="@t.T("translationsSavePreviewDialog", "tableKey")">@context.Key</MudTd>
+                    <MudTd DataLabel="@t.T("translationsSavePreviewDialog", "tableLanguage")">
+                        @{
+                            var lang = Languages.FirstOrDefault(l => l.Key == context.LanguageKey);
+                            var langDisplay = lang != null ? $"{lang.Name} ({lang.Key.ToUpper()})" : context.LanguageKey.ToUpper();
+                        }
+                        @langDisplay
+                    </MudTd>
+                    <MudTd DataLabel="@t.T("translationsSavePreviewDialog", "tableNewValue")">
+                        @if (string.IsNullOrWhiteSpace(context.NewValue))
+                        {
+                            <MudChip Size="Size.Small" Color="Color.Warning">@t.T("translationsSavePreviewDialog", "chipDeleted")</MudChip>
+                        }
+                        else if (context.IsNew)
+                        {
+                            <div>
+                                <MudChip Size="Size.Small" Color="Color.Success" Class="mb-1">@t.T("translationsSavePreviewDialog", "chipNew")</MudChip>
+                                <MudText Typo="Typo.body2">@context.NewValue</MudText>
+                            </div>
+                        }
+                        else
+                        {
+                            <div>
+                                <MudChip Size="Size.Small" Color="Color.Info" Class="mb-1">@t.T("translationsSavePreviewDialog", "chipUpdated")</MudChip>
+                                <MudText Typo="Typo.body2" Class="text-muted" Style="text-decoration: line-through;">
+                                    @context.OriginalValue
+                                </MudText>
+                                <MudText Typo="Typo.body2">@context.NewValue</MudText>
+                            </div>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="@t.T("translationsSavePreviewDialog", "tableAction")">
+                        @if (string.IsNullOrWhiteSpace(context.NewValue))
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Warning">@t.T("translationsSavePreviewDialog", "actionDelete")</MudText>
+                        }
+                        else if (context.IsNew)
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Success">@t.T("translationsSavePreviewDialog", "actionCreate")</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Info">@t.T("translationsSavePreviewDialog", "actionUpdate")</MudText>
+                        }
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+
+        <MudAlert Severity="Severity.Info" Class="mt-3">
+            @t.T("translationsSavePreviewDialog", "alertRefresh")
+        </MudAlert>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@t.T("translationsSavePreviewDialog", "cancelButton")</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Confirm">
+            @t.T("translationsSavePreviewDialog", "confirmAndSaveButton")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    public class TranslationChangePreview
+    {
+        public string LanguageKey { get; set; } = string.Empty;
+        public string View { get; set; } = string.Empty;
+        public string Key { get; set; } = string.Empty;
+        public string NewValue { get; set; } = string.Empty;
+        public string OriginalValue { get; set; } = string.Empty;
+        public bool IsNew { get; set; }
+    }
+
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public List<TranslationChangePreview> ChangedTranslations { get; set; } = [];
+
+    [Parameter]
+    public List<Language> Languages { get; set; } = [];
+
+    void Cancel() => MudDialog.Cancel();
+    void Confirm() => MudDialog.Close(DialogResult.Ok(true));
+}

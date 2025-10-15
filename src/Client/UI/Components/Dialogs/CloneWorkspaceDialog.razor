@@ -1,31 +1,32 @@
 ﻿@inject IWorkspaceService WorkspaceService
 @inject ISnackbar Snackbar
 @inject HttpClient Http
+@inject ITranslationsService t
 @inherits DialogAutoFullscreen
 
 <MudDialog>
 	<DialogContent>
 		<MudStack Spacing="4">
 			<MudForm @ref="_form">
-				<MudTextField Immediate="true" DebounceInterval="250" @bind-Value="_request.Name" T="string" Label="Workspace name" Validation="Validation.NotEmpty"></MudTextField>
+				<MudTextField Immediate="true" DebounceInterval="250" @bind-Value="_request.Name" T="string" Label="@t.T("cloneWorkspaceDialog", "workspaceName")" Validation="Validation.NotEmpty"></MudTextField>
 			</MudForm>
 
 			<MudPaper Elevation="0" Outlined="true" Class="px-3 d-flex flex-column">
-				<MudSwitch @bind-Checked="_request.CopyWorkspaceUsers" Label="Copy members" Color="Color.Success"></MudSwitch>
-				<MudSwitch Class="ml-2" @bind-Checked="_request.CopyRoles" Label="With roles" Disabled="!_request.CopyWorkspaceUsers" Color="Color.Success"></MudSwitch>
+				<MudSwitch @bind-Checked="_request.CopyWorkspaceUsers" Label="@t.T("cloneWorkspaceDialog", "copyMembers")" Color="Color.Success"></MudSwitch>
+				<MudSwitch Class="ml-2" @bind-Checked="_request.CopyRoles" Label="@t.T("cloneWorkspaceDialog", "withRoles")" Disabled="!_request.CopyWorkspaceUsers" Color="Color.Success"></MudSwitch>
 			</MudPaper>
 
 			<MudPaper Elevation="0" Outlined="true" Class="px-3 d-flex flex-column">
-				<MudSwitch @bind-Checked="_request.CopyFolders" Label="Copy folders" Color="Color.Success"></MudSwitch>
-				<MudSwitch Class="ml-2" @bind-Checked="_request.CopyFiles" Label="With files" Disabled="!_request.CopyFolders" Color="Color.Success"></MudSwitch>
-				<MudSwitch Class="ml-2" @bind-Checked="_request.CopyFoldersPermissions" Label="With user specific permissions" Disabled="!(_request.CopyFolders && _request.CopyWorkspaceUsers)" Color="Color.Success"></MudSwitch>
+				<MudSwitch @bind-Checked="_request.CopyFolders" Label="@t.T("cloneWorkspaceDialog", "copyFolders")" Color="Color.Success"></MudSwitch>
+				<MudSwitch Class="ml-2" @bind-Checked="_request.CopyFiles" Label="@t.T("cloneWorkspaceDialog", "withFiles")" Disabled="!_request.CopyFolders" Color="Color.Success"></MudSwitch>
+				<MudSwitch Class="ml-2" @bind-Checked="_request.CopyFoldersPermissions" Label="@t.T("cloneWorkspaceDialog", "withUserSpecificPermissions")" Disabled="!(_request.CopyFolders && _request.CopyWorkspaceUsers)" Color="Color.Success"></MudSwitch>
 			</MudPaper>
 
 		</MudStack>
 	</DialogContent>
 	<DialogActions>
-		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
-		<MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="!Valid" OnClick="Submit">Ok</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">@t.T("cloneWorkspaceDialog", "cancel")</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="!Valid" OnClick="Submit">@t.T("cloneWorkspaceDialog", "ok")</MudButton>
 	</DialogActions>
 </MudDialog>
 
@@ -63,12 +64,12 @@
 		try
 		{
 			var clonedWorkspaceId = await WorkspaceService.CloneWorkspaceAsync(_request);
-			Snackbar.Add($"Cloned workspace {WorkspaceToClone.Name}.", Severity.Success);
+			Snackbar.Add($"{@t.T("cloneWorkspaceDialog", "clonedWorkspace")} {WorkspaceToClone.Name}.", Severity.Success);
 			Dialog.Close(DialogResult.Ok(clonedWorkspaceId));
 		}
 		catch
 		{
-			Snackbar.Add($"Failed to clone workspace {WorkspaceToClone.Name}", Severity.Error);
+			Snackbar.Add($"{@t.T("cloneWorkspaceDialog", "failedToCloneWorkspace")} {WorkspaceToClone.Name}", Severity.Error);
 			Dialog.Cancel();
 		}
 	}

@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using MudBlazor;
-using Microsoft.JSInterop;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -18,7 +17,11 @@ var baseAddress = new Uri(builder.HostEnvironment.BaseAddress);
 // Add HTTP Client with base address and authorization handler 
 if (builder.HostEnvironment.Environment == "Development")
 {
-    baseAddress = new Uri(builder.Configuration["ServerlessBaseURL"]!);
+    var configuredBase = builder.Configuration["ServerlessBaseURL"];
+    if (!string.IsNullOrWhiteSpace(configuredBase))
+    {
+        baseAddress = new Uri(configuredBase);
+    }
     builder.Services.AddHttpClient("WebAPI", client => client.BaseAddress = baseAddress)
     .AddHttpMessageHandler(sp =>
     {
@@ -57,15 +60,23 @@ builder.Services.AddScoped<IStorageService, StorageService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAccountClient, AccountClient>();
 builder.Services.AddScoped<IBreadcrumbsService, BreadcrumbsService>();
-builder.Services.AddScoped<ILanguageService, LanguageService>(sp =>
-{
-    var clientFactory = sp.GetRequiredService<IHttpClientFactory>();
-    var httpClient = clientFactory.CreateClient("AnonymousClient");
-    var jsRuntime = sp.GetRequiredService<IJSRuntime>();
-    return new LanguageService(httpClient, jsRuntime);
-});
-// builder.Services.AddScoped<ClientNotificationService, ClientNotificationService>();
-
+builder.Services.AddScoped<ITranslationsService, TranslationsService>(
+    sp =>
+    {
+        var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("WebAPI");
+        var httpUnauthorized = sp.GetRequiredService<IHttpClientFactory>().CreateClient("AnonymousClient");
+        var localStorage = sp.GetRequiredService<ILocalStorageService>();
+        return new TranslationsService(new TranlsationsClient(http), new TranlsationsClient(httpUnauthorized), localStorage);
+    }
+);
+builder.Services.AddScoped<ILanguageManagementService, LanguageManagementService>(
+    sp =>
+    {
+        var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("WebAPI");
+        var httpUnauthorized = sp.GetRequiredService<IHttpClientFactory>().CreateClient("AnonymousClient");
+        return new LanguageManagementService(new LanguagesClient(http), new LanguagesClient(httpUnauthorized));
+    }
+);
 
 builder.Services.AddMudServices(config => 
     {
@@ -101,6 +112,14 @@ builder.Services.AddAuthorizationCore(options =>
 
 
 var host = builder.Build();
-var translationService = host.Services.GetRequiredService<ILanguageService>();
-await translationService.ChangeLanguage(Language.PL);
+var translationService = host.Services.GetRequiredService<ITranslationsService>();
+try
+{
+    await translationService.InitializeAsync();
+    await translationService.ChangeLanguage(translationService.GetCurrentLanguage());
+}
+catch (Exception ex)
+{
+    Console.Error.WriteLine($"Translations initialization failed: {ex}");
+}
 await host.RunAsync();

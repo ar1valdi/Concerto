@@ -5,14 +5,16 @@
 
 @inject IBreadcrumbsService BreadcrumbsService
 
-<PageTitle>User manual</PageTitle>
+@inject ITranslationsService t
+
+<PageTitle>@t.T("manual", "title")</PageTitle>
 
 <div class="pa-4" style="height: 100%; width:100%">
 	 <object data="manual.pdf" type="application/pdf" style="height: 100%; width:100%">
 		<MudButton Style="height: 100%; width:100%;" Color="Color.Default" Variant="Variant.Filled" DisableElevation="true" Href="manual.pdf" Target="_blank">
 			<div style="position: absolute; top: 50%;">
-				Your browser doesn't support PDF preview.<br />
-				Click here to open manual.
+                @t.T("manual", "noPdfSupport")<br />
+                @t.T("manual", "openManualCta")
 			</div>
 		</MudButton>
      </object>
@@ -25,9 +27,9 @@
 	protected override void OnInitialized()
 	{
 		BreadcrumbsService.Set(
-			Icons.Material.Filled.Help,
-			"Manual",
-			new BreadcrumbItem("Manual", null, true)
+            Icons.Material.Filled.Help,
+            t.T("manual", "breadcrumb"),
+            new BreadcrumbItem(t.T("manual", "breadcrumb"), null, true)
 			);
 	}
 }
