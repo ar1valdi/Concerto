@@ -1,0 +1,221 @@
+@page "/joinstream"
+@using Concerto.Client.Services;
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+
+<PageTitle>Join Stream</PageTitle>
+
+<style>
+    .container {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .join-form {
+        background: #f5f5f5;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        max-width: 500px;
+        width: 100%;
+    }
+
+    .stream-preview {
+        width: 100%;
+        max-width: 640px;
+        height: 480px;
+        background-color: black;
+        border-radius: 8px;
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .stream-preview video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .status-message {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 4px;
+    }
+
+    .status-connecting {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .status-error {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+
+    .status-connected {
+        background-color: #e8f5e8;
+        color: #2e7d32;
+    }
+</style>
+
+@if (LayoutState.IsMobile)
+{
+    <div class="d-flex align-center justify-center" style="height: 100%">
+        <MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">Feature unavailable on mobile devices</MudText>
+    </div>
+}
+else
+{
+    <div class="container">
+        <div class="join-form">
+            <MudText Typo="Typo.h4" Class="mb-4">Join Live Stream</MudText>
+            
+            <MudTextField @bind-Value="StreamIdInput" 
+                         Label="Stream ID" 
+                         Placeholder="Enter the stream ID shared by the host"
+                         Variant="Variant.Filled"
+                         Class="mb-4"
+                         Disabled="@IsConnecting" />
+            
+            <MudButton Color="Color.Primary" 
+                      Variant="Variant.Filled" 
+                      FullWidth="true"
+                      OnClick="JoinStreamAsync"
+                      Disabled="@(string.IsNullOrWhiteSpace(StreamIdInput) || IsConnecting)">
+                @if (IsConnecting)
+                {
+                    <MudProgressCircular Size="Size.Small" Class="mr-2" />
+                    <span>Connecting...</span>
+                }
+                else
+                {
+                    <span>Join Stream</span>
+                }
+            </MudButton>
+
+            @if (!string.IsNullOrEmpty(StatusMessage))
+            {
+                <div class="status-message @GetStatusClass()">
+                    @StatusMessage
+                </div>
+            }
+        </div>
+
+        <div class="stream-preview">
+            <video id="streamVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: contain; display: @(IsConnected ? "block" : "none");"></video>
+            @if (!IsConnected)
+            {
+                @if (IsConnecting)
+                {
+                    <MudText Typo="Typo.h6" Style="color: white;">Connecting to stream...</MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h6" Style="color: white;">Enter a stream ID above to join</MudText>
+                }
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [CascadingParameter] LayoutState LayoutState { get; set; } = LayoutState.Default;
+
+    private string StreamIdInput { get; set; } = string.Empty;
+    private bool IsConnecting { get; set; } = false;
+    private bool IsConnected { get; set; } = false;
+    private string StatusMessage { get; set; } = string.Empty;
+
+    private DotNetObjectReference<JoinStreamPage> _dotNetObjectReference = null!;
+    private IJSObjectReference? _streamViewer;
+
+    protected override void OnInitialized()
+    {
+        _dotNetObjectReference = DotNetObjectReference.Create(this);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Check if there's a stream ID in the URL parameters
+            var uri = new Uri(Navigation.Uri);
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            var streamIdFromUrl = query["id"];
+            
+            if (!string.IsNullOrEmpty(streamIdFromUrl))
+            {
+                StreamIdInput = streamIdFromUrl;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task JoinStreamAsync()
+    {
+        if (string.IsNullOrWhiteSpace(StreamIdInput) || IsConnecting) return;
+
+        try
+        {
+            IsConnecting = true;
+            StatusMessage = "Connecting to stream...";
+            StateHasChanged();
+
+            // Wait a bit to ensure DOM is rendered
+            await Task.Delay(100);
+
+            // Initialize the stream viewer
+            _streamViewer = await JS.InvokeAsync<IJSObjectReference>("initializeStreamViewer", "streamVideo", StreamIdInput, _dotNetObjectReference);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to connect: {ex.Message}";
+            IsConnecting = false;
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void StreamConnected()
+    {
+        IsConnected = true;
+        IsConnecting = false;
+        StatusMessage = "Successfully connected to stream!";
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void StreamError(string message)
+    {
+        IsConnected = false;
+        IsConnecting = false;
+        StatusMessage = $"Connection failed: {message}";
+        StateHasChanged();
+    }
+
+    private string GetStatusClass()
+    {
+        if (IsConnecting) return "status-connecting";
+        if (IsConnected) return "status-connected";
+        if (!string.IsNullOrEmpty(StatusMessage) && StatusMessage.Contains("Failed")) return "status-error";
+        return "";
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_streamViewer is not null)
+        {
+            await _streamViewer.InvokeVoidAsync("dispose");
+        }
+        _dotNetObjectReference?.Dispose();
+    }
+}

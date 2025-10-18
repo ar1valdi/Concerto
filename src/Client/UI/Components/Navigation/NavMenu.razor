@@ -12,6 +12,8 @@
 		@if(!LayoutState.IsMobile)
 		{
 			<MudNavLink Href="recorder" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Camera">@t.T("NavMenuVideoRecorderTxt")</MudNavLink>
+			<MudNavLink Href="livestream" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Videocam">Live Stream</MudNavLink>
+			<MudNavLink Href="joinstream" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PlayArrow">Join Stream</MudNavLink>
 		}
 		<MudNavLink Href="workspaces/-1" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Storage">@t.T("NavMenuStorageTxt")</MudNavLink>
 		<StorageNavTree/>

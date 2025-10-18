@@ -2,6 +2,7 @@ import { initializeRecordingManager, RecordingManager, getVideoInputs, getAudioI
 import { disablePreventWindowClose, enablePreventWindowClose} from './utilities/preventWindowClose.ts';
 import { initializeDaw } from './daw/daw.ts';
 import { isMobile } from 'is-mobile';
+import { initializeLiveStreamingManager, initializeStreamViewer, LiveStreamingManager, StreamViewer } from './livestream/livestream.ts';
 
 const window = global.window;
 
@@ -15,6 +16,12 @@ window.getAudioInputs = getAudioInputs;
 // Video recorder
 window.initializeRecordingManager = initializeRecordingManager;
 window.RecordingManager = RecordingManager;
+
+// Live Streaming
+window.initializeLiveStreamingManager = initializeLiveStreamingManager;
+window.initializeStreamViewer = initializeStreamViewer;
+window.LiveStreamingManager = LiveStreamingManager;
+window.StreamViewer = StreamViewer;
 
 // DAW
 window.initializeDaw = initializeDaw;
