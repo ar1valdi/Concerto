@@ -135,4 +135,8 @@ else
 		UserFolderPermissionsChanged.InvokeAsync(UserFolderPermissions);
 	}
 
+	protected override void OnInitialized()
+	{
+		t.LanguageChanged += () => InvokeAsync(StateHasChanged);
+	}
 }

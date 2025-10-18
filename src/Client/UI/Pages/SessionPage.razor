@@ -100,4 +100,8 @@ else
         await OnParametersSetAsync();
     }
 
+    protected override void OnInitialized()
+    {
+        t.LanguageChanged += () => InvokeAsync(StateHasChanged);
+    }
 }
