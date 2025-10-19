@@ -38,7 +38,12 @@
         await RefreshTree();
     }
 
-    private Task<HashSet<TreeItemData>> LoadChildrenAsync(TreeItemData node) => LoadNodesAsync(node.Id);
+    private async Task<HashSet<TreeItemData>> LoadChildrenAsync(TreeItemData node)
+	{
+		var nodes = await LoadNodesAsync(node.Id);
+		await InvokeAsync(StateHasChanged); // ensure UI update is queued
+		return nodes;
+	}
 
     private async Task<HashSet<TreeItemData>> LoadNodesAsync(long folderId)
     {
