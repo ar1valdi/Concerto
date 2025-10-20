@@ -41,5 +41,10 @@
 	</MudTabs>
 
 @code {
-	MudTabs? _tabs;
+    MudTabs? _tabs;
+
+    protected override void OnInitialized()
+    {
+        t.LanguageChanged += () => InvokeAsync(StateHasChanged);
+    }
 }

@@ -106,4 +106,8 @@ else
         WorkspaceService.GetCurrentUserWorkspacesAsync().AndForget();
     }
 
+    protected override void OnInitialized()
+    {
+        t.LanguageChanged += () => InvokeAsync(StateHasChanged);
+    }
 }
