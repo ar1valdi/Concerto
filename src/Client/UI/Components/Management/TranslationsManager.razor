@@ -1,4 +1,4 @@
-@inherits MudComponentBase
+@inherits ComponentBase
 
 @using Concerto.Client.UI.Components.Dialogs
 
@@ -9,127 +9,39 @@
 
 @if (isLoading)
 {
-    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    <div class="loading-container">
+        <div class="spinner"></div>
+    </div>
 }
 else
 {
-    <div>
-    <MudPaper Class="pa-4 mb-4" Elevation="2">
-        <MudText Typo="Typo.h6" Class="mb-3">@translationsService.T("translationsManager", "filtersHeader")</MudText>
-        <MudGrid>
-            <MudItem xs="12" sm="6" md="3">
-                <MudTextField 
-                    @bind-Value="filterView" 
-                    Label="@translationsService.T("translationsManager", "filterViewLabel")" 
-                    Variant="Variant.Outlined"
-                    Margin="Margin.Dense"
-                    Clearable="true"
-                    Immediate="true"
-                    DebounceInterval="500"
-                    Adornment="Adornment.Start"
-                    AdornmentIcon="@Icons.Material.Filled.Search" />
-            </MudItem>
-            <MudItem xs="12" sm="6" md="3">
-                <MudTextField 
-                    @bind-Value="filterKey" 
-                    Label="@translationsService.T("translationsManager", "filterKeyLabel")" 
-                    Variant="Variant.Outlined"
-                    Margin="Margin.Dense"
-                    Clearable="true"
-                    Immediate="true"
-                    DebounceInterval="500"
-                    Adornment="Adornment.Start"
-                    AdornmentIcon="@Icons.Material.Filled.Search" />
-            </MudItem>
-            <MudItem xs="12" sm="6" md="3">
-                <MudSelect 
-                    @bind-Value="filterValueLanguage" 
-                    Label="@translationsService.T("translationsManager", "filterValueLanguageLabel")" 
-                    Variant="Variant.Outlined"
-                    Margin="Margin.Dense"
-                    Clearable="true"
-                    T="string">
-                    @foreach (var lang in languages)
-                    {
-                        <MudSelectItem Value="@lang.Key">@lang.Name (@lang.Key.ToUpper())</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" sm="6" md="3">
-                <MudTextField 
-                    @bind-Value="filterValue" 
-                    Label="@translationsService.T("translationsManager", "filterValueLabel")" 
-                    Variant="Variant.Outlined"
-                    Margin="Margin.Dense"
-                    Clearable="true"
-                    Immediate="true"
-                    DebounceInterval="500"
-                    Disabled="string.IsNullOrEmpty(filterValueLanguage)"
-                    Adornment="Adornment.Start"
-                    AdornmentIcon="@Icons.Material.Filled.Search" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudSelect 
-                    @bind-SelectedValues="selectedLanguageKeys" 
-                    Label="@translationsService.T("translationsManager", "showOnlySelectedLanguagesLabel")" 
-                    Variant="Variant.Outlined"
-                    Margin="Margin.Dense"
-                    MultiSelection="true"
-                    T="string">
-                    @foreach (var lang in languages)
-                    {
-                        <MudSelectItem Value="@lang.Key">@lang.Name (@lang.Key.ToUpper())</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-        </MudGrid>
-    </MudPaper>
+    <div class="translations-manager">
+        @RenderFilters()
+        
+        @if (isFiltering)
+        {
+            <div class="filtering-indicator"></div>
+        }
 
-    @if (isFiltering)
-    {
-        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-2" />
-    }
+        @RenderPaginationControls()
+        
+        <div class="translations-content">
+            @RenderViewSections()
+        </div>
 
-    <MudExpansionPanels MultiExpansion="true">
-        @foreach (var viewSection in filteredViewSections)
-    {
-        <MudExpansionPanel
-            Text="@viewSection.View">
-            @foreach (var keySection in viewSection.KeySections)
-            {
-                <MudExpansionPanel
-                    Text="@keySection.Key">
-                    @foreach (var translation in keySection.Translations)
-                    {
-                        <MudTextField
-                            Value="@translation.Value"
-                            ValueChanged="((x) => OnTranslationChanged(x, translation))"
-                                Label="@translation.Language.ToUpper()"
-                            T="string"
-                            Variant="Variant.Outlined"
-                            Margin="Margin.Normal"/>
-                    }
-                </MudExpansionPanel>
-            }
-        </MudExpansionPanel>
-    }
-</MudExpansionPanels>
-
-    @if (!filteredViewSections.Any())
-    {
-        <MudText Typo="Typo.body1" Class="pa-4">@translationsService.T("translationsManager", "noMatches")</MudText>
-    }
+        @if (!paginatedViewSections.Any())
+        {
+            <div class="no-matches">@translationsService.T("translationsManager", "noMatches")</div>
+        }
     </div>
 
-<MudButton
-    Variant="Variant.Filled"
-    StartIcon="@Icons.Material.Filled.Save"
-    Color="Color.Primary"
-        Disabled="!changedTranslations.Any()"
-    Style="position: fixed; bottom: 20px; right: 20px;"
-        OnClick="@ShowSavePreview">
-        @translationsService.T("translationsManager", "saveCta") (@changedTranslations.Count)
-</MudButton>
+    @if (changedTranslations.Any())
+    {
+        <button class="save-button" @onclick="ShowSavePreview">
+            <span class="save-icon">💾</span>
+            @translationsService.T("translationsManager", "saveCta") (@changedTranslations.Count)
+        </button>
+    }
 }
 
 
@@ -142,29 +54,53 @@ else
         public string Value { get; set; } = string.Empty;
         public string OriginalValue { get; set; } = string.Empty;
         public long Id { get; set; }
+        
+        public void UpdateValue(string newValue)
+        {
+            Value = newValue;
+        }
+        
+        public bool HasChanged => Value != OriginalValue;
     }
 
     private class KeySection
     {
         public string Key { get; set; } = string.Empty;
         public List<EditableTranslation> Translations { get; set; } = [];
+        public bool IsExpanded { get; set; } = false;
+        
+        public void ToggleExpanded()
+        {
+            IsExpanded = !IsExpanded;
+        }
     }
 
     private class ViewSection
     {
         public string View { get; set; } = string.Empty;
         public List<KeySection> KeySections { get; set; } = [];
+        public bool IsExpanded { get; set; } = false;
+        
+        public void ToggleExpanded()
+        {
+            IsExpanded = !IsExpanded;
+        }
     }
 
     List<ViewSection> viewSections = [];
     List<ViewSection> filteredViewSections = [];
+    List<ViewSection> paginatedViewSections = [];
     List<Language> languages = [];
     Dictionary<string, EditableTranslation> changedTranslations = [];
+    
     bool isSaving = false;
     bool isLoading = true;
     bool isFiltering = false;
+    
+    private const int PageSize = 10;
+    private int currentPage = 1;
+    private int totalPages = 1;
 
-    // Filter fields
     private string _filterView = string.Empty;
     private string filterView
     {
@@ -227,58 +163,137 @@ else
         get => _selectedLanguageKeys;
         set
         {
-                _selectedLanguageKeys = value;
-                ApplyFilters();
+            _selectedLanguageKeys = value;
+            ApplyFilters();
         }
     }
+
+    private bool _shouldRender = true;
+    protected override bool ShouldRender() => _shouldRender;
+
+    private RenderFragment RenderFilters() => __builder =>
+    {
+        <div class="filters-container">
+            <h6 class="filters-header">@translationsService.T("translationsManager", "filtersHeader")</h6>
+            <div class="filters-grid">
+                <div class="filter-item">
+                    <input type="text" 
+                           @bind="filterView" 
+                           @bind:event="oninput"
+                           placeholder="@translationsService.T("translationsManager", "filterViewLabel")" 
+                           class="filter-input" />
+                </div>
+                <div class="filter-item">
+                    <input type="text" 
+                           @bind="filterKey" 
+                           @bind:event="oninput"
+                           placeholder="@translationsService.T("translationsManager", "filterKeyLabel")" 
+                           class="filter-input" />
+                </div>
+                <div class="filter-item">
+                    <select @bind="filterValueLanguage" class="filter-select">
+                        <option value="">@translationsService.T("translationsManager", "filterValueLanguageLabel")</option>
+                        @foreach (var lang in languages)
+                        {
+                            <option value="@lang.Key">@lang.Name (@lang.Key.ToUpper())</option>
+                        }
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <input type="text" 
+                           @bind="filterValue" 
+                           @bind:event="oninput"
+                           placeholder="@translationsService.T("translationsManager", "filterValueLabel")" 
+                           class="filter-input"
+                           disabled="@(string.IsNullOrEmpty(filterValueLanguage))" />
+                </div>
+                <div class="filter-item full-width">
+                    <select @onchange="OnLanguageSelectionChanged" multiple class="filter-select">
+                        @foreach (var lang in languages)
+                        {
+                            <option value="@lang.Key" selected="@selectedLanguageKeys.Contains(lang.Key)">@lang.Name (@lang.Key.ToUpper())</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+    };
+
+    private RenderFragment RenderPaginationControls() => __builder =>
+    {
+        if (totalPages > 1)
+        {
+            <div class="pagination-controls">
+                <button @onclick="GoToFirstPage" disabled="@(currentPage == 1)" class="page-btn">«</button>
+                <button @onclick="GoToPreviousPage" disabled="@(currentPage == 1)" class="page-btn">‹</button>
+                <span class="page-info">@currentPage / @totalPages</span>
+                <button @onclick="GoToNextPage" disabled="@(currentPage == totalPages)" class="page-btn">›</button>
+                <button @onclick="GoToLastPage" disabled="@(currentPage == totalPages)" class="page-btn">»</button>
+            </div>
+        }
+    };
+
+    private RenderFragment RenderViewSections() => __builder =>
+    {
+        @foreach (var viewSection in paginatedViewSections)
+        {
+            <div class="view-section">
+                <div class="view-header" @onclick="() => ToggleViewSection(viewSection)">
+                    <span class="expand-icon">@(viewSection.IsExpanded ? "▼" : "▶")</span>
+                    <span class="view-name">@viewSection.View</span>
+                </div>
+                @if (viewSection.IsExpanded)
+                {
+                    <div class="view-content">
+                        @foreach (var keySection in viewSection.KeySections)
+                        {
+                            <div class="key-section">
+                                <div class="key-header" @onclick="() => ToggleKeySection(keySection)">
+                                    <span class="expand-icon">@(keySection.IsExpanded ? "▼" : "▶")</span>
+                                    <span class="key-name">@keySection.Key</span>
+                                </div>
+                                @if (keySection.IsExpanded)
+                                {
+                                    <div class="key-content">
+                                        @foreach (var translation in keySection.Translations)
+                                        {
+                                            <div class="translation-field">
+                                                <label class="translation-label">@translation.Language.ToUpper()</label>
+                                                <input type="text" 
+                                                       value="@translation.Value" 
+                                                       @onchange="(e) => OnTranslationChanged(e.Value?.ToString() ?? string.Empty, translation)"
+                                                       class="translation-input @(translation.HasChanged ? "changed" : "")" />
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    };
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             languages = await languageManagementService.GetAllLanguagesAsync();
-            
             var locations = await translationsService.FetchAllTranslationLocationsAsync();
-            
-        var translations = await translationsService.FetchFullTranslationsAsync();
+            var translations = await translationsService.FetchFullTranslationsAsync();
 
-            var translationDict = translations.ToDictionary(
-                t => $"{t.Language}:{t.View}:{t.Key}",
-                t => t
-            );
+            var translationDict = new Dictionary<string, Translation>();
+            foreach (var t in translations)
+            {
+                translationDict[$"{t.Language}:{t.View}:{t.Key}"] = t;
+            }
 
-            viewSections = locations
-                .GroupBy(loc => loc.View)
-                .Select(viewGroup => new ViewSection
-                {
-                    View = viewGroup.Key,
-                    KeySections = viewGroup
-                        .GroupBy(loc => loc.Key)
-                        .Select(keyGroup => new KeySection
-                        {
-                            Key = keyGroup.First().Key,
-                            Translations = languages.Select(lang =>
-                            {
-                                var lookupKey = $"{lang.Key}:{viewGroup.Key}:{keyGroup.First().Key}";
-                                var existingTranslation = translationDict.GetValueOrDefault(lookupKey);
-                                
-                                return new EditableTranslation
-                                {
-                                    Language = lang.Key,
-                                    View = viewGroup.Key,
-                                    Key = keyGroup.First().Key,
-                                    Value = existingTranslation?.Value ?? string.Empty,
-                                    OriginalValue = existingTranslation?.Value ?? string.Empty,
-                                    Id = existingTranslation?.Id ?? 0
-                                };
-                }).ToList()
-            }).ToList()
-        }).ToList();
-
+            viewSections = BuildViewSections(locations, translationDict);
             filteredViewSections = viewSections;
-            
             selectedLanguageKeys = languages.Select(l => l.Key).ToList();
-
+            
+            ApplyPagination();
             isLoading = false;
         }
         catch (Exception ex)
@@ -288,6 +303,45 @@ else
         }
     }
 
+    private List<ViewSection> BuildViewSections(List<TranslationLocation> locations, Dictionary<string, Translation> translationDict)
+    {
+        var result = new List<ViewSection>();
+        var viewGroups = locations.GroupBy(loc => loc.View);
+
+        foreach (var viewGroup in viewGroups)
+        {
+            var viewSection = new ViewSection { View = viewGroup.Key };
+            var keyGroups = viewGroup.GroupBy(loc => loc.Key);
+
+            foreach (var keyGroup in keyGroups)
+            {
+                var keySection = new KeySection { Key = keyGroup.First().Key };
+                
+                foreach (var lang in languages)
+                {
+                    var lookupKey = $"{lang.Key}:{viewGroup.Key}:{keyGroup.First().Key}";
+                    var existingTranslation = translationDict.GetValueOrDefault(lookupKey);
+                    
+                    keySection.Translations.Add(new EditableTranslation
+                    {
+                        Language = lang.Key,
+                        View = viewGroup.Key,
+                        Key = keyGroup.First().Key,
+                        Value = existingTranslation?.Value ?? string.Empty,
+                        OriginalValue = existingTranslation?.Value ?? string.Empty,
+                        Id = existingTranslation?.Id ?? 0
+                    });
+                }
+                
+                viewSection.KeySections.Add(keySection);
+            }
+            
+            result.Add(viewSection);
+        }
+
+        return result;
+    }
+
     private void ApplyFilters()
     {
         isFiltering = true;
@@ -295,47 +349,73 @@ else
 
         try
         {
-            var filtered = viewSections.AsEnumerable();
+            var result = new List<ViewSection>();
 
-            if (!string.IsNullOrWhiteSpace(filterView))
+            foreach (var viewSection in viewSections)
             {
-                filtered = filtered.Where(v => v.View.Contains(filterView, StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrWhiteSpace(filterView) && 
+                    !viewSection.View.Contains(filterView, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var filteredKeySections = new List<KeySection>();
+                
+                foreach (var keySection in viewSection.KeySections)
+                {
+                    if (!string.IsNullOrWhiteSpace(filterKey) && 
+                        !keySection.Key.Contains(filterKey, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(filterValue) && !string.IsNullOrWhiteSpace(filterValueLanguage))
+                    {
+                        bool hasMatchingTranslation = false;
+                        foreach (var translation in keySection.Translations)
+                        {
+                            if (translation.Language == filterValueLanguage && 
+                                translation.Value.Contains(filterValue, StringComparison.OrdinalIgnoreCase))
+                            {
+                                hasMatchingTranslation = true;
+                                break;
+                            }
+                        }
+                        if (!hasMatchingTranslation) continue;
+                    }
+
+                    var filteredTranslations = new List<EditableTranslation>();
+                    foreach (var translation in keySection.Translations)
+                    {
+                        if (selectedLanguageKeys.Contains(translation.Language))
+                        {
+                            filteredTranslations.Add(translation);
+                        }
+                    }
+
+                    if (filteredTranslations.Any())
+                    {
+                        filteredKeySections.Add(new KeySection
+                        {
+                            Key = keySection.Key,
+                            Translations = filteredTranslations
+                        });
+                    }
+                }
+
+                if (filteredKeySections.Any())
+                {
+                    result.Add(new ViewSection
+                    {
+                        View = viewSection.View,
+                        KeySections = filteredKeySections
+                    });
+                }
             }
 
-            var result = filtered.Select(viewSection =>
-            {
-                var filteredKeySections = viewSection.KeySections.AsEnumerable();
-
-                if (!string.IsNullOrWhiteSpace(filterKey))
-                {
-                    filteredKeySections = filteredKeySections.Where(k => 
-                        k.Key.Contains(filterKey, StringComparison.OrdinalIgnoreCase));
-                }
-
-                if (!string.IsNullOrWhiteSpace(filterValue) && !string.IsNullOrWhiteSpace(filterValueLanguage))
-                {
-                    filteredKeySections = filteredKeySections.Where(k =>
-                        k.Translations.Any(t => 
-                            t.Language == filterValueLanguage && 
-                            t.Value.Contains(filterValue, StringComparison.OrdinalIgnoreCase)));
-                }
-
-                var processedKeySections = filteredKeySections.Select(keySection => new KeySection
-                {
-                    Key = keySection.Key,
-                    Translations = keySection.Translations
-                        .Where(t => selectedLanguageKeys.Contains(t.Language))
-                        .ToList()
-                }).Where(k => k.Translations.Any()).ToList();
-
-                return new ViewSection
-                {
-                    View = viewSection.View,
-                    KeySections = processedKeySections
-                };
-            }).Where(v => v.KeySections.Any()).ToList();
-
             filteredViewSections = result;
+            currentPage = 1;
+            ApplyPagination();
         }
         finally
         {
@@ -343,12 +423,85 @@ else
         }
     }
 
+    private void ApplyPagination()
+    {
+        totalPages = Math.Max(1, (int)Math.Ceiling((double)filteredViewSections.Count / PageSize));
+        currentPage = Math.Min(currentPage, totalPages);
+        
+        var startIndex = (currentPage - 1) * PageSize;
+        var endIndex = Math.Min(startIndex + PageSize, filteredViewSections.Count);
+        
+        paginatedViewSections = filteredViewSections.Skip(startIndex).Take(PageSize).ToList();
+    }
+
+    private void GoToFirstPage()
+    {
+        currentPage = 1;
+        ApplyPagination();
+        StateHasChanged();
+    }
+
+    private void GoToPreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+            ApplyPagination();
+            StateHasChanged();
+        }
+    }
+
+    private void GoToNextPage()
+    {
+        if (currentPage < totalPages)
+        {
+            currentPage++;
+            ApplyPagination();
+            StateHasChanged();
+        }
+    }
+
+    private void GoToLastPage()
+    {
+        currentPage = totalPages;
+        ApplyPagination();
+        StateHasChanged();
+    }
+
+    private void ToggleViewSection(ViewSection viewSection)
+    {
+        viewSection.ToggleExpanded();
+        StateHasChanged();
+    }
+
+    private void ToggleKeySection(KeySection keySection)
+    {
+        keySection.ToggleExpanded();
+        StateHasChanged();
+    }
+
+    private void OnLanguageSelectionChanged(ChangeEventArgs e)
+    {
+        if (e.Value is string[] selectedValues)
+        {
+            selectedLanguageKeys = selectedValues.ToList();
+        }
+        else if (e.Value is string singleValue)
+        {
+            selectedLanguageKeys = new List<string> { singleValue };
+        }
+        else
+        {
+            selectedLanguageKeys = new List<string>();
+        }
+    }
+
     private void OnTranslationChanged(string newValue, EditableTranslation translation)
     {
-        translation.Value = newValue;
+        translation.UpdateValue(newValue);
         var changeKey = $"{translation.Language}:{translation.View}:{translation.Key}";
 
-        if (newValue != translation.OriginalValue)
+        if (translation.HasChanged)
         {
             changedTranslations[changeKey] = translation;
         }
@@ -426,7 +579,7 @@ else
         }
         finally
         {
-        isSaving = false;
+            isSaving = false;
         }
     }
 }
