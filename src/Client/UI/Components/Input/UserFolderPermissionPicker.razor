@@ -1,6 +1,7 @@
 ﻿@using MudBlazor.Services
 
 @inherits MudComponentBase
+@inject ITranslationsService t
 
 @if (Loading)
 {
@@ -12,7 +13,7 @@ else
 		  Style="@($"display:grid; grid-template-rows: 0fr 1fr; {Style}")" Class="@Class" Height="100%"
 		Dense="true">
 			<ToolBarContent>
-				<MudAutocomplete Margin="Margin.Dense" Dense="true" T="User" Label="Add user" @ref="_addUserAutocomplete"
+			<MudAutocomplete Margin="Margin.Dense" Dense="true" T="User" Label="@t.T("userFolderPermissionPicker", "addUser")" @ref="_addUserAutocomplete"
 								 ValueChanged="@AddUser" SearchFunc="@SearchContacts" Variant="Variant.Outlined"
 								 ShowProgressIndicator="true" ProgressIndicatorColor="@Color.Default"
 								 ToStringFunc="@(u => u == null ? null : $"{u.FullName}")"
@@ -21,9 +22,9 @@ else
 
 
 			<HeaderContent>
-				<MudTh>Name</MudTh>
-				<MudTh>Permission</MudTh>
-				<MudTh>Actions</MudTh>
+			<MudTh>@t.T("userFolderPermissionPicker", "nameHeader")</MudTh>
+			<MudTh>@t.T("userFolderPermissionPicker", "permissionHeader")</MudTh>
+			<MudTh>@t.T("userFolderPermissionPicker", "actionsHeader")</MudTh>
 			</HeaderContent>
 
 			<ColGroup>
@@ -42,18 +43,18 @@ else
 				@{
 					var parentMatch = ParentUserFolderPermissions.FirstOrDefault(p => p.User.Id == context.User.Id);
 
-					<MudTd DataLabel="Role">
+					<MudTd DataLabel="@t.T("userFolderPermissionPicker", "permissionHeader")">
 						<FolderPermissionPicker @bind-Value="context.Permission" Inherited="parentMatch?.Permission.Type"/>
 					</MudTd>
 
 					<MudTd Style="justify-content: end">
 
-						<MudTooltip Class="d-inline" Text="Restore to default - permission will be the same as parent folder">
-							<MudIconButton Title="Restore inherited" Class="" Disabled="@(parentMatch is null || context.Permission.Inherited)" OnClick="@(async () => RestoreInherited(context, parentMatch))" Icon="@Icons.Material.Filled.Restore" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small"/>
+						<MudTooltip Class="d-inline" Text="@t.T("userFolderPermissionPicker", "restoreDefaultTooltip")">
+							<MudIconButton Title="@t.T("userFolderPermissionPicker", "restoreInheritedTitle")" Class="" Disabled="@(parentMatch is null || context.Permission.Inherited)" OnClick="@(async () => RestoreInherited(context, parentMatch))" Icon="@Icons.Material.Filled.Restore" Variant="Variant.Filled" Color="Color.Info" Size="Size.Small"/>
 						</MudTooltip>
 
-						<MudTooltip Class="d-inline" Text="Remove - folder's default permission will apply for removed user" Arrow="true">
-							<MudIconButton Title="Remove user permission" Class="ml-2" Disabled="@(parentMatch is not null)" OnClick="@(async () => RemoveUserPermission(context))" Icon="@Icons.Material.Filled.Close" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" />
+						<MudTooltip Class="d-inline" Text="@t.T("userFolderPermissionPicker", "removeTooltip")" Arrow="true">
+							<MudIconButton Title="@t.T("userFolderPermissionPicker", "removeUserPermissionTitle")" Class="ml-2" Disabled="@(parentMatch is not null)" OnClick="@(async () => RemoveUserPermission(context))" Icon="@Icons.Material.Filled.Close" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" />
 						</MudTooltip>
 
 					</MudTd>

@@ -10,6 +10,7 @@
 @inject IDialogService DialogService
 @inject IStorageService StorageService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ITranslationsService t
 
 @if (Loading)
 {
@@ -26,7 +27,7 @@ else
 			<MudPaper Elevation="0" Outlined="!ViewOnly" Class="ml-16">
 				@if (!ViewOnly)
 				{
-					<MudButton Style="width: 100%;" Size="Size.Large" Class="flex-shrink-0" StartIcon="@Icons.Material.Filled.PostAdd" OnClick="CreatePost">Create post</MudButton>
+					<MudButton Style="width: 100%;" Size="Size.Large" Class="flex-shrink-0" StartIcon="@Icons.Material.Filled.PostAdd" OnClick="CreatePost">@t.T("forum", "createPost")</MudButton>
 				}
 			</MudPaper>
 		}
@@ -35,20 +36,20 @@ else
 			<MudPaper Class="pa-2 mt-2" Elevation="0" Outlined="true">
 				<MudForm @ref="_createPostForm" @bind-IsValid="@_createPostRequestValid">
 
-					<MudButton StartIcon="@Icons.Material.Filled.Send" OnClick="async () => await SendPost()" Disabled="!_createPostRequestValid" Color="Color.Primary">Create post</MudButton>
-					<MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="CancelCreatePost" Color="Color.Error">Cancel</MudButton>
-					<MudTextField Immediate="true" @bind-Value="_createPostRequest.Title" Validation="Validation.NotEmpty" Label="Title" Variant="Variant.Outlined" />
+					<MudButton StartIcon="@Icons.Material.Filled.Send" OnClick="async () => await SendPost()" Disabled="!_createPostRequestValid" Color="Color.Primary">@t.T("forum", "createPost")</MudButton>
+					<MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="CancelCreatePost" Color="Color.Error">@t.T("forum", "cancel")</MudButton>
+					<MudTextField Immediate="true" @bind-Value="_createPostRequest.Title" Validation="Validation.NotEmpty" Label="@t.T("forum", "titleLabel")" Variant="Variant.Outlined" />
 
 					<div style="min-height: 24px; max-height: 96px; overflow: auto;" class="mt-1 pa-0">
-						Files:
+						@t.T("forum", "files")
 						@foreach (var file in _createPostFiles)
 						{
 							<MudChip DisableRipple="true" Value="file" Icon="@file.ToIcon()" Text="@file.FullName" OnClose="CloseCreatePostFileChip" />
 						}
-						<MudIconButton Title="Add/remove files" DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Add" OnClick="async () => await EditReferencedFiles(_createPostFiles)" />
+						<MudIconButton Title="@t.T("forum", "addRemoveFiles")" DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Add" OnClick="async () => await EditReferencedFiles(_createPostFiles)" />
 					</div>
 
-					<MudTextField Immediate="true" @bind-Value="_createPostRequest.Content" Validation="Validation.NotEmpty" Label="Post content" Variant="Variant.Outlined" Lines="10" />
+					<MudTextField Immediate="true" @bind-Value="_createPostRequest.Content" Validation="Validation.NotEmpty" Label="@t.T("forum", "postContentLabel")" Variant="Variant.Outlined" Lines="10" />
 				</MudForm>
 
 			</MudPaper>
@@ -57,7 +58,7 @@ else
 		@if (OnlyRelatedToFile is not null && !Posts!.Any())
 		{
 			<MudText Typo="Typo.h6" Class="ml-10" Align="Align.Center">
-				No posts related to file @OnlyRelatedToFile.FullName
+				@t.T("forum", "noPostsRelatedToFile") @OnlyRelatedToFile.FullName
 			</MudText>
 		}
 		@foreach (var post in Posts!)
@@ -69,18 +70,18 @@ else
 					{
 						<MudPaper Class="pa-2 mt-2" Elevation="0" Outlined="true">
 							<MudForm @ref="_editPostForm" @bind-IsValid="@_editPostRequestValid">
-								<MudButton StartIcon="@Icons.Material.Filled.Send" OnClick="async () => await SavePost()" Disabled="!_editPostRequestValid" Color="Color.Primary">Edit post</MudButton>
-								<MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="CancelEditPost" Color="Color.Error">Cancel</MudButton>
-								<MudTextField @bind-Value="_editPostRequest.Title" Validation="Validation.NotEmpty" Label="Title" Variant="Variant.Outlined" />
+							<MudButton StartIcon="@Icons.Material.Filled.Send" OnClick="async () => await SavePost()" Disabled="!_editPostRequestValid" Color="Color.Primary">@t.T("forum", "editPost")</MudButton>
+							<MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="CancelEditPost" Color="Color.Error">@t.T("forum", "cancel")</MudButton>
+							<MudTextField @bind-Value="_editPostRequest.Title" Validation="Validation.NotEmpty" Label='@t.T("forum", "titleLabel")' Variant="Variant.Outlined" />
 								<div style="min-height: 24px; max-height: 96px; overflow: auto;" class="mt-1 pa-0">
-									Files:
+								@t.T("forum", "files")
 									@foreach (var file in _editPostFiles)
 									{
 										<MudChip DisableRipple="true" Value="file" Icon="@file.ToIcon()" Text="@file.FullName" OnClose="CloseEditPostFileChip" />
 									}
-									<MudIconButton Title="Add/remove files" DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Add" OnClick="async () => await EditReferencedFiles(_editPostFiles)" />
+								<MudIconButton Title='@t.T("forum", "addRemoveFiles")' DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Add" OnClick="async () => await EditReferencedFiles(_editPostFiles)" />
 								</div>
-								<MudTextField @bind-Value="_editPostRequest.Content" Validation="Validation.NotEmpty" Label="Post content" Variant="Variant.Outlined" Lines="10" />
+							<MudTextField @bind-Value="_editPostRequest.Content" Validation="Validation.NotEmpty" Label='@t.T("forum", "postContentLabel")' Variant="Variant.Outlined" Lines="10" />
 							</MudForm>
 						</MudPaper>
 					}
@@ -91,18 +92,18 @@ else
 							<MudStack Spacing="0" Class="mb-2">
 								<MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Baseline">
 									<MudAvatar Class="" Size="Size.Small">@post.Author.Initials</MudAvatar>
-									<MudText Typo="Typo.caption">@($"{post.Author.FullName} posted on {post.CreatedAt.ToLocalTime()}{(post.Edited ? " (Edited)" : "")}")</MudText>
+                                    <MudText Typo="Typo.caption">@($"{post.Author.FullName} posted on {post.CreatedAt.ToLocalTime()}{(post.Edited ? " " + t.T("forum", "editedSuffix") : "")}")</MudText>
 									</MudStack>
 									<MudText Typo="Typo.h6" Style="white-space: pre-wrap; word-break: break-word;">@post.Title</MudText>
 								</MudStack>
 
 								<MudMenu Dense="true" Class="align-self-start">
 									<ActivatorContent>
-										<MudIconButton Title="Actions" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+										<MudIconButton Title='@t.T("forum", "actions")' DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
 									</ActivatorContent>
 									<ChildContent>
-										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Edit" OnTouch="() => EditPost(post)" OnClick="() => EditPost(post)" Disabled=@(!post.CanEdit)>Edit</MudMenuItemW>
-										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete" OnTouch="async () => await DeletePost(post)" OnClick="async () => await DeletePost(post)" Disabled=@(!post.CanDelete)>Delete</MudMenuItemW>
+										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Edit" OnTouch="() => EditPost(post)" OnClick="() => EditPost(post)" Disabled=@(!post.CanEdit)>@t.T("forum", "edit")</MudMenuItemW>
+										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete" OnTouch="async () => await DeletePost(post)" OnClick="async () => await DeletePost(post)" Disabled=@(!post.CanDelete)>@t.T("forum", "delete")</MudMenuItemW>
 									</ChildContent>
 								</MudMenu>
 							</MudStack>
@@ -111,7 +112,7 @@ else
 						@if(post.ReferencedFiles.Any())
 						{
 							<div style="min-height: 24px; max-height: 96px; overflow: auto;" class="mt-1 pa-0">
-								Files:
+								@t.T("forum", "files")
 								@foreach (var file in post.ReferencedFiles)
 								{
 									<MudChip DisableRipple="true" Value="file" Icon="@file.ToIcon()" Text="@file.FullName" OnClick="async () => await StorageService.DownloadFile(file.Id, file.FullName)" />
@@ -129,16 +130,16 @@ else
 					@if (post.Id != _createCommentRequest?.PostId)
 					{
 						<MudPaper Class="mt-2" Elevation="0" Outlined="true">
-							<MudButton Style="width: 100%" StartIcon="@Icons.Material.Filled.AddComment" OnClick="() => Comment(post)">Add comment</MudButton>
+							<MudButton Style="width: 100%" StartIcon="@Icons.Material.Filled.AddComment" OnClick="() => Comment(post)">@t.T("forum", "addComment")</MudButton>
 						</MudPaper>
 					}
 					else
 					{
 						<MudPaper Class="pa-2 mt-2" Elevation="0" Outlined="true">
 							<MudForm @ref="_createCommentForm" @bind-IsValid="@_createCommentRequestValid">
-								<MudButton StartIcon="@Icons.Material.Filled.Send" OnClick="async () => await SendComment()" Disabled="!_createCommentRequestValid" Color="Color.Primary">Send comment</MudButton>
-								<MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="CancelComment" Color="Color.Error">Cancel</MudButton>
-								<MudTextField @bind-Value="_createCommentRequest.Content" Validation="Validation.NotEmpty" Label="Comment" Variant="Variant.Outlined" Lines="3" />
+								<MudButton StartIcon="@Icons.Material.Filled.Send" OnClick="async () => await SendComment()" Disabled="!_createCommentRequestValid" Color="Color.Primary">@t.T("forum", "sendComment")</MudButton>
+								<MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="CancelComment" Color="Color.Error">@t.T("forum", "cancel")</MudButton>
+								<MudTextField @bind-Value="_createCommentRequest.Content" Validation="Validation.NotEmpty" Label="@t.T("forum", "commentLabel")" Variant="Variant.Outlined" Lines="3" />
 							</MudForm>
 
 						</MudPaper>
@@ -151,9 +152,9 @@ else
 						{
 							<MudPaper Class="pa-2 mt-2" Elevation="0" Outlined="true">
 								<MudForm @ref="_editCommentForm" @bind-IsValid="@_editCommentRequestValid">
-									<MudButton StartIcon="@Icons.Material.Filled.Send" OnClick="async () => await SaveComment()" Disabled="!_editCommentRequestValid" Color="Color.Primary">Send comment</MudButton>
-									<MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="CancelEditComment" Color="Color.Error">Cancel</MudButton>
-									<MudTextField @bind-Value="_editCommentRequest.Content" Validation="Validation.NotEmpty" Label="Comment" Variant="Variant.Outlined" Lines="3" />
+								<MudButton StartIcon="@Icons.Material.Filled.Send" OnClick="async () => await SaveComment()" Disabled="!_editCommentRequestValid" Color="Color.Primary">@t.T("forum", "sendComment")</MudButton>
+								<MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="CancelEditComment" Color="Color.Error">@t.T("forum", "cancel")</MudButton>
+								<MudTextField @bind-Value="_editCommentRequest.Content" Validation="Validation.NotEmpty" Label='@t.T("forum", "commentLabel")' Variant="Variant.Outlined" Lines="3" />
 								</MudForm>
 							</MudPaper>
 						}
@@ -163,7 +164,7 @@ else
 								<MudStack Spacing="0" Class="">
 									<MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Baseline">
 										<MudAvatar Class="" Size="Size.Small">@comment.Author.Initials</MudAvatar>
-										<MudText Typo="Typo.caption">@($"{comment.Author.FullName} commented on {comment.CreatedAt.ToLocalTime()}{(comment.Edited ? " (Edited)" : "")}")</MudText>
+                                        <MudText Typo="Typo.caption">@($"{comment.Author.FullName} commented on {comment.CreatedAt.ToLocalTime()}{(comment.Edited ? " " + t.T("forum", "editedSuffix") : "")}")</MudText>
 									</MudStack>
 										<MudText Style="white-space: pre-wrap; word-break: break-word;" Class="mt-1" Typo="Typo.body2">@comment.Content</MudText>
 								</MudStack>
@@ -171,11 +172,11 @@ else
 
 									<MudMenu Dense="true" Class="align-self-start">
 										<ActivatorContent>
-											<MudIconButton Title="Actions" Size="Size.Small" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+										<MudIconButton Title='@t.T("forum", "actions")' Size="Size.Small" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
 										</ActivatorContent>
 										<ChildContent>
-											<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Edit" OnTouch="() => EditComment(comment, post.Id)" OnClick="() => EditComment(comment, post.Id)" Disabled=@(!comment.CanEdit)>Edit</MudMenuItemW>
-											<MudMenuItemW IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete" OnTouch="() => EditComment(comment, post.Id)" OnClick="async () => await DeleteComment(comment)" Disabled=@(!comment.CanDelete)>Delete</MudMenuItemW>
+											<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Edit" OnTouch="() => EditComment(comment, post.Id)" OnClick="() => EditComment(comment, post.Id)" Disabled=@(!comment.CanEdit)>@t.T("forum", "edit")</MudMenuItemW>
+											<MudMenuItemW IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete" OnTouch="() => EditComment(comment, post.Id)" OnClick="async () => await DeleteComment(comment)" Disabled=@(!comment.CanDelete)>@t.T("forum", "delete")</MudMenuItemW>
 										</ChildContent>
 									</MudMenu>
 								</MudPaper>
@@ -184,7 +185,7 @@ else
 
 					@if (post.CommentsCount > post.Comments.Count)
 					{
-						<MudButton Class="mt-1" StartIcon="@Icons.Material.Filled.UnfoldMore" OnClick="async () => await LoadMoreComments(post)">Show more comments</MudButton>
+						<MudButton Class="mt-1" StartIcon="@Icons.Material.Filled.UnfoldMore" OnClick="async () => await LoadMoreComments(post)">@t.T("forum", "showMoreComments")</MudButton>
 					}
 
 
@@ -195,7 +196,7 @@ else
 
 		@if (_morePostsAvailable)
 		{
-			<MudButton Style="width: 100%" Class="flex-shrink-0" StartIcon="@Icons.Material.Filled.UnfoldMore" OnClick="async () => await LoadMorePosts()">Show more posts</MudButton>
+			<MudButton Style="width: 100%" Class="flex-shrink-0" StartIcon="@Icons.Material.Filled.UnfoldMore" OnClick="async () => await LoadMorePosts()">@t.T("forum", "showMorePosts")</MudButton>
 		}
 	</MudStack>
 	</div>
@@ -291,7 +292,7 @@ else
 			}
 			catch
 			{
-				Snackbar.Add("Failed to add comment", Severity.Error);
+				Snackbar.Add(t.T("forum", "failedAddComment"), Severity.Error);
 			}
 		}
 	}
@@ -341,7 +342,7 @@ else
 			}
 			catch
 			{
-				Snackbar.Add("Failed to edit post", Severity.Error);
+				Snackbar.Add(t.T("forum", "failedEditPost"), Severity.Error);
 			}
 		}
 	}
@@ -379,7 +380,7 @@ else
 			}
 			catch
 			{
-				Snackbar.Add("Failed to edit comment", Severity.Error);
+				Snackbar.Add(t.T("forum", "failedEditComment"), Severity.Error);
 			}
 		}
 	}
@@ -400,7 +401,7 @@ else
 			}
 			catch
 			{
-				Snackbar.Add("Failed to create post", Severity.Error);
+							Snackbar.Add(t.T("forum", "failedCreatePost"), Severity.Error);
 			}
 		}
 	}
@@ -409,15 +410,15 @@ else
 	{
 		try
 		{
-			if (!await DialogService.ShowConfirmationDialog("Delete post", "delete", "post", post.Title)) return;
+			if (!await DialogService.ShowConfirmationDialog(t.T("forum", "deletePostConfirmTitle"), "delete", "post", post.Title)) return;
 			await ForumService.DeletePostAsync(post.Id);
 			var postToDeleteIndex = Posts?.FindIndex(p => p.Id == post.Id);
 			if (postToDeleteIndex != null) Posts?.RemoveAt(postToDeleteIndex.Value);
-			Snackbar.Add("Post deleted.", Severity.Success);
+			Snackbar.Add(t.T("forum", "postDeleted"), Severity.Success);
 		}
 		catch
 		{
-			Snackbar.Add("Failed to delete post", Severity.Error);
+			Snackbar.Add(t.T("forum", "failedDeletePost"), Severity.Error);
 		}
 	}
 
@@ -425,15 +426,15 @@ else
 	{
 		try
 		{
-			if (!await DialogService.ShowConfirmationDialog("Delete comment", "delete", "comment", "")) return;
+			if (!await DialogService.ShowConfirmationDialog(t.T("forum", "deleteCommentConfirmTitle"), "delete", "comment", "")) return;
 			await ForumService.DeleteCommentAsync(comment.Id);
 			var post = Posts?.FirstOrDefault(p => p.Id == comment.PostId);
 			post?.deleteComment(comment);
-			Snackbar.Add("Comment deleted.", Severity.Success);
+			Snackbar.Add(t.T("forum", "commentDeleted"), Severity.Success);
 		}
 		catch
 		{
-			Snackbar.Add("Failed to delete comment.", Severity.Error);
+			Snackbar.Add(t.T("forum", "failedDeleteComment"), Severity.Error);
 		}
 	}
 

@@ -2,6 +2,7 @@
 @page "/workspaces/{WorkspaceId:long}/sessions/{SelectedSessionId:long}"
 
 @inject NavigationManager NavigationManager;
+@inject ITranslationsService t;
 @inject IBreadcrumbsService BreadcrumbsService;
 @inject ISessionService SessionService;
 @inject ISnackbar Snackbar;
@@ -26,27 +27,27 @@ else
         </Header>
 
         <ChildContent>
-            <MudTabPanel Text="Meeting">
+            <MudTabPanel Text=@t.T("session", "meetingTab")>
                     <Meeting Session="SelectedSession" />
             </MudTabPanel>
 
-            <MudTabPanel Text="Recordings">
+            <MudTabPanel Text=@t.T("session", "recordingsTab")>
                 <FileManager InitialFolderId="SelectedSession!.FolderId"
                          Class="flex-grow-1" Style="height: 100%;" Elevation="0" />
             </MudTabPanel>
 
-            <MudTabPanel Text="Workspace content">
+            <MudTabPanel Text=@t.T("session", "workspaceContentTab")>
                 <FileManager InitialFolderId="SelectedSession!.WorkspaceRootFolderId"
                          Class="flex-grow-1" Style="height: 100%;" Elevation="0" />
             </MudTabPanel>
 
-            <MudTabPanel Text="Workspace forum">
-                <Forum WorkspaceId="WorkspaceId" Title="Workspace forum" />
+            <MudTabPanel Text=@t.T("session", "workspaceForumTab")>
+                <Forum WorkspaceId="WorkspaceId" Title=@t.T("session", "workspaceForumTab") />
             </MudTabPanel>
 
             @if (SelectedSession!.CanManage)
             {
-                <MudTabPanel Text="Session settings">
+                <MudTabPanel Text=@t.T("session", "sessionSettingsTab")>
                     <SessionSettingsManager SessionId="SelectedSession!.Id" OnSessionDeleted="OnSessionDeleted" OnSessionUpdated="OnSessionUpdated" />
                 </MudTabPanel>
             }
@@ -75,7 +76,7 @@ else
         }
         catch
         {
-            Snackbar.Add("Session does not exists or you don't have access", Severity.Error);
+            Snackbar.Add(t.T("session", "errorNoAccess"), Severity.Error);
             NavigationManager.NavigateTo($"workspaces/{WorkspaceId}");
             return;
         }
@@ -83,7 +84,7 @@ else
         BreadcrumbsService.Set(
             Icons.Material.Filled.MeetingRoom,
             SelectedSession.Name,
-            new BreadcrumbItem("Workspaces", "workspaces"),
+            new BreadcrumbItem(t.T("navigation", "workspaces"), "workspaces"),
             new BreadcrumbItem(SelectedSession.WorkspaceName, $"workspaces/{SelectedSession.WorkspaceId}"),
             new BreadcrumbItem(SelectedSession.Name, null, true)
         );

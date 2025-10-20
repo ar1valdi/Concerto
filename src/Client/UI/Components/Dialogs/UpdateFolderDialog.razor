@@ -2,13 +2,14 @@
 @inject IWorkspaceService WorkspaceService
 @inject ISnackbar Snackbar
 @inject IStorageService StorageService
+@inject ITranslationsService t
 
 <MudDialog>
 	<TitleContent>
-		<MudText Typo="Typo.h6">
-			<MudIcon Icon="@Icons.Material.Filled.Settings" Class="mr-3 mb-n1"/>
-			Folder settings
-		</MudText>
+			<MudText Typo="Typo.h6">
+				<MudIcon Icon="@Icons.Material.Filled.Settings" Class="mr-3 mb-n1"/>
+				@t.T("updateFolderDialog", "title")
+			</MudText>
 	</TitleContent>
 	<DialogContent>
 		@if (Loading)
@@ -18,13 +19,13 @@
 		else
 		{
 			<MudStack Spacing="4">
-				<MudTextField Disabled="_permanent" @bind-Value="_request.Name" T="string" Label="Folder name"></MudTextField>
+				<MudTextField Disabled="_permanent" @bind-Value="_request.Name" T="string" Label="@t.T("updateFolderDialog", "folderNameLabel")"></MudTextField>
 				<FolderTypePicker Disabled="_permanent" @bind-Value="_request.Type"></FolderTypePicker>
 				<FolderPermissionPicker @bind-Value="_request.WorkspacePermission" Inherited="_parentPermissionType"/>
 
 				<MudPaper Elevation="0" Outlined="true" Class="d-flex flex-column" Style="overflow: auto;">
-					<MudText Class="ml-4 align-self-start"> User specific permissions
-					<MudTooltip Style="vertical-align: middle;" Class="align-self-start" Text="Those settings will override folder permissions for specified users" Arrow="true">
+					<MudText Class="ml-4 align-self-start"> @t.T("updateFolderDialog", "userSpecificPermissions")
+					<MudTooltip Style="vertical-align: middle;" Class="align-self-start" Text="@t.T("updateFolderDialog", "userPermissionsTooltip")" Arrow="true">
 						<MudIcon Class="d-inline-block" Icon="@Icons.Material.Filled.Info"/>
 					</MudTooltip>
 					</MudText>
@@ -35,8 +36,8 @@
 		}
 	</DialogContent>
 	<DialogActions>
-		<MudButton OnClick="Cancel">Cancel</MudButton>
-		<MudButton Color="Color.Primary" OnClick="Submit">Update</MudButton>
+		<MudButton OnClick="Cancel">@t.T("updateFolderDialog", "cancel")</MudButton>
+		<MudButton Color="Color.Primary" OnClick="Submit">@t.T("updateFolderDialog", "update")</MudButton>
 	</DialogActions>
 </MudDialog>
 
@@ -84,18 +85,18 @@
 	{
 		if (string.IsNullOrEmpty(_request.Name))
 		{
-			Snackbar.Add("Folder name cannot be empty", Severity.Error);
+			Snackbar.Add(@t.T("updateFolderDialog", "folderNameCannotBeEmpty"), Severity.Error);
 			return;
 		}
 		try
 		{
 			await StorageService.UpdateFolderAsync(_request);
-			Snackbar.Add("Folder updated", Severity.Success);
+			Snackbar.Add(@t.T("updateFolderDialog", "folderUpdated"), Severity.Success);
 			Dialog.Close(DialogResult.Ok(true));
 		}
 		catch
 		{
-			Snackbar.Add("Failed to update folder", Severity.Error);
+			Snackbar.Add(@t.T("updateFolderDialog", "failedToUpdateFolder"), Severity.Error);
 		}
 	}
 

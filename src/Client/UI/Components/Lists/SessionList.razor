@@ -1,6 +1,7 @@
 ﻿@inherits MudComponentBase;
 
 @inject ISnackbar Snackbar
+@inject ITranslationsService t
 @inject IDialogService DialogService
 @inject IWorkspaceService WorkspaceService
 @inject ISessionService SessionService
@@ -11,24 +12,24 @@
 			AllowUnsorted="false"
           OnRowClick="OnRowClick">
 	<ToolBarContent>
-		<MudText Class="mr-2" Typo="Typo.h6">Sessions</MudText>
+		<MudText Class="mr-2" Typo="Typo.h6">@t.T("sessionList", "toolbarTitle")</MudText>
 		<MudSpacer/>
 		<MudButtonGroup OverrideStyles="false">
 
-			<MudIconButton Title="Refresh" DisableElevation="true" Icon="@Icons.Material.Filled.Refresh" Color="Color.Default" Variant="Variant.Filled" OnClick="Initialize" />
-			<MudIconButton Title="Create session" DisableElevation="true" Icon="@Icons.Material.Filled.AddBox" Color="Color.Default" Variant="Variant.Filled" OnClick="CreateSession" Disabled="false" />
+			<MudIconButton Title="@t.T("sessionList", "refresh")" DisableElevation="true" Icon="@Icons.Material.Filled.Refresh" Color="Color.Default" Variant="Variant.Filled" OnClick="Initialize" />
+			<MudIconButton Title="@t.T("sessionList", "createSession")" DisableElevation="true" Icon="@Icons.Material.Filled.AddBox" Color="Color.Default" Variant="Variant.Filled" OnClick="CreateSession" Disabled="false" />
 			<MudMenu Dense="true">
 				<ActivatorContent>
-					<MudIconButton Title="More" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+					<MudIconButton Title="@t.T("sessionList", "more")" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
 				</ActivatorContent>
 				<ChildContent>
 					<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Refresh"
 								  OnClick="Initialize" OnTouch="Initialize" Disabled="false">
-						Refresh view
+						@t.T("sessionList", "refreshView")
 					</MudMenuItemW>
 					<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.AddBox"
 								  OnClick="CreateSession" OnTouch="CreateSession" Disabled="_canManageSessions">
-						Create session
+						@t.T("sessionList", "createSession")
 					</MudMenuItemW>
 				</ChildContent>
 			</MudMenu>
@@ -39,28 +40,28 @@
 	<HeaderContent>
 		<MudTh>
 			<MudTableSortLabel SortBy="new Func<SessionListItem, object>(x => x.Name)">
-				Name
+				@t.T("sessionList", "headerName")
 			</MudTableSortLabel>
 		</MudTh>
 		<MudTh>
 			<MudTableSortLabel InitialDirection="SortDirection.Descending" SortBy="new Func<SessionListItem, object>(x => x.ScheduledDate)">
-				Date
+				@t.T("sessionList", "headerDate")
 			</MudTableSortLabel>
 		</MudTh>
 		<MudTh/>
 
 	</HeaderContent>
 	<RowTemplate>
-		<MudTd DataLabel="Name">@context.Name</MudTd>
-		<MudTd DataLabel="Scheduled for">@context.ScheduledDate.ToLocalTime().ToString()</MudTd>
-		<MudTd DataLabel="Actions"  Style="text-align: right">
+		<MudTd DataLabel="@t.T("sessionList", "dataLabelName")">@context.Name</MudTd>
+		<MudTd DataLabel="@t.T("sessionList", "dataLabelScheduledFor")">@context.ScheduledDate.ToLocalTime().ToString()</MudTd>
+		<MudTd DataLabel="@t.T("sessionList", "actions")"  Style="text-align: right">
 			<MudMenu Dense="true">
 				<ActivatorContent>
-					<MudIconButton Title="Actions" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+					<MudIconButton Title="@t.T("sessionList", "actions")" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
 				</ActivatorContent>
 				<ChildContent>
-					<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.OpenInBrowser" OnTouch="() => SelectSession(context)" OnClick="() => SelectSession(context)">Open</MudMenuItemW>
-					<MudMenuItemW Disabled="!_canManageSessions" IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete" OnTouch="() => DeleteSession(context)" OnClick="() => DeleteSession(context)">Delete</MudMenuItemW>
+					<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.OpenInBrowser" OnTouch="() => SelectSession(context)" OnClick="() => SelectSession(context)">@t.T("sessionList", "open")</MudMenuItemW>
+					<MudMenuItemW Disabled="!_canManageSessions" IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete" OnTouch="() => DeleteSession(context)" OnClick="() => DeleteSession(context)">@t.T("sessionList", "delete")</MudMenuItemW>
 				</ChildContent>
 			</MudMenu>
 		</MudTd>
@@ -109,23 +110,23 @@
 	private async Task CreateSession()
 	{
 		var parameters = new DialogParameters { ["WorkspaceId"] = WorkspaceId };
-		var result = await DialogService.Show<CreateSessionDialog>("Create new session", parameters).Result;
+		var result = await DialogService.Show<CreateSessionDialog>(t.T("sessionList", "createNewSession"), parameters).Result;
 		if (result.Canceled) return;
 		await Initialize();
 	}
 
 	private async Task DeleteSession(SessionListItem session)
 	{
-		if (!await DialogService.ShowConfirmationDialog("Delete session", "delete", "session", session.Name, true)) return;
+		if (!await DialogService.ShowConfirmationDialog(t.T("sessionList", "deleteSessionTitle"), t.T("common", "delete"), t.T("sessionList", "session"), session.Name, true)) return;
 		try
 		{
 			await SessionService.DeleteSessionAsync(session.Id);
-			Snackbar.Add($"Session {session.Name} deleted", Severity.Success);
+			Snackbar.Add(t.T("sessionList", "sessionDeleted", session.Name), Severity.Success);
 			await Initialize();
 		}
 		catch
 		{
-			Snackbar.Add($"Failed to delete session {session.Name}.", Severity.Error);
+			Snackbar.Add(t.T("sessionList", "failedToDeleteSession", session.Name), Severity.Error);
 		}
 	}
 

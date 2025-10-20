@@ -5,6 +5,7 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject IWorkspaceService WorkspaceService
+@inject ITranslationsService t
 
 
 @if (Loading)
@@ -17,32 +18,32 @@ else
 		  Style="@TableStyle" Class="@Class" Height="100%" FixedHeader="true" FixedFooter="true" Outlined="true"
 		  RowsPerPage="PageSize.Default" RowStyle="cursor: pointer;" OnRowClick="OnRowClick">
 		<ToolBarContent>
-			<MudText Class="mr-2" Typo="Typo.subtitle1">Your workspaces</MudText>
+			<MudText Class="mr-2" Typo="Typo.subtitle1">@t.T("workspaceList", "yourWorkspaces")</MudText>
 			<MudSpacer/>
-			<MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
+			<MudTextField @bind-Value="searchString" Placeholder="@t.T("workspaceList", "search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
 					  Class="mt-0 mr-2" Style="" />
 			<MudSpacer/>
 			<MudButtonGroup OverrideStyles="false">
 
 				@if (LayoutState.SmAndUp)
 				{
-					<MudIconButton Title="Refresh" DisableElevation="true" Icon="@Icons.Material.Filled.Refresh" Color="Color.Default" Variant="Variant.Filled" OnClick="Initialize" />
+					<MudIconButton Title="@t.T("workspaceList", "refresh")" DisableElevation="true" Icon="@Icons.Material.Filled.Refresh" Color="Color.Default" Variant="Variant.Filled" OnClick="Initialize" />
 					@if (ManagementEnabled)
 					{
 						<AuthorizeView Policy="@AuthorizationPolicies.IsModerator.Name">
-							<MudIconButton Title="Create workspace" DisableElevation="true" Icon="@Icons.Material.Filled.AddBox" Color="Color.Default" Variant="Variant.Filled" OnClick="CreateWorkspace" Disabled="false" />
+						<MudIconButton Title="@t.T("workspaceList", "createWorkspace")" DisableElevation="true" Icon="@Icons.Material.Filled.AddBox" Color="Color.Default" Variant="Variant.Filled" OnClick="CreateWorkspace" Disabled="false" />
 						</AuthorizeView>
 					}
 				}
 
 				<MudMenu Dense="true">
 					<ActivatorContent>
-						<MudIconButton Title="More" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+					<MudIconButton Title="@t.T("workspaceList", "more")" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
 					</ActivatorContent>
 					<ChildContent>
 						<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Refresh"
 								  OnTouch="Initialize" OnClick="Initialize">
-							Refresh view
+							@t.T("workspaceList", "refreshView")
 						</MudMenuItemW>
 
 						@if (ManagementEnabled)
@@ -50,7 +51,7 @@ else
 							<AuthorizeView Policy="@AuthorizationPolicies.IsModerator.Name">
 								<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.AddBox"
 									  OnClick="CreateWorkspace" OnTouch="CreateWorkspace" Disabled="false">
-									Create workspace
+								@t.T("workspaceList", "createWorkspace")
 								</MudMenuItemW>
 							</AuthorizeView>
 						}
@@ -61,32 +62,32 @@ else
 		</ToolBarContent>
 		<HeaderContent>
 			<MudTh>
-				<MudTableSortLabel SortBy="new Func<WorkspaceListItem, object>(x => x.Name)">Workspace name</MudTableSortLabel>
+				<MudTableSortLabel SortBy="new Func<WorkspaceListItem, object>(x => x.Name)">@t.T("workspaceList", "workspaceNameHeader")</MudTableSortLabel>
 			</MudTh>
 			<MudTh>
-				<MudTableSortLabel SortBy="new Func<WorkspaceListItem, object>(x => x.CreatedDate)" InitialDirection="SortDirection.Descending">Creation date</MudTableSortLabel>
+				<MudTableSortLabel SortBy="new Func<WorkspaceListItem, object>(x => x.CreatedDate)" InitialDirection="SortDirection.Descending">@t.T("workspaceList", "creationDateHeader")</MudTableSortLabel>
 			</MudTh>
 			<MudTh></MudTh>
 		</HeaderContent>
 		<RowTemplate>
-			<MudTd DataLabel="Name">
+			<MudTd DataLabel="@t.T("workspaceList", "nameColumn")">
 				<MudText>@context.Name</MudText>
 			</MudTd>
-			<MudTd DataLabel="Created on">
+			<MudTd DataLabel="@t.T("workspaceList", "createdOnColumn")">
 				<MudText>@context.CreatedDate</MudText>
 			</MudTd>
-			<MudTd DataLabel="Actions" Style="text-align: right">
+			<MudTd DataLabel="@t.T("workspaceList", "actions")" Style="text-align: right">
 
 				<MudMenu Dense="true">
 					<ActivatorContent>
-						<MudIconButton Title="Actions" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled"/>
+						<MudIconButton Title="@t.T("workspaceList", "actions")" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled"/>
 					</ActivatorContent>
 					<ChildContent>
-						<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@SelectIcon" OnTouch="() => SelectWorkspace(context)" OnClick="() => SelectWorkspace(context)">@SelectLabel</MudMenuItemW>
+							<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@SelectIcon" OnTouch="() => SelectWorkspace(context)" OnClick="() => SelectWorkspace(context)">@SelectLabel</MudMenuItemW>
 						@if (ManagementEnabled)
 						{
 							<AuthorizeView Policy="@AuthorizationPolicies.IsModerator.Name" Context="auth">
-								<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.CopyAll" OnTouch="() => CloneWorkspace(context)" OnClick="() => CloneWorkspace(context)">Clone</MudMenuItemW>
+								<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.CopyAll" OnTouch="() => CloneWorkspace(context)" OnClick="() => CloneWorkspace(context)">@t.T("workspaceList", "clone")</MudMenuItemW>
 							</AuthorizeView>
 						}
 
@@ -147,16 +148,16 @@ else
 
 	private async Task DeleteWorkspace(WorkspaceListItem workspace)
 	{
-		if (!await DialogService.ShowConfirmationDialog("Delete workspace","delete", "workspace", workspace.Name, true)) return;
+		if (!await DialogService.ShowConfirmationDialog(t.T("workspaceList", "deleteWorkspaceTitle"), t.T("common", "delete"), t.T("workspaceList", "workspace"), workspace.Name, true)) return;
 		try
 		{
 			await WorkspaceService.DeleteWorkspaceAsync(workspace.Id);
-			Snackbar.Add($"Workspace {workspace.Name} deleted", Severity.Success);
+			Snackbar.Add(t.T("workspaceList", "workspaceDeleted", workspace.Name), Severity.Success);
 			await Initialize();
 		}
 		catch
 		{
-			Snackbar.Add($"Failed to delete workspace {workspace.Name}.", Severity.Error);
+			Snackbar.Add(t.T("workspaceList", "failedToDeleteWorkspace", workspace.Name), Severity.Error);
 		}
 	}
 
@@ -178,7 +179,7 @@ else
 	private async Task CloneWorkspace(WorkspaceListItem workspace)
 	{
 		var parameters = new DialogParameters { ["WorkspaceToClone"] = workspace };
-		var name = $"Clone workspace {workspace.Name}";
+		var name = t.T("workspaceList", "cloneWorkspaceTitle", workspace.Name);
 		var result = await DialogService.Show<CloneWorkspaceDialog>(name, parameters).Result;
 		if (result.Canceled) return;
 		var clonedWorkspaceId = (long)result.Data;
