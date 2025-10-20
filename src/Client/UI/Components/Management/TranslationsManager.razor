@@ -38,7 +38,7 @@ else
     @if (changedTranslations.Any())
     {
         <button class="save-button" @onclick="ShowSavePreview">
-            <span class="save-icon">💾</span>
+            <MudIcon Icon="@Icons.Material.Filled.Save" />
             @translationsService.T("translationsManager", "saveCta") (@changedTranslations.Count)
         </button>
     }
@@ -173,63 +173,115 @@ else
 
     private RenderFragment RenderFilters() => __builder =>
     {
-        <div class="filters-container">
-            <h6 class="filters-header">@translationsService.T("translationsManager", "filtersHeader")</h6>
-            <div class="filters-grid">
-                <div class="filter-item">
-                    <input type="text" 
-                           @bind="filterView" 
-                           @bind:event="oninput"
-                           placeholder="@translationsService.T("translationsManager", "filterViewLabel")" 
-                           class="filter-input" />
-                </div>
-                <div class="filter-item">
-                    <input type="text" 
-                           @bind="filterKey" 
-                           @bind:event="oninput"
-                           placeholder="@translationsService.T("translationsManager", "filterKeyLabel")" 
-                           class="filter-input" />
-                </div>
-                <div class="filter-item">
-                    <select @bind="filterValueLanguage" class="filter-select">
-                        <option value="">@translationsService.T("translationsManager", "filterValueLanguageLabel")</option>
+        <MudPaper Class="pa-4 mb-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-3">@translationsService.T("translationsManager", "filtersHeader")</MudText>
+            <MudGrid>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudTextField 
+                        @bind-Value="filterView" 
+                        Label="@translationsService.T("translationsManager", "filterViewLabel")" 
+                        Variant="Variant.Outlined"
+                        Margin="Margin.Dense"
+                        Clearable="true"
+                        Immediate="true"
+                        DebounceInterval="500"
+                        Adornment="Adornment.Start"
+                        AdornmentIcon="@Icons.Material.Filled.Search" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudTextField 
+                        @bind-Value="filterKey" 
+                        Label="@translationsService.T("translationsManager", "filterKeyLabel")" 
+                        Variant="Variant.Outlined"
+                        Margin="Margin.Dense"
+                        Clearable="true"
+                        Immediate="true"
+                        DebounceInterval="500"
+                        Adornment="Adornment.Start"
+                        AdornmentIcon="@Icons.Material.Filled.Search" />
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudSelect 
+                        @bind-Value="filterValueLanguage" 
+                        Label="@translationsService.T("translationsManager", "filterValueLanguageLabel")" 
+                        Variant="Variant.Outlined"
+                        Margin="Margin.Dense"
+                        Clearable="true"
+                        T="string">
                         @foreach (var lang in languages)
                         {
-                            <option value="@lang.Key">@lang.Name (@lang.Key.ToUpper())</option>
+                            <MudSelectItem Value="@lang.Key">@lang.Name (@lang.Key.ToUpper())</MudSelectItem>
                         }
-                    </select>
-                </div>
-                <div class="filter-item">
-                    <input type="text" 
-                           @bind="filterValue" 
-                           @bind:event="oninput"
-                           placeholder="@translationsService.T("translationsManager", "filterValueLabel")" 
-                           class="filter-input"
-                           disabled="@(string.IsNullOrEmpty(filterValueLanguage))" />
-                </div>
-                <div class="filter-item full-width">
-                    <select @onchange="OnLanguageSelectionChanged" multiple class="filter-select">
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudTextField 
+                        @bind-Value="filterValue" 
+                        Label="@translationsService.T("translationsManager", "filterValueLabel")" 
+                        Variant="Variant.Outlined"
+                        Margin="Margin.Dense"
+                        Clearable="true"
+                        Immediate="true"
+                        DebounceInterval="500"
+                        Disabled="string.IsNullOrEmpty(filterValueLanguage)"
+                        Adornment="Adornment.Start"
+                        AdornmentIcon="@Icons.Material.Filled.Search" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelect 
+                        @bind-SelectedValues="selectedLanguageKeys" 
+                        Label="@translationsService.T("translationsManager", "showOnlySelectedLanguagesLabel")" 
+                        Variant="Variant.Outlined"
+                        Margin="Margin.Dense"
+                        MultiSelection="true"
+                        T="string">
                         @foreach (var lang in languages)
                         {
-                            <option value="@lang.Key" selected="@selectedLanguageKeys.Contains(lang.Key)">@lang.Name (@lang.Key.ToUpper())</option>
+                            <MudSelectItem Value="@lang.Key">@lang.Name (@lang.Key.ToUpper())</MudSelectItem>
                         }
-                    </select>
-                </div>
-            </div>
-        </div>
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
     };
 
     private RenderFragment RenderPaginationControls() => __builder =>
     {
         if (totalPages > 1)
         {
-            <div class="pagination-controls">
-                <button @onclick="GoToFirstPage" disabled="@(currentPage == 1)" class="page-btn">«</button>
-                <button @onclick="GoToPreviousPage" disabled="@(currentPage == 1)" class="page-btn">‹</button>
-                <span class="page-info">@currentPage / @totalPages</span>
-                <button @onclick="GoToNextPage" disabled="@(currentPage == totalPages)" class="page-btn">›</button>
-                <button @onclick="GoToLastPage" disabled="@(currentPage == totalPages)" class="page-btn">»</button>
-            </div>
+            <MudPaper Class="pa-3 mb-3" Elevation="1">
+                <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudIconButton 
+                        Variant="Variant.Outlined" 
+                        Icon="@Icons.Material.Filled.FirstPage"
+                        Color="Color.Primary"
+                        OnClick="GoToFirstPage" 
+                        Disabled="@(currentPage == 1)"
+                        />
+                    <MudIconButton 
+                        Variant="Variant.Outlined" 
+                        Icon="@Icons.Material.Filled.ChevronLeft"
+                        Color="Color.Primary"
+                        OnClick="GoToPreviousPage" 
+                        Disabled="@(currentPage == 1)"
+                        />
+                    <MudText Typo="Typo.body2" Class="mx-3">@currentPage / @totalPages</MudText>
+                    <MudIconButton 
+                        Variant="Variant.Outlined" 
+                        Icon="@Icons.Material.Filled.ChevronRight"
+                        Color="Color.Primary"
+                        OnClick="GoToNextPage" 
+                        Disabled="@(currentPage == totalPages)"
+                        />
+                    <MudIconButton 
+                        Variant="Variant.Outlined" 
+                        Icon="@Icons.Material.Filled.LastPage"
+                        Color="Color.Primary"
+                        OnClick="GoToLastPage" 
+                        Disabled="@(currentPage == totalPages)"
+                        />
+                </MudStack>
+            </MudPaper>
         }
     };
 
@@ -239,7 +291,7 @@ else
         {
             <div class="view-section">
                 <div class="view-header" @onclick="() => ToggleViewSection(viewSection)">
-                    <span class="expand-icon">@(viewSection.IsExpanded ? "▼" : "▶")</span>
+                    <MudIcon Icon="@(viewSection.IsExpanded ? Icons.Material.Filled.KeyboardArrowDown : Icons.Material.Filled.KeyboardArrowRight)" />
                     <span class="view-name">@viewSection.View</span>
                 </div>
                 @if (viewSection.IsExpanded)
@@ -249,7 +301,7 @@ else
                         {
                             <div class="key-section">
                                 <div class="key-header" @onclick="() => ToggleKeySection(keySection)">
-                                    <span class="expand-icon">@(keySection.IsExpanded ? "▼" : "▶")</span>
+                                    <MudIcon Icon="@(keySection.IsExpanded ? Icons.Material.Filled.KeyboardArrowDown : Icons.Material.Filled.KeyboardArrowRight)" />
                                     <span class="key-name">@keySection.Key</span>
                                 </div>
                                 @if (keySection.IsExpanded)
