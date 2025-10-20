@@ -1,16 +1,18 @@
-﻿<MudDialog>
+﻿@inject ITranslationsService t
+
+<MudDialog>
 	<DialogContent>
 		<MudContainer Style="max-height: 80vh; overflow-y: scroll">
 			<MudText Style="overflow: auto; white-space: pre-wrap;">@Text</MudText>
 		</MudContainer>
 		@if (Confirmation)
 		{
-			<MudSwitch @bind-Checked="@userSure" Label="I'm sure." Color="Color.Warning"/>
+			<MudSwitch @bind-Checked="@userSure" Label="@t.T("confirmationDialog", "imSure")" Color="Color.Warning"/>
 		}
 	</DialogContent>
 	<DialogActions>
-		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">No</MudButton>
-		<MudButton Variant="Variant.Filled" Disabled="Confirmation && !userSure" Color="Color.Success" OnClick="Delete">Yes</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">@t.T("confirmationDialog", "no")</MudButton>
+		<MudButton Variant="Variant.Filled" Disabled="Confirmation && !userSure" Color="Color.Success" OnClick="Delete">@t.T("confirmationDialog", "yes")</MudButton>
 	</DialogActions>
 </MudDialog>
 

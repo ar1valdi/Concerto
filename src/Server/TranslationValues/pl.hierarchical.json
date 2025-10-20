@@ -1,0 +1,524 @@
+{
+  "navigation": {
+    "menu": "Menu",
+    "home": "Strona główna",
+    "adminPanel": "Panel administracyjny",
+    "videoRecorder": "Rejestrator wideo",
+    "storage": "Zasoby",
+    "workspaces": "Przestrzenie robocze"
+  },
+  "home": {
+    "title": "Strona główna",
+    "adminVerificationRequired": "Administrator musi zweryfikować twoje konto zanim skorzystasz z Concerto. Prosimy wrócić później lub skontaktować się z administratorem"
+  },
+  "admin": {
+    "title": "Panel administratora",
+    "unverifiedUsers": "Niezweryfikowani użytkownicy",
+    "allUsers": "Wszyscy użytkownicy",
+    "more": "Więcej",
+    "languages": "Języki",
+    "translations": "Tłumaczenia"
+  },
+  "authentication": {
+    "logInFailed": "Logowanie się nie powiodło.",
+    "logOut": "Wylogowuję...",
+    "logOutSucceeded": "Wylogowywanie powiodło się.",
+    "loggingIn": "Przekierowanie do ekranu logowania...",
+    "completingLoggingIn": "Logowanie powiodło się. Poczekaj chwilę..."
+  },
+  "app": {
+    "authorizing": "Autoryzowanie...",
+    "pleaseLogIn": "Zaloguj się, aby kontynuować.",
+    "notFoundTitle": "Nie znaleziono",
+    "notFoundBody": "Przepraszamy, pod tym adresem nic nie ma."
+  },
+  "workspace": {
+    "contentTab": "Zawartość",
+    "sessionsTab": "Sesje",
+    "forumTab": "Forum",
+    "settingsTab": "Ustawienia",
+    "forumTitle": "Forum przestrzeni roboczej",
+    "errorNoAccess": "Przestrzeń robocza nie istnieje lub nie masz dostępu"
+  },
+  "session": {
+    "meetingTab": "Spotkanie",
+    "recordingsTab": "Nagrania",
+    "workspaceContentTab": "Zawartość przestrzeni",
+    "workspaceForumTab": "Forum przestrzeni",
+    "sessionSettingsTab": "Ustawienia sesji",
+    "errorNoAccess": "Sesja nie istnieje lub nie masz dostępu"
+  },
+  "profile": {
+    "title": "Twój profil",
+    "details": "Szczegóły",
+    "userName": "Nazwa użytkownika",
+    "firstName": "Imię",
+    "lastName": "Nazwisko",
+    "userId": "Id użytkownika"
+  },
+  "manual": {
+    "title": "Instrukcja użytkownika",
+    "noPdfSupport": "Twoja przeglądarka nie obsługuje podglądu PDF.",
+    "openManualCta": "Kliknij tutaj, aby otworzyć instrukcję.",
+    "breadcrumb": "Instrukcja"
+  },
+  "recordingTool": {
+    "pageTitle": "Rejestrator wideo",
+    "mobileUnavailable": "Funkcja niedostępna na urządzeniach mobilnych",
+    "recordingName": "Nazwa nagrania",
+    "selectFolderDialogTitle": "Wybierz folder dla nagrania",
+    "selectFolderDialogConfirm": "Zapisz tutaj",
+    "recordingPrefix": "Nagranie-",
+    "recordButton": "Nagrywaj",
+    "stopButton": "Zatrzymaj",
+    "saveInWorkspace": "Zapisz w przestrzeni roboczej",
+    "saveOnComputer": "Zapisz na komputerze",
+    "discardButton": "Odrzuć",
+    "noneOption": "Brak",
+    "audioOnlyRecording": "Nagrywanie tylko audio",
+    "noneAudioOnly": "Brak (tylko audio)"
+  },
+  "tokenDebug": {
+    "pageTitle": "Indeks",
+    "homeHeader": "Strona główna",
+    "welcome": "Witamy w Concerto",
+    "claimsHeader": "Dane ClaimsPrincipal",
+    "getClaimsButton": "Pobierz dane ClaimsPrincipal",
+    "isAuthenticatedSuffix": " jest uwierzytelniony.",
+    "notAuthenticated": "Użytkownik NIE jest uwierzytelniony."
+  }
+  ,
+  "workspaceList": {
+    "yourWorkspaces": "Twoje przestrzenie",
+    "search": "Szukaj",
+    "refresh": "Odśwież",
+    "createWorkspace": "Utwórz przestrzeń",
+    "more": "Więcej",
+    "refreshView": "Odśwież widok",
+    "workspaceNameHeader": "Nazwa przestrzeni",
+    "creationDateHeader": "Data utworzenia",
+    "nameColumn": "Nazwa",
+    "createdOnColumn": "Utworzono",
+    "actions": "Akcje",
+    "clone": "Sklonuj",
+    "deleteWorkspaceTitle": "Usuń przestrzeń roboczą",
+    "workspace": "przestrzeń robocza",
+    "workspaceDeleted": "Przestrzeń robocza {0} usunięta",
+    "failedToDeleteWorkspace": "Nie udało się usunąć przestrzeni roboczej {0}.",
+    "cloneWorkspaceTitle": "Sklonuj przestrzeń roboczą {0}"
+  },
+  "workspaceMemberPicker": {
+    "sortBy": "Sortuj wg",
+    "workspaceMembers": "Członkowie przestrzeni",
+    "search": "Szukaj",
+    "selectedHeader": "Zaznaczono",
+    "nameHeader": "Imię",
+    "surnameHeader": "Nazwisko",
+    "usernameHeader": "Nazwa użytkownika",
+    "selectedColumn": "Zaznaczono",
+    "nameColumn": "Imię",
+    "surnameColumn": "Nazwisko",
+    "usernameColumn": "Nazwa użytkownika",
+    "selectAll": "Zaznacz wszystko"
+  },
+  "userFolderPermissionPicker": {
+    "addUser": "Dodaj użytkownika",
+    "nameHeader": "Nazwa",
+    "permissionHeader": "Uprawnienie",
+    "actionsHeader": "Akcje",
+    "restoreDefaultTooltip": "Przywróć domyślne - uprawnienie będzie takie jak w folderze nadrzędnym",
+    "restoreInheritedTitle": "Przywróć dziedziczone",
+    "removeTooltip": "Usuń - zastosuje się domyślne uprawnienie folderu",
+    "removeUserPermissionTitle": "Usuń uprawnienie użytkownika"
+  },
+  "folderTypePicker": {
+    "folderTypeLabel": "Typ folderu"
+  },
+  "folderPermissionPicker": {
+    "permissionLabel": "Uprawnienie",
+    "inheritedPrefix": "Dziedziczone -",
+    "infoTitle": "Informacje",
+    "tooltipTitle": "Uprawnienia folderu",
+    "readersHeader": "Czytelnicy",
+    "readersPoint1": "Przeglądanie zawartości folderu i pobieranie plików",
+    "contributorsHeader": "Współtwórcy",
+    "contributorsPoint1": "Przeglądanie zawartości folderu i pobieranie plików",
+    "contributorsPoint2": "Dodawanie plików i folderów",
+    "contributorsPoint3": "Usuwanie plików i folderów będących ich własnością",
+    "contributorsPoint4": "Edycja plików i folderów będących ich własnością",
+    "editorsHeader": "Redaktorzy",
+    "editorsPoint1": "Przeglądanie zawartości folderu i pobieranie plików",
+    "editorsPoint2": "Dodawanie, edycja i usuwanie dowolnych plików",
+    "editorsPoint3": "Dodawanie folderów",
+    "editorsPoint4": "Usuwanie i edycja folderów będących ich własnością",
+    "editorsPoint5": "Usuwanie i edycja folderów, w których posiadają uprawnienie Redaktora",
+    "reader": "Czytelnik",
+    "contributor": "Współtwórca",
+    "editor": "Redaktor"
+  },
+  "sessionList": {
+    "toolbarTitle": "Sesje",
+    "refresh": "Odśwież",
+    "createSession": "Utwórz sesję",
+    "more": "Więcej",
+    "refreshView": "Odśwież widok",
+    "headerName": "Nazwa",
+    "headerDate": "Data",
+    "dataLabelName": "Nazwa",
+    "dataLabelScheduledFor": "Zaplanowano na",
+    "actions": "Akcje",
+    "open": "Otwórz",
+    "delete": "Usuń",
+    "createNewSession": "Utwórz nową sesję",
+    "deleteSessionTitle": "Usuń sesję",
+    "session": "sesja",
+    "sessionDeleted": "Sesja {0} usunięta",
+    "failedToDeleteSession": "Nie udało się usunąć sesji {0}."
+  }
+  ,
+  "mainLayout": {
+    "manageAccount": "Zarządzaj kontem",
+    "toggleTheme": "Przełącz motyw",
+    "userManual": "Instrukcja użytkownika",
+    "logOut": "Wyloguj",
+    "signIn": "Zaloguj się"
+  },
+  "forum": {
+    "createPost": "Utwórz post",
+    "editPost": "Edytuj post",
+    "cancel": "Anuluj",
+    "titleLabel": "Tytuł",
+    "files": "Pliki:",
+    "addRemoveFiles": "Dodaj/usuń pliki",
+    "postContentLabel": "Treść posta",
+    "noPostsRelatedToFile": "Brak postów powiązanych z plikiem",
+    "actions": "Akcje",
+    "edit": "Edytuj",
+    "delete": "Usuń",
+    "addComment": "Dodaj komentarz",
+    "sendComment": "Wyślij komentarz",
+    "commentLabel": "Komentarz",
+    "showMoreComments": "Pokaż więcej komentarzy",
+    "showMorePosts": "Pokaż więcej postów",
+    "failedAddComment": "Nie udało się dodać komentarza",
+    "failedEditPost": "Nie udało się edytować posta",
+    "failedEditComment": "Nie udało się edytować komentarza",
+    "postDeleted": "Post usunięty.",
+    "failedDeletePost": "Nie udało się usunąć posta",
+    "failedCreatePost": "Nie udało się utworzyć posta",
+    "commentDeleted": "Komentarz usunięty.",
+    "failedDeleteComment": "Nie udało się usunąć komentarza.",
+    "deletePostConfirmTitle": "Usuń post",
+    "deleteCommentConfirmTitle": "Usuń komentarz",
+    "editedSuffix": "(Edytowano)"
+  },
+  "meeting": {
+    "downloadJitsiApp": "Pobierz aplikację Jitsi Meet",
+    "openInApp": "Otwórz spotkanie w aplikacji Jitsi Meet (musi być zainstalowana)"
+  },
+  "daw": {
+    "unnamedTrack": "Ścieżka bez nazwy",
+    "mute": "Wycisz",
+    "solo": "Solo",
+    "addTrack": "Dodaj ścieżkę"
+  }
+  ,
+  "common": {
+    "refresh": "Odśwież",
+    "actions": "Akcje",
+    "cancel": "Anuluj",
+    "create": "Utwórz",
+    "cancelButton": "Anuluj",
+    "updateButton": "Aktualizuj",
+    "settings": "Ustawienia",
+    "search": "Szukaj"
+  },
+  "translationsManager": {
+    "filtersHeader": "Filtry",
+    "filterViewLabel": "Filtruj po widoku",
+    "filterKeyLabel": "Filtruj po kluczu",
+    "filterValueLanguageLabel": "Język dla filtra wartości",
+    "filterValueLabel": "Filtruj po wartości",
+    "showOnlySelectedLanguagesLabel": "Pokaż tylko wybrane języki",
+    "noMatches": "Brak tłumaczeń spełniających bieżące filtry.",
+    "saveCta": "Zapisz",
+    "failedToLoadTranslations": "Nie udało się wczytać tłumaczeń",
+    "noChangesToSave": "Brak zmian do zapisania",
+    "reviewChangesTitle": "Przegląd zmian",
+    "translationsSavedTitle": "Tłumaczenia zapisane",
+    "failedToSaveTranslations": "Nie udało się zapisać tłumaczeń",
+    "successfullySavedMessage": "Pomyślnie zapisano {0} tłumaczeń.\n\nProszę odświeżyć stronę, aby zobaczyć zmiany w aplikacji."
+  },
+  "languagesManager": {
+    "title": "Języki",
+    "addNewLanguage": "Dodaj nowy język",
+    "nameColumn": "Nazwa",
+    "keyColumn": "Klucz",
+    "publicColumn": "Publiczny",
+    "deleteLanguage": "Usuń język",
+    "createDialogTitle": "Utwórz nowy język",
+    "nameField": "Nazwa",
+    "keyField": "Klucz",
+    "keyHelper": "Identyfikator języka (np. 'en', 'pl', 'es')",
+    "failedToLoadLanguages": "Nie udało się wczytać języków",
+    "languageNameRequired": "Nazwa języka jest wymagana",
+    "languageKeyRequired": "Klucz języka jest wymagany",
+    "languageCreated": "Język '{0}' utworzony pomyślnie",
+    "failedToCreateLanguage": "Nie udało się utworzyć języka: {0}",
+    "languageNowPrivate": "Język '{0}' jest teraz prywatny",
+    "languageNowPublic": "Język '{0}' jest teraz publiczny",
+    "failedToUpdateLanguage": "Nie udało się zaktualizować języka: {0}",
+    "deleteLanguageTitle": "Usuń język",
+    "language": "język",
+    "languageDeleted": "Język '{0}' usunięty pomyślnie",
+    "failedToDeleteLanguage": "Nie udało się usunąć języka: {0}"
+  }
+  ,
+  "userManager": {
+    "title": "Użytkownicy",
+    "nameColumn": "Imię",
+    "surnameColumn": "Nazwisko",
+    "usernameColumn": "Nazwa użytkownika",
+    "emailColumn": "Email",
+    "roleColumn": "Rola",
+    "confirmUser": "Potwierdź użytkownika",
+    "rejectUser": "Odrzuć użytkownika",
+    "deleteUser": "Usuń użytkownika",
+    "verifyUserTitle": "Zweryfikuj użytkownika",
+    "confirm": "potwierdź",
+    "user": "użytkownik",
+    "deleteUserTitle": "Usuń użytkownika"
+  }
+  ,
+  "workspaceSettingsManager": {
+    "discard": "Odrzuć",
+    "save": "Zapisz",
+    "delete": "Usuń",
+    "role": "Rola",
+    "yourRolePrefix": "Twoja rola",
+    "workspaceNameLabel": "Nazwa przestrzeni",
+    "workspaceUpdated": "Przestrzeń robocza zaktualizowana",
+    "failedToUpdateWorkspace": "Nie udało się zaktualizować przestrzeni roboczej",
+    "deleteWorkspaceTitle": "Usuń przestrzeń roboczą",
+    "workspace": "przestrzeń robocza",
+    "workspaceDeleted": "{0} usunięta",
+    "failedToDeleteWorkspace": "Nie udało się usunąć przestrzeni roboczej {0}."
+  }
+  ,
+  "sessionSettingsManager": {
+    "discard": "Odrzuć",
+    "save": "Zapisz",
+    "deleteSession": "Usuń sesję",
+    "nameLabel": "Nazwa",
+    "dateLabel": "Data",
+    "timeLabel": "Godzina",
+    "sessionUpdated": "Sesja zaktualizowana",
+    "failedToUpdateSession": "Nie udało się zaktualizować sesji",
+    "deleteSessionTitle": "Usuń sesję",
+    "session": "sesja",
+    "sessionDeleted": "Sesja {0} usunięta",
+    "failedToDeleteSession": "Nie udało się usunąć sesji {0}."
+  }
+  ,
+  "workspaceMemberManager": {
+    "title": "Użytkownicy",
+    "addMembers": "Dodaj członków",
+    "memberColumn": "Członek",
+    "nameColumn": "Imię",
+    "surnameColumn": "Nazwisko",
+    "usernameColumn": "Nazwa użytkownika",
+    "roleColumn": "Rola",
+    "selectAll": "Zaznacz wszystko",
+    "legend": "Legenda",
+    "legendNew": "Nowy",
+    "legendModified": "Zmodyfikowany",
+    "legendDeleted": "Usunięty",
+    "legendEditing": "Edycja"
+  }
+  ,
+  "uploadManager": {
+    "uploads": "Przesyłania",
+    "noUploads": "Brak przesyłań",
+    "clearHistory": "Wyczyść historię",
+    "cancelled": "Anulowano",
+    "errorCodePrefix": "Kod błędu:",
+    "errorPrefix": "Błąd:",
+    "clear": "Wyczyść"
+  }
+  ,
+  "translationsSavePreviewDialog": {
+    "title": "Przegląd zmian",
+    "tableView": "Widok",
+    "tableKey": "Klucz",
+    "tableLanguage": "Język",
+    "tableNewValue": "Nowa wartość",
+    "tableAction": "Akcja",
+    "chipDeleted": "Zostanie usunięte",
+    "chipNew": "Nowe",
+    "chipUpdated": "Zaktualizowano",
+    "actionDelete": "Usuń",
+    "actionCreate": "Utwórz",
+    "actionUpdate": "Aktualizuj",
+    "alertRefresh": "Po zapisaniu należy odświeżyć stronę, aby zobaczyć zmiany w aplikacji.",
+    "cancelButton": "Anuluj",
+    "confirmAndSaveButton": "Potwierdź i zapisz",
+    "saveConfirmationMessage": "Zamierzasz zapisać {0} tłumaczeń. Przejrzyj zmiany poniżej:"
+  }
+  ,
+  "updateUserDialog": {
+    "title": "Ustawienia użytkownika",
+    "nameLabel": "Imię i nazwisko",
+    "usernameLabel": "Nazwa użytkownika",
+    "emailLabel": "Email",
+    "roleLabel": "Rola"
+  },
+  "fileManager": {
+    "back": "Wstecz",
+    "search": "Szukaj",
+    "refresh": "Odśwież",
+    "uploadFiles": "Prześlij pliki",
+    "createFolder": "Utwórz folder",
+    "toggleSelectionMode": "Przełącz tryb zaznaczania",
+    "more": "Więcej",
+    "refreshView": "Odśwież widok",
+    "settings": "Ustawienia",
+    "select": "Zaznacz",
+    "cancelSelection": "Anuluj zaznaczenie",
+    "moveSelectedTo": "Przenieś zaznaczone do",
+    "copySelectedTo": "Skopiuj zaznaczone do",
+    "deleteSelected": "Usuń zaznaczone",
+    "name": "Nazwa",
+    "format": "Format",
+    "type": "Typ",
+    "size": "Rozmiar",
+    "owner": "Właściciel",
+    "actions": "Akcje",
+    "open": "Otwórz",
+    "delete": "Usuń",
+    "download": "Pobierz",
+    "showRelatedPosts": "Pokaż powiązane posty",
+    "edit": "Edytuj",
+    "uploadFilesToFolder": "Prześlij pliki do folderu",
+    "deleteFolderItems": "Usuń elementy folderu",
+    "folderItems": "elementy folderu",
+    "itemsDeleted": "Elementy usunięte",
+    "failedToDeleteItems": "Nie udało się usunąć elementów",
+    "moveItemsTo": "Przenieś elementy do",
+    "moveHere": "Przenieś tutaj",
+    "copyItemsTo": "Skopiuj elementy do",
+    "copyHere": "Skopiuj tutaj",
+    "deleteFolder": "Usuń folder",
+    "folder": "Folder",
+    "folderDeleted": "Folder usunięty",
+    "failedToDeleteFolder": "Nie udało się usunąć folderu",
+    "deleteFile": "Usuń plik",
+    "file": "plik",
+    "fileDeleted": "Plik usunięty",
+    "failedToDeleteFile": "Nie udało się usunąć pliku",
+    "editFolder": "Edytuj folder",
+    "editFile": "Edytuj plik"
+  },
+  "uploadFilesDialog": {
+    "clickHereOrDragFiles": "Kliknij tutaj lub przeciągnij pliki",
+    "cancel": "Anuluj",
+    "clear": "Wyczyść",
+    "upload": "Prześlij"
+  },
+  "updateFolderDialog": {
+    "title": "Ustawienia folderu",
+    "folderNameLabel": "Nazwa folderu",
+    "userSpecificPermissions": "Uprawnienia użytkowników",
+    "userPermissionsTooltip": "Te ustawienia nadpiszą uprawnienia folderu dla określonych użytkowników",
+    "cancel": "Anuluj",
+    "update": "Aktualizuj",
+    "folderNameCannotBeEmpty": "Nazwa folderu nie może być pusta",
+    "folderUpdated": "Folder zaktualizowany",
+    "failedToUpdateFolder": "Nie udało się zaktualizować folderu"
+  },
+  "updateFileDialog": {
+    "title": "Ustawienia pliku",
+    "fileNameLabel": "Nazwa pliku",
+    "cancel": "Anuluj",
+    "update": "Aktualizuj",
+    "fileNameCannotBeEmpty": "Nazwa pliku nie może być pusta",
+    "file": "Plik",
+    "updated": "zaktualizowany",
+    "failedToUpdateFile": "Nie udało się zaktualizować pliku"
+  },
+  "selectFolderDialog": {
+    "workspace": "Przestrzeń robocza",
+    "change": "Zmień",
+    "cancel": "Anuluj",
+    "selectWorkspace": "Wybierz przestrzeń roboczą"
+  },
+  "selectFilesDialog": {
+    "selectedFiles": "Wybrane pliki",
+    "cancel": "Anuluj",
+    "ok": "OK"
+  },
+  "postsRelatedToFileDialog": {
+    "postsRelatedTo": "Posty powiązane z",
+    "close": "Zamknij",
+    "noPostsRelatedTo": "Brak postów powiązanych z"
+  },
+  "cloneWorkspaceDialog": {
+    "workspaceName": "Nazwa przestrzeni roboczej",
+    "copyMembers": "Skopiuj członków",
+    "withRoles": "Z rolami",
+    "copyFolders": "Skopiuj foldery",
+    "withFiles": "Z plikami",
+    "withUserSpecificPermissions": "Z uprawnieniami użytkowników",
+    "cancel": "Anuluj",
+    "ok": "OK",
+    "clonedWorkspace": "Sklonowano przestrzeń roboczą",
+    "failedToCloneWorkspace": "Nie udało się sklonować przestrzeni roboczej"
+  },
+  "confirmationDialog": {
+    "imSure": "Jestem pewien.",
+    "no": "Nie",
+    "yes": "Tak"
+  },
+  "createFolderDialog": {
+    "folderName": "Nazwa folderu",
+    "cancel": "Anuluj",
+    "create": "Utwórz",
+    "folderNameCannotBeEmpty": "Nazwa folderu nie może być pusta",
+    "folderCreated": "Folder utworzony",
+    "failedToCreateFolder": "Nie udało się utworzyć folderu"
+  },
+  "createSessionDialog": {
+    "name": "Nazwa",
+    "date": "Data",
+    "time": "Godzina",
+    "cancel": "Anuluj",
+    "create": "Utwórz",
+    "sessionNameCannotBeEmpty": "Nazwa sesji nie może być pusta",
+    "timeNotSet": "Godzina nie została ustawiona",
+    "dateNotSet": "Data nie została ustawiona",
+    "sessionCreated": "Sesja utworzona",
+    "failedToCreateSession": "Nie udało się utworzyć sesji"
+  },
+  "createWorkspaceDialog": {
+    "workspaceName": "Nazwa przestrzeni roboczej",
+    "workspaceDescription": "Opis przestrzeni roboczej",
+    "cancel": "Anuluj",
+    "create": "Utwórz",
+    "workspaceNameCannotBeEmpty": "Nazwa przestrzeni roboczej nie może być pusta",
+    "workspaceCreated": "Przestrzeń robocza utworzona",
+    "failedToCreateWorkspace": "Nie udało się utworzyć przestrzeni roboczej"
+  },
+  "inputStringDialog": {
+    "cancel": "Anuluj",
+    "ok": "OK"
+  },
+  "filePreviewDialog": {
+    "browserDoesntSupportPdf": "Twoja przeglądarka nie obsługuje podglądu PDF",
+    "cannotPreviewFile": "Nie można wyświetlić podglądu tego pliku",
+    "close": "Zamknij",
+    "download": "Pobierz"
+  },
+  "infoDialog": {
+    "ok": "OK"
+  }
+  
+}

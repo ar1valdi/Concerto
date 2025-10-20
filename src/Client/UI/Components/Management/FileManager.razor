@@ -6,6 +6,7 @@
 @inject IDialogService DialogService
 @inject IStorageService StorageService
 @inject ISnackbar Snackbar;
+@inject ITranslationsService t;
 
 <MudPaper Class="@Class" Style="@($"display: flex; flex-direction: column; {Style}")" Elevation="@Elevation" Outlined="@Outlined">
 	@if (FolderContent is not null)
@@ -13,7 +14,7 @@
 		<MudPaper Height="45px" Outlined="false" Elevation="0" 
 				  Class="pl-1 py-0 mud-breadcrumbs align-content-stretch" Style="flex: 1 0 auto; overflow-x: auto; overflow-y: hidden; background-color: var(--mud-palette-surface);">
 
-			<MudIconButton Title="Back" Variant="Variant.Filled" Color="Color.Default" Icon="@Icons.Material.Filled.ArrowBack"
+			<MudIconButton Title="@t.T("fileManager", "back")" Variant="Variant.Filled" Color="Color.Default" Icon="@Icons.Material.Filled.ArrowBack"
 					   Disabled="@(BreadCrumbs.Count <= 1)" OnClick="Back" DisableElevation="true" Size="Size.Small" />
 
 			@if (LayoutState.SmAndUp)
@@ -57,81 +58,81 @@
 					<MudSpacer />
 				}
 
-				<div class="ml-2">
-					<MudTextField @bind-Value="_searchString" Immediate="true" Clearable="true"
-							  Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
-							  IconSize="Size.Small" Margin="Margin.Dense" Class="mt-0 mr-2" />
-				</div>
+					<div class="ml-2">
+						<MudTextField @bind-Value="_searchString" Immediate="true" Clearable="true"
+								  Placeholder="@t.T("fileManager", "search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+								  IconSize="Size.Small" Margin="Margin.Dense" Class="mt-0 mr-2" />
+					</div>
 				<MudSpacer />
 
 				<MudButtonGroup Class="ml-2" OverrideStyles="false">
 					@if (LayoutState.MdAndUp)
 					{
-						<MudIconButton Title="Refresh" OnClick="Refresh"
+						<MudIconButton Title="@t.T("fileManager", "refresh")" OnClick="Refresh"
 							   DisableElevation="true" Icon="@Icons.Material.Filled.Refresh" Color="Color.Default" Variant="Variant.Filled" />
 						@if (!HideManagementButtons)
 						{
-							<MudIconButton Title="Upload files" OnClick="async () => await UploadFiles()" Disabled="@(!FolderContent.Self.CanWrite)"
+							<MudIconButton Title="@t.T("fileManager", "uploadFiles")" OnClick="async () => await UploadFiles()" Disabled="@(!FolderContent.Self.CanWrite)"
 							   DisableElevation="true" Icon="@Icons.Material.Filled.UploadFile" Color="Color.Default" Variant="Variant.Filled" />
-							<MudIconButton Title="Create folder" OnClick="async () => await ShowCreateFolderDialog()" Disabled="@(!FolderContent.Self.CanWrite)"
+							<MudIconButton Title="@t.T("fileManager", "createFolder")" OnClick="async () => await ShowCreateFolderDialog()" Disabled="@(!FolderContent.Self.CanWrite)"
 							   DisableElevation="true" Icon="@Icons.Material.Filled.CreateNewFolder" Color="Color.Default" Variant="Variant.Filled" />
-							<MudIconButton Title="Toggle selection mode" OnClick="() => SelectionMode = !SelectionMode"
+							<MudIconButton Title="@t.T("fileManager", "toggleSelectionMode")" OnClick="() => SelectionMode = !SelectionMode"
 							   DisableElevation="true" Size="Size.Small" Color="Color.Default" Variant="Variant.Filled" Icon="@(SelectionMode ? Icons.Material.Filled.Deselect : Icons.Material.Filled.SelectAll)" />
 						}
 					}
 
 					<MudMenu Dense="true">
 						<ActivatorContent>
-							<MudIconButton Title="More" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+							<MudIconButton Title="@t.T("fileManager", "more")" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
 						</ActivatorContent>
 						<ChildContent>
 
 							<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Refresh"
-									  OnClick="Refresh" OnTouch="Refresh">
-								Refresh view
+								  OnClick="Refresh" OnTouch="Refresh">
+								@t.T("fileManager", "refreshView")
 							</MudMenuItemW>
 
 							@if (!HideManagementButtons)
 							{
-								<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.UploadFile"
-									  OnClick="async () => await UploadFiles()" OnTouch="async () => await UploadFiles()"
-									  Disabled="@(!FolderContent.Self.CanWrite)">
-									Upload files
-								</MudMenuItemW>
+							<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.UploadFile"
+								  OnClick="async () => await UploadFiles()" OnTouch="async () => await UploadFiles()"
+								  Disabled="@(!FolderContent.Self.CanWrite)">
+								@t.T("fileManager", "uploadFiles")
+							</MudMenuItemW>
 
-								<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.CreateNewFolder"
-									  OnClick="async () => await ShowCreateFolderDialog()" OnTouch="async () => await ShowCreateFolderDialog()"
-									  Disabled="@(!FolderContent.Self.CanWrite)">
-									Create folder
-								</MudMenuItemW>
+							<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.CreateNewFolder"
+								  OnClick="async () => await ShowCreateFolderDialog()" OnTouch="async () => await ShowCreateFolderDialog()"
+								  Disabled="@(!FolderContent.Self.CanWrite)">
+								@t.T("fileManager", "createFolder")
+							</MudMenuItemW>
 
-								<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Settings"
-									  OnClick="async () => await ShowUpdateFolderDialog(FolderContent.Self)" OnTouch="async () => await ShowUpdateFolderDialog(FolderContent.Self)"
-									  Disabled="@(!FolderContent.Self.CanEdit)">
-									Settings
-								</MudMenuItemW>
+							<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Settings"
+								  OnClick="async () => await ShowUpdateFolderDialog(FolderContent.Self)" OnTouch="async () => await ShowUpdateFolderDialog(FolderContent.Self)"
+								  Disabled="@(!FolderContent.Self.CanEdit)">
+								@t.T("fileManager", "settings")
+							</MudMenuItemW>
 
-								<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@(SelectionMode ? Icons.Material.Filled.Deselect : Icons.Material.Filled.SelectAll)"
-									  OnClick="() => SelectionMode = !SelectionMode" OnTouch="() => SelectionMode = !SelectionMode">
-									@(!SelectionMode ? "Select" : "Cancel selection")
-								</MudMenuItemW>
+							<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@(SelectionMode ? Icons.Material.Filled.Deselect : Icons.Material.Filled.SelectAll)"
+								  OnClick="() => SelectionMode = !SelectionMode" OnTouch="() => SelectionMode = !SelectionMode">
+								@(!SelectionMode ? t.T("fileManager", "select") : t.T("fileManager", "cancelSelection"))
+							</MudMenuItemW>
 
 								<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.DriveFileMove"
 									  OnClick="async () => await MoveSelected()" OnTouch="async () => await MoveSelected()"
 									  Disabled="@(!CanMoveSelected)">
-									Move selected to
+									@t.T("fileManager", "moveSelectedTo")
 								</MudMenuItemW>
 
 								<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.ContentCopy"
 									  OnClick="async () => await CopySelected()" OnTouch="async () => await CopySelected()"
 									  Disabled="@(!CanCopySelected)">
-									Copy selected to
+									@t.T("fileManager", "copySelectedTo")
 								</MudMenuItemW>
 
 								<MudMenuItemW IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.DeleteSweep"
 									  OnClick="async () => await DeleteSelected()" OnTouch="async () => await DeleteSelected()"
 									  Disabled="@(!CanDeleteSelected)">
-									Delete selected
+									@t.T("fileManager", "deleteSelected")
 								</MudMenuItemW>
 							}
 						</ChildContent>
@@ -164,31 +165,31 @@
 				}
 
 				<MudTh>
-					<MudTableSortLabel @ref="_nameLabel" InitialDirection="SortDirection.Ascending"
-								   SortBy="new Func<FolderContentItem, object>(x => FolderPrecedence(_nameLabel?.SortDirection, x) + x.Name)">
-						Name
-					</MudTableSortLabel>
+				<MudTableSortLabel @ref="_nameLabel" InitialDirection="SortDirection.Ascending"
+							   SortBy="new Func<FolderContentItem, object>(x => FolderPrecedence(_nameLabel?.SortDirection, x) + x.Name)">
+								@t.T("fileManager", "name")
+							</MudTableSortLabel>
 
 
 				</MudTh>
 				<MudTh>
-					<MudTableSortLabel @ref="_formatLabel"
-								   SortBy="new Func<FolderContentItem, object>(x => FolderPrecedence(_formatLabel?.SortDirection, x) + ((x as FileItem)?.Extension ?? DirFormat + x.Name ))">
-						Format
-					</MudTableSortLabel>
+				<MudTableSortLabel @ref="_formatLabel"
+							   SortBy="new Func<FolderContentItem, object>(x => FolderPrecedence(_formatLabel?.SortDirection, x) + ((x as FileItem)?.Extension ?? DirFormat + x.Name ))">
+								@t.T("fileManager", "format")
+							</MudTableSortLabel>
 				</MudTh>
 				<MudTh>
-					<MudTableSortLabel @ref="_typeLabel"
-								   SortBy="new Func<FolderContentItem, object>(x => FolderPrecedence(_typeLabel?.SortDirection, x) + x.ToDisplayString() + x.Name)">
-						Type
-					</MudTableSortLabel>
+				<MudTableSortLabel @ref="_typeLabel"
+							   SortBy="new Func<FolderContentItem, object>(x => FolderPrecedence(_typeLabel?.SortDirection, x) + x.ToDisplayString() + x.Name)">
+								@t.T("fileManager", "type")
+							</MudTableSortLabel>
 				</MudTh>
 				<MudTh>
-						Size
-				</MudTh>
+							@t.T("fileManager", "size")
+						</MudTh>
 				<MudTh>
-						Owner
-				</MudTh>
+							@t.T("fileManager", "owner")
+						</MudTh>
 				<MudTh></MudTh>
 			</HeaderContent>
 
@@ -227,14 +228,14 @@
 					<MudTd Style="text-align: right">
 						<MudMenu Dense="true">
 							<ActivatorContent>
-								@if (LayoutState.Xs)
-								{
-									<MudButton DisableElevation="true" StartIcon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled">Actions</MudButton>
-								}
-								else
-								{
-									<MudIconButton Title="Actions" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
-								}
+									@if (LayoutState.Xs)
+									{
+										<MudButton DisableElevation="true" StartIcon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled">@t.T("fileManager", "actions")</MudButton>
+									}
+									else
+									{
+										<MudIconButton Title="@t.T("fileManager", "actions")" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+									}
 							</ActivatorContent>
 							<ChildContent>
 								@if (SelectionMode && !HideManagementButtons)
@@ -242,39 +243,39 @@
 									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.DriveFileMove"
 									  OnClick="async () => await MoveSelected()" OnTouch="async () => await MoveSelected()"
 									  Disabled="@(!CanMoveSelected)">
-										Move selected to
+										@t.T("fileManager", "moveSelectedTo")
 									</MudMenuItemW>
 
 									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.ContentCopy"
 									  OnClick="async () => await CopySelected()" OnTouch="async () => await CopySelected()"
 									  Disabled="@(!CanCopySelected)">
-										Copy selected to
+										@t.T("fileManager", "copySelectedTo")
 									</MudMenuItemW>
 
 									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.DeleteSweep"
 									  OnClick="async () => await DeleteSelected()" OnTouch="async () => await DeleteSelected()"
 									  Disabled="@(!CanDeleteSelected)">
-										Delete selected
+										@t.T("fileManager", "deleteSelected")
 									</MudMenuItemW>
 								}
 								else
 								{
 									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.FolderOpen"
 									  OnClick="() => OpenFolder(folder)" OnTouch="() => OpenFolder(folder)">
-										Open
+										@t.T("fileManager", "open")
 									</MudMenuItemW>
 									@if (!HideManagementButtons)
 									{
 										<MudMenuItemW hidden="@ChooseFolderMode" IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Settings"
 									  OnClick="() => ShowUpdateFolderDialog(folder)" OnTouch="() => ShowUpdateFolderDialog(folder)"
 									  Disabled=@(!folder.CanEdit)>
-											Settings
-										</MudMenuItemW>
+										@t.T("fileManager", "settings")
+									</MudMenuItemW>
 										<MudMenuItemW hidden="@ChooseFolderMode" IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete"
 									  OnClick="async () => await DeleteFolder(folder)" OnTouch="async () => await DeleteFolder(folder)"
 									  Disabled=@(!folder.CanDelete)>
-											Delete
-										</MudMenuItemW>
+										@t.T("fileManager", "delete")
+									</MudMenuItemW>
 									}
 								}
 
@@ -316,11 +317,11 @@
 								<ActivatorContent>
 									@if (LayoutState.Xs)
 									{
-										<MudButton DisableElevation="true" StartIcon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled">Actions</MudButton>
+										<MudButton DisableElevation="true" StartIcon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled">@t.T("fileManager", "actions")</MudButton>
 									}
 									else
 									{
-										<MudIconButton Title="Actions" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
+										<MudIconButton Title="@t.T("fileManager", "actions")" DisableElevation="true" Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default" Variant="Variant.Filled" />
 									}
 								</ActivatorContent>
 								<ChildContent>
@@ -329,41 +330,41 @@
 										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.DriveFileMove"
 									  OnClick="async () => await MoveSelected()" OnTouch="async () => await MoveSelected()"
 									  Disabled="@(!CanMoveSelected)">
-											Move selected to
+											@t.T("fileManager", "moveSelectedTo")
 										</MudMenuItemW>
 
 										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.ContentCopy"
 									  OnClick="async () => await CopySelected()" OnTouch="async () => await CopySelected()"
 									  Disabled="@(!CanCopySelected)">
-											Copy selected to
+											@t.T("fileManager", "copySelectedTo")
 										</MudMenuItemW>
 
 										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.DeleteSweep"
 									  OnClick="async () => await DeleteSelected()" OnTouch="async () => await DeleteSelected()"
 									  Disabled="@(!CanDeleteSelected)">
-											Delete selected
+											@t.T("fileManager", "deleteSelected")
 										</MudMenuItemW>
 									}
 									else
 									{
-										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Download"
-											OnClick="() => DownloadFile(file)" OnTouch="() => DownloadFile(file)">
-											Download
-										</MudMenuItemW>
-										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Forum"
+									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Download"
+										OnClick="() => DownloadFile(file)" OnTouch="() => DownloadFile(file)">
+										@t.T("fileManager", "download")
+									</MudMenuItemW>
+									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Forum"
 									  OnClick="async () => await DialogService.ShowPostsRelatedToFileDialog(FolderContent.WorkspaceId, file)" OnTouch="async () => await DialogService.ShowPostsRelatedToFileDialog(FolderContent.WorkspaceId, file)">
-											Show related posts
-										</MudMenuItemW>
-										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Edit"
+										@t.T("fileManager", "showRelatedPosts")
+									</MudMenuItemW>
+									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Edit"
 									  OnClick="() => ShowUpdateFileDialog(file)" OnTouch="() => ShowUpdateFileDialog(file)"
 									  Disabled=@(!file.CanEdit)>
-											Edit
-										</MudMenuItemW>
-										<MudMenuItemW IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete"
+										@t.T("fileManager", "edit")
+									</MudMenuItemW>
+									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Error" Icon="@Icons.Material.Filled.Delete"
 									  OnClick="() => DeleteFile(file)" OnTouch="() => DeleteFile(file)"
 									  Disabled=@(!file.CanDelete)>
-											Delete
-										</MudMenuItemW>
+										@t.T("fileManager", "delete")
+									</MudMenuItemW>
 									}
 								</ChildContent>
 							</MudMenu>
@@ -552,7 +553,7 @@
 	public async Task UploadFiles()
 	{
 		var parameters = new DialogParameters { ["FolderId"] = FolderContent!.Self.Id };
-		var result = await DialogService.Show<UploadFilesDialog>("Upload files to folder", parameters).Result;
+		var result = await DialogService.Show<UploadFilesDialog>(@t.T("fileManager", "uploadFilesToFolder"), parameters).Result;
 		await Refresh();
 	}
 
@@ -566,15 +567,15 @@
 		try
 		{
 			var itemsNames = string.Join(",\n\n", SelectedItems.Select(x => x.Name));
-			if (!await DialogService.ShowDeleteManyConfirmationDialog("Delete folder items", "folder items", itemsNames)) return;
+			if (!await DialogService.ShowDeleteManyConfirmationDialog(@t.T("fileManager", "deleteFolderItems"), @t.T("fileManager", "folderItems"), itemsNames)) return;
 			await StorageService.DeleteFolderItemsAsync(request);
 			SelectionMode = false;
-			Snackbar.Add("Items deleted", Severity.Success);
+			Snackbar.Add(@t.T("fileManager", "itemsDeleted"), Severity.Success);
 			await Refresh();
 		}
 		catch
 		{
-			Snackbar.Add("Failed to delete items", Severity.Error);
+			Snackbar.Add(@t.T("fileManager", "failedToDeleteItems"), Severity.Error);
 			await Refresh();
 		}
 	}
@@ -588,7 +589,7 @@
 		var excluded = new long[] { FolderContent.Self.Id };
 		var excludedWithChildren = folderIds;
 
-		var destinationFolder = await DialogService.ShowSelectFolderDialog("Move items to", "Move here", FolderContent.WorkspaceId, excluded, excludedWithChildren);
+		var destinationFolder = await DialogService.ShowSelectFolderDialog(@t.T("fileManager", "moveItemsTo"), @t.T("fileManager", "moveHere"), FolderContent.WorkspaceId, excluded, excludedWithChildren);
 		if (destinationFolder is null) return;
 
 		var moveRequest = new MoveFolderItemsRequest
@@ -613,7 +614,7 @@
 		var excluded = new long[] { FolderContent.Self.Id };
 		var excludedWithChildren = folderIds;
 
-		var destinationFolder = await DialogService.ShowSelectFolderDialog("Copy items to", "Copy here", FolderContent.WorkspaceId, excluded, excludedWithChildren);
+		var destinationFolder = await DialogService.ShowSelectFolderDialog(@t.T("fileManager", "copyItemsTo"), @t.T("fileManager", "copyHere"), FolderContent.WorkspaceId, excluded, excludedWithChildren);
 		if (destinationFolder is null) return;
 
 		var copyRequest = new CopyFolderItemsRequest
@@ -635,13 +636,13 @@
 	{
 		try
 		{
-			if (!await DialogService.ShowConfirmationDialog("Delete folder", "delete", "Folder", folder.Name)) return;
+			if (!await DialogService.ShowConfirmationDialog(@t.T("fileManager", "deleteFolder"), @t.T("fileManager", "delete"), @t.T("fileManager", "folder"), folder.Name)) return;
 			await StorageService.DeleteFolderAsync(folder.Id);
-			Snackbar.Add("Folder deleted", Severity.Success);
+			Snackbar.Add(@t.T("fileManager", "folderDeleted"), Severity.Success);
 		}
 		catch
 		{
-			Snackbar.Add($"Failed to delete folder {folder.Name}", Severity.Success);
+			Snackbar.Add($"{@t.T("fileManager", "failedToDeleteFolder")} {folder.Name}", Severity.Success);
 		}
 		await Refresh();
 
@@ -651,13 +652,13 @@
 	{
 		try
 		{
-			if (!await DialogService.ShowConfirmationDialog("Delete file", "delete", "file", file.Name)) return;
+			if (!await DialogService.ShowConfirmationDialog(@t.T("fileManager", "deleteFile"), @t.T("fileManager", "delete"), @t.T("fileManager", "file"), file.Name)) return;
 			await StorageService.DeleteFileAsync(file.Id);
-			Snackbar.Add("File deleted", Severity.Success);
+			Snackbar.Add(@t.T("fileManager", "fileDeleted"), Severity.Success);
 		}
 		catch
 		{
-			Snackbar.Add($"Failed to delete file {file.FullName}", Severity.Success);
+			Snackbar.Add($"{@t.T("fileManager", "failedToDeleteFile")} {file.FullName}", Severity.Success);
 		}
 		await Refresh();
 	}
@@ -669,7 +670,7 @@
 				["ParentFolderId"] = FolderContent!.Self.Id,
 				["ParentFolderPermission"] = FolderContent.WorkspacePermission.Type
 			};
-		var name = "Create folder";
+		var name = @t.T("fileManager", "createFolder");
 		var result = await DialogService.Show<CreateFolderDialog>(name, parameters).Result;
 		if ((bool)(result.Data ?? false))
 		{
@@ -680,7 +681,7 @@
 	public async Task ShowUpdateFolderDialog(FolderItem editedFolder)
 	{
 		var parameters = new DialogParameters { ["EditedFolderId"] = editedFolder.Id };
-		var name = "Edit folder";
+		var name = @t.T("fileManager", "editFolder");
 		var result = await DialogService.Show<UpdateFolderDialog>(name, parameters).Result;
 		if ((bool)(result.Data ?? false))
 		{
@@ -691,7 +692,7 @@
 	public async Task ShowUpdateFileDialog(FileItem file)
 	{
 		var parameters = new DialogParameters { ["EditedFileId"] = file.Id };
-		var name = "Edit file";
+		var name = @t.T("fileManager", "editFile");
 		var result = await DialogService.Show<UpdateFileDialog>(name, parameters).Result;
 		if (result.Canceled) return;
 		await Refresh();

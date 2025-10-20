@@ -1,0 +1,432 @@
+@inherits MudComponentBase
+
+@using Concerto.Client.UI.Components.Dialogs
+
+@inject ITranslationsService translationsService
+@inject ILanguageManagementService languageManagementService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+@if (isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+}
+else
+{
+    <div>
+    <MudPaper Class="pa-4 mb-4" Elevation="2">
+        <MudText Typo="Typo.h6" Class="mb-3">@translationsService.T("translationsManager", "filtersHeader")</MudText>
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudTextField 
+                    @bind-Value="filterView" 
+                    Label="@translationsService.T("translationsManager", "filterViewLabel")" 
+                    Variant="Variant.Outlined"
+                    Margin="Margin.Dense"
+                    Clearable="true"
+                    Immediate="true"
+                    DebounceInterval="500"
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudTextField 
+                    @bind-Value="filterKey" 
+                    Label="@translationsService.T("translationsManager", "filterKeyLabel")" 
+                    Variant="Variant.Outlined"
+                    Margin="Margin.Dense"
+                    Clearable="true"
+                    Immediate="true"
+                    DebounceInterval="500"
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudSelect 
+                    @bind-Value="filterValueLanguage" 
+                    Label="@translationsService.T("translationsManager", "filterValueLanguageLabel")" 
+                    Variant="Variant.Outlined"
+                    Margin="Margin.Dense"
+                    Clearable="true"
+                    T="string">
+                    @foreach (var lang in languages)
+                    {
+                        <MudSelectItem Value="@lang.Key">@lang.Name (@lang.Key.ToUpper())</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudTextField 
+                    @bind-Value="filterValue" 
+                    Label="@translationsService.T("translationsManager", "filterValueLabel")" 
+                    Variant="Variant.Outlined"
+                    Margin="Margin.Dense"
+                    Clearable="true"
+                    Immediate="true"
+                    DebounceInterval="500"
+                    Disabled="string.IsNullOrEmpty(filterValueLanguage)"
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSelect 
+                    @bind-SelectedValues="selectedLanguageKeys" 
+                    Label="@translationsService.T("translationsManager", "showOnlySelectedLanguagesLabel")" 
+                    Variant="Variant.Outlined"
+                    Margin="Margin.Dense"
+                    MultiSelection="true"
+                    T="string">
+                    @foreach (var lang in languages)
+                    {
+                        <MudSelectItem Value="@lang.Key">@lang.Name (@lang.Key.ToUpper())</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (isFiltering)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-2" />
+    }
+
+    <MudExpansionPanels MultiExpansion="true">
+        @foreach (var viewSection in filteredViewSections)
+    {
+        <MudExpansionPanel
+            Text="@viewSection.View">
+            @foreach (var keySection in viewSection.KeySections)
+            {
+                <MudExpansionPanel
+                    Text="@keySection.Key">
+                    @foreach (var translation in keySection.Translations)
+                    {
+                        <MudTextField
+                            Value="@translation.Value"
+                            ValueChanged="((x) => OnTranslationChanged(x, translation))"
+                                Label="@translation.Language.ToUpper()"
+                            T="string"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Normal"/>
+                    }
+                </MudExpansionPanel>
+            }
+        </MudExpansionPanel>
+    }
+</MudExpansionPanels>
+
+    @if (!filteredViewSections.Any())
+    {
+        <MudText Typo="Typo.body1" Class="pa-4">@translationsService.T("translationsManager", "noMatches")</MudText>
+    }
+    </div>
+
+<MudButton
+    Variant="Variant.Filled"
+    StartIcon="@Icons.Material.Filled.Save"
+    Color="Color.Primary"
+        Disabled="!changedTranslations.Any()"
+    Style="position: fixed; bottom: 20px; right: 20px;"
+        OnClick="@ShowSavePreview">
+        @translationsService.T("translationsManager", "saveCta") (@changedTranslations.Count)
+</MudButton>
+}
+
+
+@code {
+    private class EditableTranslation
+    {
+        public string Language { get; set; } = string.Empty;
+        public string View { get; set; } = string.Empty;
+        public string Key { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
+        public string OriginalValue { get; set; } = string.Empty;
+        public long Id { get; set; }
+    }
+
+    private class KeySection
+    {
+        public string Key { get; set; } = string.Empty;
+        public List<EditableTranslation> Translations { get; set; } = [];
+    }
+
+    private class ViewSection
+    {
+        public string View { get; set; } = string.Empty;
+        public List<KeySection> KeySections { get; set; } = [];
+    }
+
+    List<ViewSection> viewSections = [];
+    List<ViewSection> filteredViewSections = [];
+    List<Language> languages = [];
+    Dictionary<string, EditableTranslation> changedTranslations = [];
+    bool isSaving = false;
+    bool isLoading = true;
+    bool isFiltering = false;
+
+    // Filter fields
+    private string _filterView = string.Empty;
+    private string filterView
+    {
+        get => _filterView;
+        set
+        {
+            if (_filterView != value)
+            {
+                _filterView = value;
+                ApplyFilters();
+            }
+        }
+    }
+
+    private string _filterKey = string.Empty;
+    private string filterKey
+    {
+        get => _filterKey;
+        set
+        {
+            if (_filterKey != value)
+            {
+                _filterKey = value;
+                ApplyFilters();
+            }
+        }
+    }
+
+    private string _filterValueLanguage = string.Empty;
+    private string filterValueLanguage
+    {
+        get => _filterValueLanguage;
+        set
+        {
+            if (_filterValueLanguage != value)
+            {
+                _filterValueLanguage = value;
+                ApplyFilters();
+            }
+        }
+    }
+
+    private string _filterValue = string.Empty;
+    private string filterValue
+    {
+        get => _filterValue;
+        set
+        {
+            if (_filterValue != value)
+            {
+                _filterValue = value;
+                ApplyFilters();
+            }
+        }
+    }
+
+    private IEnumerable<string> _selectedLanguageKeys = [];
+    private IEnumerable<string> selectedLanguageKeys
+    {
+        get => _selectedLanguageKeys;
+        set
+        {
+                _selectedLanguageKeys = value;
+                ApplyFilters();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            languages = await languageManagementService.GetAllLanguagesAsync();
+            
+            var locations = await translationsService.FetchAllTranslationLocationsAsync();
+            
+        var translations = await translationsService.FetchFullTranslationsAsync();
+
+            var translationDict = translations.ToDictionary(
+                t => $"{t.Language}:{t.View}:{t.Key}",
+                t => t
+            );
+
+            viewSections = locations
+                .GroupBy(loc => loc.View)
+                .Select(viewGroup => new ViewSection
+                {
+                    View = viewGroup.Key,
+                    KeySections = viewGroup
+                        .GroupBy(loc => loc.Key)
+                        .Select(keyGroup => new KeySection
+                        {
+                            Key = keyGroup.First().Key,
+                            Translations = languages.Select(lang =>
+                            {
+                                var lookupKey = $"{lang.Key}:{viewGroup.Key}:{keyGroup.First().Key}";
+                                var existingTranslation = translationDict.GetValueOrDefault(lookupKey);
+                                
+                                return new EditableTranslation
+                                {
+                                    Language = lang.Key,
+                                    View = viewGroup.Key,
+                                    Key = keyGroup.First().Key,
+                                    Value = existingTranslation?.Value ?? string.Empty,
+                                    OriginalValue = existingTranslation?.Value ?? string.Empty,
+                                    Id = existingTranslation?.Id ?? 0
+                                };
+                }).ToList()
+            }).ToList()
+        }).ToList();
+
+            filteredViewSections = viewSections;
+            
+            selectedLanguageKeys = languages.Select(l => l.Key).ToList();
+
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"{translationsService.T("translationsManager", "failedToLoadTranslations")}: {ex.Message}", Severity.Error);
+            isLoading = false;
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        isFiltering = true;
+        StateHasChanged();
+
+        try
+        {
+            var filtered = viewSections.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(filterView))
+            {
+                filtered = filtered.Where(v => v.View.Contains(filterView, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var result = filtered.Select(viewSection =>
+            {
+                var filteredKeySections = viewSection.KeySections.AsEnumerable();
+
+                if (!string.IsNullOrWhiteSpace(filterKey))
+                {
+                    filteredKeySections = filteredKeySections.Where(k => 
+                        k.Key.Contains(filterKey, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (!string.IsNullOrWhiteSpace(filterValue) && !string.IsNullOrWhiteSpace(filterValueLanguage))
+                {
+                    filteredKeySections = filteredKeySections.Where(k =>
+                        k.Translations.Any(t => 
+                            t.Language == filterValueLanguage && 
+                            t.Value.Contains(filterValue, StringComparison.OrdinalIgnoreCase)));
+                }
+
+                var processedKeySections = filteredKeySections.Select(keySection => new KeySection
+                {
+                    Key = keySection.Key,
+                    Translations = keySection.Translations
+                        .Where(t => selectedLanguageKeys.Contains(t.Language))
+                        .ToList()
+                }).Where(k => k.Translations.Any()).ToList();
+
+                return new ViewSection
+                {
+                    View = viewSection.View,
+                    KeySections = processedKeySections
+                };
+            }).Where(v => v.KeySections.Any()).ToList();
+
+            filteredViewSections = result;
+        }
+        finally
+        {
+            isFiltering = false;
+        }
+    }
+
+    private void OnTranslationChanged(string newValue, EditableTranslation translation)
+    {
+        translation.Value = newValue;
+        var changeKey = $"{translation.Language}:{translation.View}:{translation.Key}";
+
+        if (newValue != translation.OriginalValue)
+        {
+            changedTranslations[changeKey] = translation;
+        }
+        else
+        {
+            changedTranslations.Remove(changeKey);
+        }
+    }
+
+    private async Task ShowSavePreview()
+    {
+        if (!changedTranslations.Any())
+        {
+            Snackbar.Add(translationsService.T("translationsManager", "noChangesToSave"), Severity.Info);
+            return;
+        }
+
+        var previews = changedTranslations.Values
+            .Select(t => new TranslationsSavePreviewDialog.TranslationChangePreview
+        {
+            LanguageKey = t.Language,
+            View = t.View,
+            Key = t.Key,
+            NewValue = t.Value,
+            OriginalValue = t.OriginalValue,
+            IsNew = t.Id == 0 && !string.IsNullOrWhiteSpace(t.Value)
+        }).ToList();
+
+        var parameters = new DialogParameters
+        {
+            ["ChangedTranslations"] = previews,
+            ["Languages"] = languages
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<TranslationsSavePreviewDialog>(translationsService.T("translationsManager", "reviewChangesTitle"), parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await SaveTranslations();
+        }
+    }
+
+    private async Task SaveTranslations()
+    {
+        isSaving = true;
+
+        try
+        {
+            var translationsToUpdate = changedTranslations.Values
+                .Select(t => new Translation(
+                    t.Id,
+                    t.Language,
+                    t.View,
+                    t.Key,
+                    t.Value,
+                    DateTime.UtcNow
+                ))
+                .ToList();
+
+            await translationsService.UpdateTranslations(translationsToUpdate);
+            
+            var message = translationsService.T("translationsManager", "successfullySavedMessage", translationsToUpdate.Count);
+            await DialogService.ShowMessageBox(
+                translationsService.T("translationsManager", "translationsSavedTitle"), 
+                message, 
+                yesText: "OK");
+
+            changedTranslations.Clear();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"{translationsService.T("translationsManager", "failedToSaveTranslations")}: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+        isSaving = false;
+        }
+    }
+}

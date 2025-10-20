@@ -5,11 +5,10 @@
       "commandLineArgs": "watch run",
       "launchBrowser": true,
       "launchUrl": "https://concerto.local:5000",
-      // "launchUrl": "https://concerto.local:443/workspaces/1/sessions/1",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "CONCERTO_BASE_PATH": "",
-        "CONCERTO_STORAGE_PATH": "",
+        "CONCERTO_STORAGE_PATH": "/home/janek/Dokumenty/Studia/inz/ConcertoStorage",
         "DB_STRING": "Host=concerto.local;Port=5432;Database=ConcertoDb;username=admin;Password=admin;Include Error Detail=True;",
         "OIDC_AUDIENCE": "account",
         "OIDC_ADMIN_REST_API_BASE": "http://localhost:8080/admin/realms/concerto",
@@ -49,6 +48,22 @@
     },
     "Profil 1": {
       "commandName": "IIS"
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "https://concerto.local:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  },
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:54293/",
+      "sslPort": 44365
     }
   }
 }

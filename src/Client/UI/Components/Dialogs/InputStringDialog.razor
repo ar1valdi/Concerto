@@ -3,6 +3,7 @@
 @inject IStorageService StorageService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject ITranslationsService t
 
 <MudDialog>
 	<DialogContent>
@@ -10,8 +11,8 @@
 	</DialogContent>
 	
 	<DialogActions>
-		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
-		<MudButton Variant="Variant.Filled" Color="Color.Info" Disabled="!CanSubmit" OnClick="Submit">OK</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">@t.T("inputStringDialog", "cancel")</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Info" Disabled="!CanSubmit" OnClick="Submit">@t.T("inputStringDialog", "ok")</MudButton>
 	</DialogActions>
 </MudDialog>
 

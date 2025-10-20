@@ -1,47 +1,48 @@
-﻿<MudStack Row="true" Justify="Justify.Center" AlignItems="AlignItems.Baseline">
-	<MudSelect Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense" T="FolderPermission" Value="Value" ValueChanged="ValueChanged" Label="Permission" AnchorOrigin="Origin.BottomCenter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Security">
+﻿@inject ITranslationsService t
+
+<MudStack Row="true" Justify="Justify.Center" AlignItems="AlignItems.Baseline">
+    <MudSelect Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense" T="FolderPermission" Value="Value" ValueChanged="ValueChanged" Label="@t.T("folderPermissionPicker", "permissionLabel")" AnchorOrigin="Origin.BottomCenter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Security">
 		@if (Inherited.HasValue)
 		{
-			<MudSelectItem Value="@(new FolderPermission(Inherited.Value, true))">@($"Inherited - {ToText(Inherited.Value)}")</MudSelectItem>
+            <MudSelectItem Value="@(new FolderPermission(Inherited.Value, true))">@($"{t.T("folderPermissionPicker", "inheritedPrefix")} {ToText(Inherited.Value)}")</MudSelectItem>
 		}
-		<MudSelectItem Value="@(Values[FolderPermissionType.Read])">@ToText(FolderPermissionType.Read)</MudSelectItem>
-		<MudSelectItem Value="@(Values[FolderPermissionType.ReadWriteOwned])">@ToText(FolderPermissionType.ReadWriteOwned)</MudSelectItem>
-		<MudSelectItem Value="@(Values[FolderPermissionType.ReadWrite])">@ToText(FolderPermissionType.ReadWrite)</MudSelectItem>
+        <MudSelectItem Value="@(Values[FolderPermissionType.Read])">@ToText(FolderPermissionType.Read)</MudSelectItem>
+        <MudSelectItem Value="@(Values[FolderPermissionType.ReadWriteOwned])">@ToText(FolderPermissionType.ReadWriteOwned)</MudSelectItem>
+        <MudSelectItem Value="@(Values[FolderPermissionType.ReadWrite])">@ToText(FolderPermissionType.ReadWrite)</MudSelectItem>
 	</MudSelect>
-	<MudTooltip Text="" Arrow="true">
+    <MudTooltip Text="" Arrow="true">
 		<ChildContent>
-			<MudIcon Icon="@Icons.Material.Filled.Info" Title="Info"/>
+            <MudIcon Icon="@Icons.Material.Filled.Info" Title="@t.T("folderPermissionPicker", "infoTitle")"/>
 		</ChildContent>
 		<TooltipContent>
 			<MudText Align="Align.Left">
-				<h2>Folder permissions</h2>
+                <h2>@t.T("folderPermissionPicker", "tooltipTitle")</h2>
 				<br/>
-				<h3>Readers</h3>
+                <h3>@t.T("folderPermissionPicker", "readersHeader")</h3>
 				<ul>
-					<li>• View folder content and download files</li>
+                    <li>• @t.T("folderPermissionPicker", "readersPoint1")</li>
 				</ul>
 				<br/>
-				<h3>Contributors</h3>
+                <h3>@t.T("folderPermissionPicker", "contributorsHeader")</h3>
 				<ul>
-					<li>• View folder content and download files</li>
-					<li>• Add files and folders</li>
-					<li>• Remove files and folders owned by them</li>
-					<li>• Edit files and folders owned by them</li>
+                    <li>• @t.T("folderPermissionPicker", "contributorsPoint1")</li>
+                    <li>• @t.T("folderPermissionPicker", "contributorsPoint2")</li>
+                    <li>• @t.T("folderPermissionPicker", "contributorsPoint3")</li>
+                    <li>• @t.T("folderPermissionPicker", "contributorsPoint4")</li>
 				</ul>
 				<br/>
-				<h3>Editors</h3>
+                <h3>@t.T("folderPermissionPicker", "editorsHeader")</h3>
 				<ul>
-					<li>• View folder content and download files</li>
-					<li>• Add, edit and remove any files</li>
-					<li>• Add folders</li>
-					<li>• Remove and edit folders owned by them</li>
-					<li>• Remove and edit folders in which they have Editor permission</li>
+                    <li>• @t.T("folderPermissionPicker", "editorsPoint1")</li>
+                    <li>• @t.T("folderPermissionPicker", "editorsPoint2")</li>
+                    <li>• @t.T("folderPermissionPicker", "editorsPoint3")</li>
+                    <li>• @t.T("folderPermissionPicker", "editorsPoint4")</li>
+                    <li>• @t.T("folderPermissionPicker", "editorsPoint5")</li>
 				</ul>
 			</MudText>
 		</TooltipContent>
 	</MudTooltip>
 </MudStack>
-
 
 @code {
 
@@ -64,13 +65,13 @@
 		[FolderPermissionType.ReadWrite] = new FolderPermission(FolderPermissionType.ReadWrite, false)
 	};
 
-	private static string ToText(FolderPermissionType type)
+    private string ToText(FolderPermissionType type)
 	{
 		return type switch
 		{
-			FolderPermissionType.Read => "Reader",
-			FolderPermissionType.ReadWriteOwned => "Contributor",
-			FolderPermissionType.ReadWrite => "Editor",
+            FolderPermissionType.Read => t.T("folderPermissionPicker", "reader"),
+            FolderPermissionType.ReadWriteOwned => t.T("folderPermissionPicker", "contributor"),
+            FolderPermissionType.ReadWrite => t.T("folderPermissionPicker", "editor"),
 			_ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
 			};
 	}

@@ -1,14 +1,15 @@
 ﻿@inject ISnackbar Snackbar
+@inject ITranslationsService t
 
 <MudDialog>
 		<DialogContent>
 			<div style="display: grid; grid-template-rows: 1fr; height: calc(100vh - 134px)">
-				<Forum WorkspaceId="WorkspaceId" OnlyRelatedToFile="File" OnNoPosts="OnNoPosts" Title="@($"Posts related to {File.FullName}")" />
+				<Forum WorkspaceId="WorkspaceId" OnlyRelatedToFile="File" OnNoPosts="OnNoPosts" Title="@($"{@t.T("postsRelatedToFileDialog", "postsRelatedTo")} {File.FullName}")" />
 			</div>
 		</DialogContent>
 
 		<DialogActions>
-			<MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Close">Close</MudButton>
+			<MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Close">@t.T("postsRelatedToFileDialog", "close")</MudButton>
 		</DialogActions>
 </MudDialog>
 
@@ -25,7 +26,7 @@
 
 	private void OnNoPosts()
 	{
-		Snackbar.Add($"No posts related to {File.FullName}", Severity.Info);
+		Snackbar.Add($"{@t.T("postsRelatedToFileDialog", "noPostsRelatedTo")} {File.FullName}", Severity.Info);
 		Dialog.Close();
 	}
 

@@ -1,17 +1,18 @@
 ﻿@inject ISnackbar Snackbar
 @inject IStorageService StorageService
+@inject ITranslationsService t
 
 <MudDialog>
 	<DialogContent>
 		<MudStack Spacing="4">
-			<MudTextField @bind-Value="_folderRequest.Name" T="string" Label="Folder name"></MudTextField>
+			<MudTextField @bind-Value="_folderRequest.Name" T="string" Label="@t.T("createFolderDialog", "folderName")"></MudTextField>
 			<FolderTypePicker @bind-Value="_folderRequest.Type"></FolderTypePicker>
 			<FolderPermissionPicker @bind-Value="_folderRequest.WorkspacePermission" Inherited="ParentFolderPermission"/>
 		</MudStack>
 	</DialogContent>
 	<DialogActions>
-		<MudButton OnClick="Cancel">Cancel</MudButton>
-		<MudButton Color="Color.Primary" OnClick="Submit">Create</MudButton>
+		<MudButton OnClick="Cancel">@t.T("createFolderDialog", "cancel")</MudButton>
+		<MudButton Color="Color.Primary" OnClick="Submit">@t.T("createFolderDialog", "create")</MudButton>
 	</DialogActions>
 </MudDialog>
 
@@ -46,19 +47,19 @@
 	{
 		if (string.IsNullOrEmpty(_folderRequest.Name))
 		{
-			Snackbar.Add("Folder name cannot be empty", Severity.Error);
+			Snackbar.Add(@t.T("createFolderDialog", "folderNameCannotBeEmpty"), Severity.Error);
 			return;
 		}
 
 		try
 		{
 			await StorageService.CreateFolderAsync(_folderRequest);
-			Snackbar.Add("Folder created", Severity.Success);
+			Snackbar.Add(@t.T("createFolderDialog", "folderCreated"), Severity.Success);
 			Dialog.Close(DialogResult.Ok(true));
 		}
 		catch
 		{
-			Snackbar.Add("Failed to create folder", Severity.Error);
+			Snackbar.Add(@t.T("createFolderDialog", "failedToCreateFolder"), Severity.Error);
 		}
 	}
 

@@ -1,16 +1,17 @@
 ﻿@inject ISnackbar Snackbar
 @inject ISessionService SessionService
+@inject ITranslationsService t
 
 <MudDialog>
 	<DialogContent>
-		<MudTextField @bind-Value="_sessionName" T="string" Label="Name"></MudTextField>
-		<MudDatePicker Label="Date" @bind-Date="_date"/>
-		<MudTimePicker Label="Time" @bind-Time="_time"/>
+		<MudTextField @bind-Value="_sessionName" T="string" Label="@t.T("createSessionDialog", "name")"></MudTextField>
+		<MudDatePicker Label="@t.T("createSessionDialog", "date")" @bind-Date="_date"/>
+		<MudTimePicker Label="@t.T("createSessionDialog", "time")" @bind-Time="_time"/>
 	</DialogContent>
 
 	<DialogActions>
-		<MudButton OnClick="Cancel">Cancel</MudButton>
-		<MudButton Color="Color.Primary" OnClick="Submit">Create</MudButton>
+		<MudButton OnClick="Cancel">@t.T("createSessionDialog", "cancel")</MudButton>
+		<MudButton Color="Color.Primary" OnClick="Submit">@t.T("createSessionDialog", "create")</MudButton>
 	</DialogActions>
 </MudDialog>
 
@@ -30,18 +31,18 @@
 	{
 		if (string.IsNullOrEmpty(_sessionName))
 		{
-			Snackbar.Add("Workspace name cannot be empty", Severity.Error);
+			Snackbar.Add(@t.T("createSessionDialog", "sessionNameCannotBeEmpty"), Severity.Error);
 			return;
 		}
 		if (!_time.HasValue)
 		{
-			Snackbar.Add("Time not set", Severity.Error);
+			Snackbar.Add(@t.T("createSessionDialog", "timeNotSet"), Severity.Error);
 			return;
 		}
 
 		if (!_date.HasValue)
 		{
-			Snackbar.Add("Date not set", Severity.Error);
+			Snackbar.Add(@t.T("createSessionDialog", "dateNotSet"), Severity.Error);
 			return;
 		}
 
@@ -56,12 +57,12 @@
 		try
 		{
 			await SessionService.CreateSessionAsync(createSessionRequest);
-			Snackbar.Add("Session created", Severity.Success);
+			Snackbar.Add(@t.T("createSessionDialog", "sessionCreated"), Severity.Success);
 			Dialog.Close(DialogResult.Ok(true));
 		}
 		catch (SessionException)
         {
-			Snackbar.Add("Failed to create session", Severity.Error);
+			Snackbar.Add(@t.T("createSessionDialog", "failedToCreateSession"), Severity.Error);
             return;
         }
 	}

@@ -1,8 +1,9 @@
 ﻿@implements IDisposable
 @inject IStorageService StorageService
+@inject ITranslationsService translationsService
 
 <MudBadge Style="cursor: pointer; user-select: none;" Content="ActiveUploadsNumber" Color="Color.Info" Overlap="true" Origin="Origin.CenterLeft" OnClick="ToggleOpen" Visible="@(ActiveUploadsNumber > 0)">
-	<MudButton title="Uploads" OnClick="ToggleOpen">
+    <MudButton title="@translationsService.T("uploadManager", "uploads")" OnClick="ToggleOpen">
 		<ChildContent>
 			<MudIcon Style="color: var(--mud-palette-appbar-text)" Icon="@Icons.Material.Sharp.Upload" Size="IconSize" />
 			<MudIcon Style="color: var(--mud-palette-appbar-text); margin-left: -10px" Icon="@Icons.Material.Filled.ArrowDropDown" Size="IconSize" />
@@ -18,14 +19,14 @@
 					  Style="position: fixed; top: 40px; right: 10px; max-height: min(500px, calc(100vh - 64px)); display:grid; grid-template-rows: 1fr;" Height="100%">
 
 					<ToolBarContent>
-						<MudText Typo="Typo.subtitle2" Class="pr-4">@(_items.Any() ? "Uploads" : "No uploads")</MudText>
+            <MudText Typo="Typo.subtitle2" Class="pr-4">@(_items.Any() ? translationsService.T("uploadManager", "uploads") : translationsService.T("uploadManager", "noUploads"))</MudText>
 							<MudSpacer />
 						<MudIconButton Disabled="@(ActiveUploadsNumber == _items.Count)" @ontouchend="() => StorageService.ClearInactiveUploads()" OnClick="(() => StorageService.ClearInactiveUploads())"
 									   DisableElevation="true" Variant="Variant.Filled" Icon="@Icons.Material.Filled.ClearAll" Color="Color.Default" Size="Size.Small"
-									   Title="Clear history" />
+                                   Title="@translationsService.T("uploadManager", "clearHistory")" />
 								<MudIconButton OnClick="ToggleOpen" @ontouchend="() => StorageService.ClearInactiveUploads()"
 									   Icon="@Icons.Material.Filled.Close" DisableElevation="true" Variant="Variant.Filled" Size="Size.Small" Color="Color.Default"
-									   Title="Close" />
+                                       Title="@translationsService.T("common", "close")" />
 					</ToolBarContent>
 					
 						<ColGroup>
@@ -60,13 +61,13 @@
 							}
 							else if (item.IsCancelled)
 							{
-								<MudTooltip Inline="false" Class="z-max" Text="Cancelled">
+                                <MudTooltip Inline="false" Class="z-max" Text="@translationsService.T("uploadManager", "cancelled")">
 									<MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.Cancel" Color="Color.Default" />
 								</MudTooltip>
 							}
 							else if (item.IsError)
 							{
-								<MudTooltip Class="z-max break-word" Text="@($"Error code: {item.Result?.ErrorCode}\n\nError:\n{item.Result?.ErrorMessage}")">
+                                <MudTooltip Class="z-max break-word" Text="@($"{translationsService.T("uploadManager", "errorCodePrefix")} {item.Result?.ErrorCode}\n\n{translationsService.T("uploadManager", "errorPrefix")}\n{item.Result?.ErrorMessage}")">
 									<MudIcon Size="Size.Small" Icon="@Icons.Material.Filled.Error" Color="Color.Error" />
 								</MudTooltip>
 							}
@@ -93,12 +94,12 @@
 						<MudTd Class="px-2">
 							@if (item.IsInProgress)
 							{
-								<MudIconButton Title="Cancel" OnClick="() => CancelUpload(item)"
+                                <MudIconButton Title="@translationsService.T("common", "cancel")" OnClick="() => CancelUpload(item)"
 									   DisableElevation="true" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Cancel" Size="Size.Small" />
 							}
 							else
 							{
-								<MudIconButton Title="Clear" OnClick="() => StorageService.ClearIfInactive(item)"
+                                <MudIconButton Title="@translationsService.T("uploadManager", "clear")" OnClick="() => StorageService.ClearIfInactive(item)"
 									   DisableElevation="true" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Clear" Size="Size.Small" />
 							}
 						</MudTd>

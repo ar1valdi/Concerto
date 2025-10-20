@@ -40,5 +40,9 @@
 	  <ProjectReference Include="..\Shared\Concerto.Shared.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="TranslationValues\" />
+	</ItemGroup>
+
 
 </Project>

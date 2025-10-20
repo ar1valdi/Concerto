@@ -1,5 +1,6 @@
 ﻿@inject IWorkspaceService WorkspaceService
 @inject ISnackbar Snackbar
+@inject ITranslationsService t
 @inherits DialogAutoFullscreen
 
 <MudDialog>
@@ -9,7 +10,7 @@
 			<div style="height: calc(100vh - 200px)">
 
 				<div style="height: 84px; overflow: scroll;">
-					Selected Files:
+					@t.T("selectFilesDialog", "selectedFiles"):
 					@foreach (var file in _selectedItems.OfType<FileItem>())
 					{
 						<MudChip DisableRipple="true" Value="file" Icon="@file.ToIcon()" Text="@file.FullName" OnClose="closeFileChip" />
@@ -23,8 +24,8 @@
 	</DialogContent>
 	
 	<DialogActions>
-		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
-		<MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Submit">OK</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">@t.T("selectFilesDialog", "cancel")</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Submit">@t.T("selectFilesDialog", "ok")</MudButton>
 	</DialogActions>
 </MudDialog>
 

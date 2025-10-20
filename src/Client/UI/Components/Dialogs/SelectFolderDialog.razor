@@ -3,6 +3,7 @@
 @inject IStorageService StorageService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject ITranslationsService t
 
 <MudDialog>
 	<DialogContent>
@@ -12,8 +13,8 @@
 				
 				<MudStack Row="true" AlignItems="AlignItems.Center">
 						<MudIcon Icon="@Icons.Material.Filled.ArrowRight" />
-					<MudText>@($"Workspace: {_selectedWorkspace?.Name}")</MudText>
-						<MudButton Color="Color.Info" OnClick="ChooseWorkspace">Change</MudButton>
+				<MudText>@($"{@t.T("selectFolderDialog", "workspace")}: {_selectedWorkspace?.Name}")</MudText>
+					<MudButton Color="Color.Info" OnClick="ChooseWorkspace">@t.T("selectFolderDialog", "change")</MudButton>
 				</MudStack>
 
 				<FileManager Class="" Style="height: calc(100% - 48px)" Outlined="true" Elevation="0"
@@ -24,7 +25,7 @@
 	</DialogContent>
 	
 	<DialogActions>
-		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">@t.T("selectFolderDialog", "cancel")</MudButton>
 		<MudButton Variant="Variant.Filled" Color="Color.Info" Disabled="!CanSubmit" OnClick="Submit">@SelectButtonText</MudButton>
 	</DialogActions>
 </MudDialog>
@@ -78,7 +79,7 @@
 
 	private async Task ChooseWorkspace()
 	{
-		var name = "Select workspace";
+		var name = @t.T("selectFolderDialog", "selectWorkspace");
 		var result = await DialogService.Show<SelectWorkspaceDialog>(name).Result;
 		if (result.Canceled) return;
 		var workspaceId = result.Data as long?;

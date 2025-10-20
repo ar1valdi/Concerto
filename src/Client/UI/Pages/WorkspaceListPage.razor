@@ -14,7 +14,9 @@
 @inject IWorkspaceService WorkspaceService
 
 
-<PageTitle>Workspaces</PageTitle>
+@inject ITranslationsService t
+
+<PageTitle>@t.T("navigation", "workspaces")</PageTitle>
 
 <WorkspaceList Style="height: 100%;" OnWorkspaceSelected="SelectWorkspace"/>
 
@@ -23,9 +25,9 @@
 	protected override void OnInitialized()
 	{
 		BreadcrumbsService.Set(
-			Icons.Material.Filled.List,
-			"Workspaces",
-			new BreadcrumbItem("Workspaces", null, true)
+            Icons.Material.Filled.List,
+            t.T("navigation", "workspaces"),
+            new BreadcrumbItem(t.T("navigation", "workspaces"), null, true)
 			);
 	}
 

@@ -1,4 +1,4 @@
-﻿<MudSelect Disabled="Disabled" T="FolderType" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Value="Value" ValueChanged="ValueChanged" Label="Folder type" Adornment="Adornment.Start" AdornmentIcon="@Value.ToIcon()" AnchorOrigin="Origin.BottomCenter">
+﻿<MudSelect Disabled="Disabled" T="FolderType" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Value="Value" ValueChanged="ValueChanged" Label="@t.T("folderTypePicker", "folderTypeLabel")" Adornment="Adornment.Start" AdornmentIcon="@Value.ToIcon()" AnchorOrigin="Origin.BottomCenter">
 	@if (Disabled)
 	{
 		<MudSelectItem Value="Value">@Value.ToDisplayString()</MudSelectItem>
@@ -16,6 +16,9 @@
 </MudSelect>
 
 @code {
+
+    [Inject]
+    private ITranslationsService t { get; set; } = null!;
 
 	[Parameter]
 	public FolderType Value { get; set; }

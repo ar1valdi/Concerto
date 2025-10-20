@@ -1,5 +1,7 @@
 ﻿@inherits MudComponentBase
 
+@inject ITranslationsService translationsService
+
 <MudTable Comparer="_comparer" T="WorkspaceUser" Items="Items" Loading="Loading" Filter="new Func<WorkspaceUser, bool>(Filter)"
           RowClassFunc="RowClassFunc" ReadOnly="true" AllowUnsorted="false"
           RowsPerPage="PageSize.Default"
@@ -7,11 +9,11 @@
           Height="100%" Class="@Class" Style="@TableStyle">
 
     <ToolBarContent>
-        <MudText Typo="Typo.subtitle1">Users</MudText>
+        <MudText Typo="Typo.subtitle1">@translationsService.T("workspaceMemberManager", "title")</MudText>
         <MudSpacer />
-        <MudSwitch Disabled="Editing" Class="ml-2" @bind-Checked="@_addMembers" Color="Color.Primary">Add members</MudSwitch>
+        <MudSwitch Disabled="Editing" Class="ml-2" @bind-Checked="@_addMembers" Color="Color.Primary">@translationsService.T("workspaceMemberManager", "addMembers")</MudSwitch>
         <MudSpacer />
-        <MudTextField Clearable="true" @bind-Value="_searchString" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Class="ma-0"></MudTextField>
+        <MudTextField Clearable="true" @bind-Value="_searchString" Immediate="true" Placeholder="@translationsService.T("common", "search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Class="ma-0"></MudTextField>
     </ToolBarContent>
 
     <ColGroup>
@@ -44,46 +46,46 @@
         }
 
         <MudTh Style="padding-right: 0">
-            <MudTableSortLabel SortBy="new Func<WorkspaceUser, object>(x => SelectedWorkspaceUsers.Contains(x))">Member</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<WorkspaceUser, object>(x => SelectedWorkspaceUsers.Contains(x))">@translationsService.T("workspaceMemberManager", "memberColumn")</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<WorkspaceUser, object>(x => Users[x.UserId].FirstName)">Name</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<WorkspaceUser, object>(x => Users[x.UserId].FirstName)">@translationsService.T("workspaceMemberManager", "nameColumn")</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<WorkspaceUser, object>(x => Users[x.UserId].LastName)" InitialDirection="SortDirection.Ascending">Surname</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<WorkspaceUser, object>(x => Users[x.UserId].LastName)" InitialDirection="SortDirection.Ascending">@translationsService.T("workspaceMemberManager", "surnameColumn")</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<WorkspaceUser, object>(x => Users[x.UserId].Username)">Username</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<WorkspaceUser, object>(x => Users[x.UserId].Username)">@translationsService.T("workspaceMemberManager", "usernameColumn")</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<WorkspaceUser, object>(x => SelectedWorkspaceUsers.Contains(x) ? x.Role.ToDisplayString() : string.Empty)">Role</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<WorkspaceUser, object>(x => SelectedWorkspaceUsers.Contains(x) ? x.Role.ToDisplayString() : string.Empty)">@translationsService.T("workspaceMemberManager", "roleColumn")</MudTableSortLabel>
         </MudTh>
-        <MudTh>Actions</MudTh>
+        <MudTh>@translationsService.T("common", "actions")</MudTh>
     </HeaderContent>
 
     <RowTemplate>
-        <MudTd DataLabel="Member">
+        <MudTd DataLabel="@translationsService.T("workspaceMemberManager", "memberColumn")">
             <MudCheckBox Class="py-2" T="bool" CheckedChanged="() => CheckedChanged(context)" Dense="true" Disabled="Editing" Checked="@SelectedWorkspaceUsers.Contains(context)" />
         </MudTd>
         @if (!LayoutState.Xs)
         {
-            <MudTd DataLabel="Member">←</MudTd>
+            <MudTd DataLabel="@translationsService.T("workspaceMemberManager", "memberColumn")">←</MudTd>
         }
-        <MudTd DataLabel="Name">@Users[context.UserId].FirstName</MudTd>
-        <MudTd DataLabel="Surname">@Users[context.UserId].LastName</MudTd>
-        <MudTd DataLabel="Username">@Users[context.UserId].Username</MudTd>
+        <MudTd DataLabel="@translationsService.T("workspaceMemberManager", "nameColumn")">@Users[context.UserId].FirstName</MudTd>
+        <MudTd DataLabel="@translationsService.T("workspaceMemberManager", "surnameColumn")">@Users[context.UserId].LastName</MudTd>
+        <MudTd DataLabel="@translationsService.T("workspaceMemberManager", "usernameColumn")">@Users[context.UserId].Username</MudTd>
 
         @if (_editedUser?.UserId == context.UserId)
         {
 
-            <MudTd DataLabel="Role" Style="min-width: 200px;">
+            <MudTd DataLabel="@translationsService.T("workspaceMemberManager", "roleColumn")" Style="min-width: 200px;">
                 <WorkspaceRolePicker @bind-Value="context.Role" />
             </MudTd>
 
-            <MudTd DataLabel="Actions" Style="justify-content: space-between;">
+            <MudTd DataLabel="@translationsService.T("common", "actions")" Style="justify-content: space-between;">
                 <div>
-                    <MudIconButton Title="Apply" Size="Size.Small" Icon="@Icons.Material.Filled.Check" OnClick="ApplyEdit" />
-                    <MudIconButton Title="Cancel" Size="Size.Small" Icon="@Icons.Material.Filled.Cancel" OnClick="CancelEdit" />
+                    <MudIconButton Title="@translationsService.T("common", "apply")" Size="Size.Small" Icon="@Icons.Material.Filled.Check" OnClick="ApplyEdit" />
+                    <MudIconButton Title="@translationsService.T("common", "cancel")" Size="Size.Small" Icon="@Icons.Material.Filled.Cancel" OnClick="CancelEdit" />
                 </div>
             </MudTd>
         }
@@ -91,24 +93,24 @@
         {
             @if (SelectedWorkspaceUsers.Contains(context))
             {
-                <MudTd DataLabel="Role" Style="min-width: 200px;">
+                <MudTd DataLabel="@translationsService.T("workspaceMemberManager", "roleColumn")" Style="min-width: 200px;">
                     @context.Role.ToDisplayString()
                 </MudTd>
 
 
-                <MudTd Class="d-flex" DataLabel="Actions">
-                    <MudIconButton Title="Settings" Size="Size.Small" Icon="@Icons.Material.Filled.Settings" OnClick="() => _editedUser = context" />
+                <MudTd Class="d-flex" DataLabel="@translationsService.T("common", "actions")">
+                    <MudIconButton Title="@translationsService.T("common", "settings")" Size="Size.Small" Icon="@Icons.Material.Filled.Settings" OnClick="() => _editedUser = context" />
                     @if (IsModified(context))
                     {
-                        <MudIconButton Title="Restore" Disabled="Editing" Size="Size.Small" Icon="@Icons.Material.Filled.Restore" OnClick="() => RestoreUser(context)" />
+                        <MudIconButton Title="@translationsService.T("common", "restore")" Disabled="Editing" Size="Size.Small" Icon="@Icons.Material.Filled.Restore" OnClick="() => RestoreUser(context)" />
                     }
                 </MudTd>
 
             }
             else
             {
-                <MudTd DataLabel="Role" Style="min-width: 200px;">-</MudTd>
-                <MudTd DataLabel="Actions" />
+                <MudTd DataLabel="@translationsService.T("workspaceMemberManager", "roleColumn")" Style="min-width: 200px;">-</MudTd>
+                <MudTd DataLabel="@translationsService.T("common", "actions")" />
             }
         }
 
@@ -118,13 +120,13 @@
         <MudTd DataLabel="">
             <MudCheckBox T="bool?" Dense="true" Disabled="Editing" CheckedChanged="SelectAllClicked" Checked="_selectAllState" />
         </MudTd>
-        <MudTd colspan="1">Select All</MudTd>
+        <MudTd colspan="1">@translationsService.T("workspaceMemberManager", "selectAll")</MudTd>
         <MudTd colspan="5">
-            Legend:
-            <MudButton Style="pointer-events: none;" DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Class="row-colored row-new">New</MudButton>
-            <MudButton Style="pointer-events: none;" DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Class="row-colored row-modified">Modified</MudButton>
-            <MudButton Style="pointer-events: none;" DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Class="row-colored row-deleted">Deleted</MudButton>
-            <MudButton Style="pointer-events: none;" DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Class="row-colored row-edited">Editing</MudButton>
+            @translationsService.T("workspaceMemberManager", "legend"):
+            <MudButton Style="pointer-events: none;" DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Class="row-colored row-new">@translationsService.T("workspaceMemberManager", "legendNew")</MudButton>
+            <MudButton Style="pointer-events: none;" DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Class="row-colored row-modified">@translationsService.T("workspaceMemberManager", "legendModified")</MudButton>
+            <MudButton Style="pointer-events: none;" DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Class="row-colored row-deleted">@translationsService.T("workspaceMemberManager", "legendDeleted")</MudButton>
+            <MudButton Style="pointer-events: none;" DisableElevation="true" Size="Size.Small" Variant="Variant.Filled" Class="row-colored row-edited">@translationsService.T("workspaceMemberManager", "legendEditing")</MudButton>
         </MudTd>
     </FooterContent>
 

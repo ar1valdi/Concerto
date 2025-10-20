@@ -5,8 +5,9 @@
 @inject IWorkspaceService WorkspaceService;
 @inject ISnackbar Snackbar;
 @inject IBreadcrumbsService BreadcrumbsService;
+@inject ITranslationsService t;
 
-<PageTitle>Storage</PageTitle>
+<PageTitle>@t.T("navigation", "storage")</PageTitle>
 
 <FileManager InitialFolderId="FolderId ?? -1" Class="" Style="height: 100%;" Elevation="0" />
 

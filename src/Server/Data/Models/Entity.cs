@@ -14,3 +14,5 @@ public abstract class Entity : IEntity
 	public const long NoId = 0;
 }
 
+
+public interface IEntityWithoutId {}

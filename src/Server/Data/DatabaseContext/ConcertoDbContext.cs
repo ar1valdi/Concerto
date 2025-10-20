@@ -20,6 +20,9 @@ public class ConcertoDbContext : DbContext
 
 	public DbSet<DawProject> DawProjects { get; set; }
 	public DbSet<Track> Tracks { get; set; }
+	public DbSet<Translation> Translations { get; set; }
+	public DbSet<TranslationLocation> TranslationLocations { get; set; }
+	public DbSet<Language> Languages { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
@@ -153,6 +156,48 @@ public class ConcertoDbContext : DbContext
             .WithMany(p => p.Tracks)
             .HasForeignKey(t => t.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
+
+		// TranslationLocation entity configuration
+		modelBuilder.Entity<TranslationLocation>()
+			.HasKey(tl => new { tl.View, tl.Key });
+
+		// Translation entity configuration
+		modelBuilder.Entity<Translation>()
+			.HasIndex(t => new { t.Language, t.View, t.Key })
+			.IsUnique();
+
+        modelBuilder.Entity<Translation>()
+			.Property(t => t.LastUpdated)
+			.HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+		modelBuilder.Entity<Translation>()
+			.HasIndex(t => t.LastUpdated)
+			.HasDatabaseName("IX_Translation_LastUpdated");
+
+		// Translation to Language foreign key relationship
+		modelBuilder.Entity<Translation>()
+			.HasOne(t => t.LanguageEntity)
+			.WithMany()
+			.HasForeignKey(t => t.Language)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		// Translation to TranslationLocation foreign key relationship
+		modelBuilder.Entity<Translation>()
+			.HasOne(t => t.Location)
+			.WithMany()
+			.HasForeignKey(t => new { t.View, t.Key })
+			.OnDelete(DeleteBehavior.Cascade);
+
+		// Language entity configuration
+		modelBuilder.Entity<Language>()
+			.HasKey(l => l.Key);
+
+		modelBuilder.Entity<Language>()
+			.Property(l => l.Key);
+
+		modelBuilder.Entity<Language>()
+			.Property(l => l.Name)
+			.IsRequired();
 
 		base.OnModelCreating(modelBuilder);
 	}

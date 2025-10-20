@@ -1,11 +1,13 @@
-﻿<MudDialog>
+﻿@inject ITranslationsService t
+
+<MudDialog>
 	<DialogContent>
 		<MudContainer Style="max-height: 80vh; overflow-y: scroll">
 			<MudText Style="overflow: auto; white-space: pre-wrap;">@Text</MudText>
 		</MudContainer>
 	</DialogContent>
 	<DialogActions>
-		<MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Ok">OK</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Ok">@t.T("infoDialog", "ok")</MudButton>
 	</DialogActions>
 </MudDialog>
 

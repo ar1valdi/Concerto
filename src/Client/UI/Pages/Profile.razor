@@ -5,7 +5,9 @@
 
 @attribute [Authorize]
 
-<h1>Your profile</h1>
+@inject ITranslationsService t
+
+<h1>@t.T("profile", "title")</h1>
 
 @if (userData == null)
 {
@@ -16,22 +18,22 @@ else
 	<MudStack>
 		<MudPaper Class="pa-4">
 			<MudStack Row="true">
-				<MudIcon Icon="@Icons.Material.Filled.TableRows" Title="Details"/>
+                <MudIcon Icon="@Icons.Material.Filled.TableRows" Title=@t.T("profile", "details")/>
 				<MudStack Justify="Justify.Center" Spacing="4">
 					<MudStack Justify="Justify.Center" Spacing="0">
-						<MudText Typo="Typo.body1">User name</MudText>
+                        <MudText Typo="Typo.body1">@t.T("profile", "userName")</MudText>
 						<MudText Class="pl-2" Typo="Typo.body2">@userData.Username</MudText>
 					</MudStack>
 					<MudStack Justify="Justify.Center" Spacing="0">
-						<MudText Typo="Typo.body1">First name</MudText>
+                        <MudText Typo="Typo.body1">@t.T("profile", "firstName")</MudText>
 						<MudText Class="pl-2" Typo="Typo.body2">@userData.FirstName</MudText>
 					</MudStack>
 					<MudStack Justify="Justify.Center" Spacing="0">
-						<MudText Typo="Typo.body1">Last name</MudText>
+                        <MudText Typo="Typo.body1">@t.T("profile", "lastName")</MudText>
 						<MudText Class="pl-2" Typo="Typo.body2">@userData.LastName</MudText>
 					</MudStack>
 					<MudStack Justify="Justify.Center" Spacing="0">
-						<MudText Typo="Typo.body1">User Id</MudText>
+                        <MudText Typo="Typo.body1">@t.T("profile", "userId")</MudText>
 						<MudText Class="pl-2" Typo="Typo.body2">@userData.Id</MudText>
 					</MudStack>
 				</MudStack>
