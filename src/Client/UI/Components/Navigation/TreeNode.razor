@@ -1,0 +1,74 @@
+﻿@namespace Concerto.Client.UI.Components.Navigation
+
+<div class="tree-node">
+    <div class="tree-node-content" @onclick="HandleClick" style="padding-left: @((Depth * 24) + 16)px">
+        @if (Node.Expandable)
+        {
+            <MudIcon Icon="@(Node.Expanded ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.ChevronRight)"
+                     Size="Size.Medium" />
+        }
+        else
+        {
+            <span class="tree-node-spacer"></span>
+        }
+
+        <MudIcon Icon="@(Node.IsFolder ? Icons.Material.Filled.Folder : Icons.Material.Filled.FilePresent)"
+                 Size="Size.Small" />
+
+        <span class="tree-node-text">@Node.Name</span>
+    </div>
+
+    @if (Node.Expanded)
+    {
+        <div>
+            @if (_isLoading)
+            {
+                <MudProgressCircular Size="Size.Small" Color="Color.Info" Indeterminate="true" />
+            }
+            else
+            {
+                @foreach (var child in Node.Children)
+                {
+                    <TreeNode Node="@child"
+                              Depth="@(Depth + 1)"
+                              OnItemClick="@OnItemClick"
+                              OnToggleExpand="@OnToggleExpand"
+                              LoadChildren="@LoadChildren" />
+                }
+            }
+        </div>
+    }
+</div>
+
+
+@code {
+    [Parameter] public TreeItemData Node { get; set; } = null!;
+    [Parameter] public int Depth { get; set; } = 0;
+    [Parameter] public Func<TreeItemData, Task> OnItemClick { get; set; } = null!;
+    [Parameter] public Func<TreeItemData, bool, Task> OnToggleExpand { get; set; } = null!;
+    [Parameter] public Func<TreeItemData, Task<HashSet<TreeItemData>>> LoadChildren { get; set; } = null!;
+
+    private bool _isLoading;
+
+    private async Task HandleClick()
+    {
+        if (Node.Expandable)
+        {
+            if (!Node.Expanded && !Node.Children.Any())
+            {
+                _isLoading = true;
+                await LoadChildren(Node);
+                _isLoading = false;
+                Node.Expanded = true;
+                await OnToggleExpand(Node, true);
+            }
+            else
+            {
+                Node.Expanded = !Node.Expanded;
+                await OnToggleExpand(Node, Node.Expanded);
+            }
+        }
+
+        await OnItemClick(Node);
+    }
+}
