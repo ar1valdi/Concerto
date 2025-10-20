@@ -310,7 +310,7 @@ public class StorageService
 
 		await InheritPermissionsInChildrenRecursively(folder, request.forceInherit);
 		await _context.SaveChangesAsync();
-        await _hubContext.Clients.All.SendAsync("TreeUpdated", folder.ParentId); // Poprawka: użyj folder.ParentId
+        await _hubContext.Clients.All.SendAsync("TreeUpdated", folder.ParentId);
     }
 
 	private async Task InheritPermissionsInChildrenRecursively(Folder parentFolder, bool forceInherit)
@@ -365,14 +365,14 @@ public class StorageService
 		var folder = await _context.Folders.FindAsync(folderId);
 		if (folder == null) return;
 
-		var parentId = folder.ParentId; // pobierz parentId przed usunięciem
+		var parentId = folder.ParentId; 
         await DeleteFolderRecursively(folder);
 		var deletedFiles = _context.ChangeTracker.Entries<UploadedFile>()
 			.Where(e => e.State == EntityState.Deleted)
 			.Select(e => e.Entity)
 			.ToList();
 		await _context.SaveChangesAsync();
-		await _hubContext.Clients.All.SendAsync("TreeUpdated", parentId); // użyj zapisanego parentId
+		await _hubContext.Clients.All.SendAsync("TreeUpdated", parentId); 
 
         foreach (var file in deletedFiles)
 			await DeletePhysicalFile(file);
@@ -396,7 +396,7 @@ public class StorageService
 		var file = await _context.UploadedFiles.FindAsync(fileId);
 		if (file == null) return;
 
-		var parentId = file.FolderId; // pobierz folderId przed usunięciem
+		var parentId = file.FolderId; 
 		_context.UploadedFiles.Remove(file);
 		await _context.SaveChangesAsync();
 		await _hubContext.Clients.All.SendAsync("TreeUpdated", parentId);
@@ -409,7 +409,7 @@ public class StorageService
 		var files = await _context.UploadedFiles.Where(f => fileIdsSet.Contains(f.Id)).ToListAsync();
 		if (!files.Any()) return;
 		
-		var parentId = files.First().FolderId; // zakładamy że pliki są z tego samego folderu
+		var parentId = files.First().FolderId; 
 		_context.UploadedFiles.RemoveRange(files);
 		await _context.SaveChangesAsync();
 		await _hubContext.Clients.All.SendAsync("TreeUpdated", parentId);
@@ -427,7 +427,7 @@ public class StorageService
 
 		file.DisplayName = WebUtility.HtmlEncode(request.Name);
 		await _context.SaveChangesAsync();
-        await _hubContext.Clients.All.SendAsync("TreeUpdated", file.FolderId); // Poprawka: użyj file.FolderId
+        await _hubContext.Clients.All.SendAsync("TreeUpdated", file.FolderId); 
         return true;
 	}
 
@@ -648,11 +648,10 @@ public class StorageService
 		var files = await _context.UploadedFiles.Where(f => fileIdSet.Contains(f.Id)).ToListAsync();
 		if (!files.Any()) return;
 
-		var sourceParentId = files.First().FolderId; // zapisz źródłowy folder
+		var sourceParentId = files.First().FolderId; 
 		files.ForEach(f => f.FolderId = destinationFolderId);
 		await _context.SaveChangesAsync();
 		
-		// powiadom o zmianach w obu folderach
 		await _hubContext.Clients.All.SendAsync("TreeUpdated", sourceParentId);
 		if (sourceParentId != destinationFolderId)
 			await _hubContext.Clients.All.SendAsync("TreeUpdated", destinationFolderId);
@@ -671,7 +670,6 @@ public class StorageService
         
         await _context.SaveChangesAsync();
         
-        // powiadom o zmianach we wszystkich dotknietych folderach
         foreach (var parentId in sourceParentIds.Where(id => id.HasValue))
             await _hubContext.Clients.All.SendAsync("TreeUpdated", parentId.Value);
         await _hubContext.Clients.All.SendAsync("TreeUpdated", destinationFolderId);
