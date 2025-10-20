@@ -79,3 +79,35 @@ a, .btn-link { color: #0071c1; }
 }
 
 .loading-progress-text:after { content: var(--blazor-load-percentage-text, "Loading"); }
+
+.tree-node-content {
+    display: flex;
+    align-items: center;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    padding-right: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 0;
+    margin: 0;
+}
+
+.tree-node-content:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.tree-node-spacer {
+    display: inline-block;
+    width: 1.5rem;
+}
+
+.tree-node-text {
+    margin-left: 0.5rem;
+    font-size: 0.875rem;
+    color: rgba(0, 0, 0, 0.87);
+    font-weight: 400;
+}
+
+
+

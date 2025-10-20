@@ -39,6 +39,7 @@ public record FolderItem(
 	bool CanWrite,
 	bool CanEdit,
 	bool CanDelete,
+	bool HasChildren,
 	FolderType Type
 ) : FolderContentItem(Id, Name, CanEdit, CanDelete)
 {

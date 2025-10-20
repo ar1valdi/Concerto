@@ -69,7 +69,7 @@ public enum FolderType
 
 public static partial class ViewModelConversions
 {
-	public static FolderItem ToFolderItem(this Folder folder, bool canWrite, bool canEdit, bool canDelete)
+	public static FolderItem ToFolderItem(this Folder folder, bool canWrite, bool canEdit, bool canDelete, bool hasChildren)
 	{
 		return new FolderItem(
 			folder.Id,
@@ -78,6 +78,7 @@ public static partial class ViewModelConversions
 			canWrite,
 			canEdit,
 			canDelete,
+			hasChildren,
 			folder.Type.ToViewModel()
         );
 	}

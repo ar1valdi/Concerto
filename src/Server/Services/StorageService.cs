@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Net;
 using MimeMapping;
+using Microsoft.AspNetCore.SignalR;
+using Concerto.Server.Hubs;
 
 namespace Concerto.Server.Services;
 
@@ -14,12 +16,14 @@ public class StorageService
 	private readonly ConcertoDbContext _context;
 	private readonly ILogger<StorageService> _logger;
 	private readonly IMemoryCache _memoryCache;
+	private readonly IHubContext<NotificationHub> _hubContext;
 
-	public StorageService(ILogger<StorageService> logger, ConcertoDbContext context, IMemoryCache memoryCache)
+	public StorageService(ILogger<StorageService> logger, ConcertoDbContext context, IMemoryCache memoryCache, IHubContext<NotificationHub> hubContext)
 	{
 		_logger = logger;
 		_context = context;
 		_memoryCache = memoryCache;
+		_hubContext = hubContext;
 	}
 
 	// Create
@@ -49,8 +53,8 @@ public class StorageService
 		await _context.Entry(parent).Collection(p => p.UserPermissions).LoadAsync();
 		await InheritPermissions(parent, newFolder, false);
 		await _context.SaveChangesAsync();
-
-		return newFolder.Id;
+        await _hubContext.Clients.All.SendAsync("TreeUpdated", request.ParentId);
+        return newFolder.Id;
 	}
 
 	// Read
@@ -79,16 +83,18 @@ public class StorageService
 		var subFolders = new List<Dto.FolderItem>();
 		foreach (var subFolder in folder.SubFolders)
 		{
+			await _context.Entry(subFolder).Collection(f => f.SubFolders).LoadAsync();
+			await _context.Entry(subFolder).Collection(f => f.Files).LoadAsync();
 			if (isAdmin)
 			{
-				subFolders.Add(subFolder.ToFolderItem(true, true, await CanDeleteFolder(userId, subFolder.Id)));
+				subFolders.Add(subFolder.ToFolderItem(true, true, await CanDeleteFolder(userId, subFolder.Id), hasChildren: subFolder.SubFolders.Any() || subFolder.Files.Any()));
 			}
 			else
 			{
 				var canWrite = await CanWriteInFolder(userId, subFolder.Id);
 				var canEdit = await CanEditFolder(userId, subFolder.Id);
 				var canDelete = await CanDeleteFolder(userId, subFolder.Id);
-				subFolders.Add(subFolder.ToFolderItem(canWrite, canEdit, canDelete));
+				subFolders.Add(subFolder.ToFolderItem(canWrite, canEdit, canDelete, hasChildren: subFolder.SubFolders.Any() || subFolder.Files.Any()));
 			}
 		}
 
@@ -105,14 +111,14 @@ public class StorageService
 		Dto.FolderItem selfFolderItem;
 		if (isAdmin)
 		{
-			selfFolderItem = folder.ToFolderItem(true, true, true);
+			selfFolderItem = folder.ToFolderItem(true, true, true, hasChildren: subFolders.Any() || files.Any());
 		}
 		else
 		{
 			var canWrite = await CanWriteInFolder(userId, folder.Id);
 			var canEdit = await CanEditFolder(userId, folder.Id);
 			var canDelete = await CanDeleteFolder(userId, folder.Id);
-			selfFolderItem = folder.ToFolderItem(canWrite, canEdit, canDelete);
+			selfFolderItem = folder.ToFolderItem(canWrite, canEdit, canDelete, hasChildren: subFolders.Any() || files.Any());
 		}
 
 		return new Dto.FolderContent
@@ -304,7 +310,8 @@ public class StorageService
 
 		await InheritPermissionsInChildrenRecursively(folder, request.forceInherit);
 		await _context.SaveChangesAsync();
-	}
+        await _hubContext.Clients.All.SendAsync("TreeUpdated", folder.ParentId);
+    }
 
 	private async Task InheritPermissionsInChildrenRecursively(Folder parentFolder, bool forceInherit)
 	{
@@ -358,14 +365,16 @@ public class StorageService
 		var folder = await _context.Folders.FindAsync(folderId);
 		if (folder == null) return;
 
-		await DeleteFolderRecursively(folder);
+		var parentId = folder.ParentId; 
+        await DeleteFolderRecursively(folder);
 		var deletedFiles = _context.ChangeTracker.Entries<UploadedFile>()
 			.Where(e => e.State == EntityState.Deleted)
 			.Select(e => e.Entity)
 			.ToList();
 		await _context.SaveChangesAsync();
+		await _hubContext.Clients.All.SendAsync("TreeUpdated", parentId); 
 
-		foreach (var file in deletedFiles)
+        foreach (var file in deletedFiles)
 			await DeletePhysicalFile(file);
 	}
 
@@ -387,8 +396,10 @@ public class StorageService
 		var file = await _context.UploadedFiles.FindAsync(fileId);
 		if (file == null) return;
 
+		var parentId = file.FolderId; 
 		_context.UploadedFiles.Remove(file);
 		await _context.SaveChangesAsync();
+		await _hubContext.Clients.All.SendAsync("TreeUpdated", parentId);
 		await DeletePhysicalFile(file);
 	}
 
@@ -396,8 +407,12 @@ public class StorageService
 	{
 		var fileIdsSet = fileIds.ToHashSet();
 		var files = await _context.UploadedFiles.Where(f => fileIdsSet.Contains(f.Id)).ToListAsync();
+		if (!files.Any()) return;
+		
+		var parentId = files.First().FolderId; 
 		_context.UploadedFiles.RemoveRange(files);
 		await _context.SaveChangesAsync();
+		await _hubContext.Clients.All.SendAsync("TreeUpdated", parentId);
 
 		foreach (var file in files)
 		{
@@ -412,7 +427,8 @@ public class StorageService
 
 		file.DisplayName = WebUtility.HtmlEncode(request.Name);
 		await _context.SaveChangesAsync();
-		return true;
+        await _hubContext.Clients.All.SendAsync("TreeUpdated", file.FolderId); 
+        return true;
 	}
 
 	private async Task DeletePhysicalFile(UploadedFile file)
@@ -502,6 +518,7 @@ public class StorageService
 
 			await _context.AddAsync(uploadedFile);
 			await _context.SaveChangesAsync();
+			await _hubContext.Clients.All.SendAsync("TreeUpdated", lastChunk.FolderId);
 			fileUploadResult.Uploaded = true;
 		}
 		catch (IOException ex)
@@ -555,7 +572,6 @@ public class StorageService
 		if (destinationFolder is null) return;
 
 		var folderIdsList = folderIds.ToList();
-
 		await _context.Entry(destinationFolder).Collection(f => f.SubFolders).LoadAsync();
 
 		foreach (var folderId in folderIdsList)
@@ -565,6 +581,7 @@ public class StorageService
 		}
 
 		await _context.SaveChangesAsync();
+		await _hubContext.Clients.All.SendAsync("TreeUpdated", destinationFolderId);
 	}
 
 	internal async Task<Folder?> CreateFolderCopy(long folderId, long workspaceId, bool withFiles, bool withFolderPermissions, Guid? newOwner = null)
@@ -629,8 +646,15 @@ public class StorageService
 
 		var fileIdSet = fileIds.ToHashSet();
 		var files = await _context.UploadedFiles.Where(f => fileIdSet.Contains(f.Id)).ToListAsync();
+		if (!files.Any()) return;
+
+		var sourceParentId = files.First().FolderId; 
 		files.ForEach(f => f.FolderId = destinationFolderId);
 		await _context.SaveChangesAsync();
+		
+		await _hubContext.Clients.All.SendAsync("TreeUpdated", sourceParentId);
+		if (sourceParentId != destinationFolderId)
+			await _hubContext.Clients.All.SendAsync("TreeUpdated", destinationFolderId);
 	}
 
 	internal async Task MoveFolders(IEnumerable<long> folderIds, long destinationFolderId)
@@ -638,8 +662,17 @@ public class StorageService
 		var destinationFolder = await _context.Folders.FindAsync(destinationFolderId);
 		if (destinationFolder is null) return;
 
-		foreach (var folderId in folderIds) await MoveFolder(folderId, destinationFolderId, destinationFolder.WorkspaceId);
-		await _context.SaveChangesAsync();
+		var folders = await _context.Folders.Where(f => folderIds.Contains(f.Id)).ToListAsync();
+		var sourceParentIds = folders.Select(f => f.ParentId).Distinct().ToList();
+
+		foreach (var folderId in folderIds) 
+            await MoveFolder(folderId, destinationFolderId, destinationFolder.WorkspaceId);
+        
+        await _context.SaveChangesAsync();
+        
+        foreach (var parentId in sourceParentIds.Where(id => id.HasValue))
+            await _hubContext.Clients.All.SendAsync("TreeUpdated", parentId.Value);
+        await _hubContext.Clients.All.SendAsync("TreeUpdated", destinationFolderId);
 	}
 
 	private async Task MoveFolder(long folderId, long destinationFolderId, long? workspaceId = null)
