@@ -1,7 +1,7 @@
 @inherits MudComponentBase
 
 @inject ILanguageManagementService languageManagementService
-@inject ITranslationsService translationsService
+@inject ITranslationsService t
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
@@ -10,11 +10,11 @@
           FixedHeader="true" FixedFooter="true" Outlined="true" Hover="true" Elevation="0">
 
     <ToolBarContent>
-        <MudText Class="mr-2" Typo="Typo.subtitle1">@translationsService.T("languagesManager", "title")</MudText>
+        <MudText Class="mr-2" Typo="Typo.subtitle1">@t.T("languagesManager", "title")</MudText>
         <MudSpacer />
-        <MudIconButton Title="@translationsService.T("common", "refresh")" Variant="Variant.Filled" Color="Color.Default" DisableElevation="true" 
+        <MudIconButton Title="@t.T("common", "refresh")" Variant="Variant.Filled" Color="Color.Default" DisableElevation="true" 
                        Icon="@Icons.Material.Filled.Refresh" OnClick="Load" />
-        <MudIconButton Title="@translationsService.T("languagesManager", "addNewLanguage")" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" 
+        <MudIconButton Title="@t.T("languagesManager", "addNewLanguage")" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" 
                        Icon="@Icons.Material.Filled.Add" OnClick="ShowCreateLanguageDialog" />
     </ToolBarContent>
 
@@ -27,28 +27,28 @@
 
     <HeaderContent>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<Language, object>(x => x.Name)">@translationsService.T("languagesManager", "nameColumn")</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<Language, object>(x => x.Name)">@t.T("languagesManager", "nameColumn")</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<Language, object>(x => x.Key)">@translationsService.T("languagesManager", "keyColumn")</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<Language, object>(x => x.Key)">@t.T("languagesManager", "keyColumn")</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<Language, object>(x => x.IsPublic)">@translationsService.T("languagesManager", "publicColumn")</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<Language, object>(x => x.IsPublic)">@t.T("languagesManager", "publicColumn")</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            @translationsService.T("common", "actions")
+            @t.T("common", "actions")
         </MudTh>
     </HeaderContent>
 
     <RowTemplate>
-        <MudTd DataLabel="@translationsService.T("languagesManager", "nameColumn")">@context.Name</MudTd>
-        <MudTd DataLabel="@translationsService.T("languagesManager", "keyColumn")">@context.Key</MudTd>
-        <MudTd DataLabel="@translationsService.T("languagesManager", "publicColumn")">
+        <MudTd DataLabel="@t.T("languagesManager", "nameColumn")">@context.Name</MudTd>
+        <MudTd DataLabel="@t.T("languagesManager", "keyColumn")">@context.Key</MudTd>
+        <MudTd DataLabel="@t.T("languagesManager", "publicColumn")">
             <MudSwitch T="bool" Checked="@context.IsPublic" CheckedChanged="async (bool value) => await TogglePublic(context)" 
                        Color="Color.Success" />
         </MudTd>
-        <MudTd DataLabel="@translationsService.T("common", "actions")">
-            <MudIconButton Title="@translationsService.T("languagesManager", "deleteLanguage")" Variant="Variant.Filled" Color="Color.Error" DisableElevation="true" 
+        <MudTd DataLabel="@t.T("common", "actions")">
+            <MudIconButton Title="@t.T("languagesManager", "deleteLanguage")" Variant="Variant.Filled" Color="Color.Error" DisableElevation="true" 
                            Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteLanguage(context)" />
         </MudTd>
     </RowTemplate>
@@ -63,19 +63,19 @@
     <TitleContent>
         <MudText Typo="Typo.h6">
             <MudIcon Icon="@Icons.Material.Filled.Language" Class="mr-3 mb-n1" />
-            @translationsService.T("languagesManager", "createDialogTitle")
+            @t.T("languagesManager", "createDialogTitle")
         </MudText>
     </TitleContent>
     <DialogContent>
-        <MudTextField @bind-Value="_newLanguageName" Label="@translationsService.T("languagesManager", "nameField")" Required="true" 
+        <MudTextField @bind-Value="_newLanguageName" Label="@t.T("languagesManager", "nameField")" Required="true" 
                       Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-3" />
-        <MudTextField @bind-Value="_newLanguageKey" Label="@translationsService.T("languagesManager", "keyField")" Required="true" 
+        <MudTextField @bind-Value="_newLanguageKey" Label="@t.T("languagesManager", "keyField")" Required="true" 
                       Variant="Variant.Outlined" Margin="Margin.Dense" 
-                      HelperText="@translationsService.T("languagesManager", "keyHelper")" />
+                      HelperText="@t.T("languagesManager", "keyHelper")" />
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="CancelCreateLanguage">@translationsService.T("common", "cancel")</MudButton>
-        <MudButton Color="Color.Primary" OnClick="CreateLanguage">@translationsService.T("common", "create")</MudButton>
+        <MudButton OnClick="CancelCreateLanguage">@t.T("common", "cancel")</MudButton>
+        <MudButton Color="Color.Primary" OnClick="CreateLanguage">@t.T("common", "create")</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -98,6 +98,7 @@
     protected override async Task OnInitializedAsync()
     {
         await Load();
+        t.LanguageChanged += () => InvokeAsync(StateHasChanged);
     }
 
     private async Task Load()
@@ -109,7 +110,7 @@
         }
         catch
         {
-            Snackbar.Add(translationsService.T("languagesManager", "failedToLoadLanguages"), Severity.Error);
+            Snackbar.Add(t.T("languagesManager", "failedToLoadLanguages"), Severity.Error);
             _languages = new List<Language>();
         }
     }
@@ -130,13 +131,13 @@
     {
         if (string.IsNullOrWhiteSpace(_newLanguageName))
         {
-            Snackbar.Add(translationsService.T("languagesManager", "languageNameRequired"), Severity.Error);
+            Snackbar.Add(t.T("languagesManager", "languageNameRequired"), Severity.Error);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(_newLanguageKey))
         {
-            Snackbar.Add(translationsService.T("languagesManager", "languageKeyRequired"), Severity.Error);
+            Snackbar.Add(t.T("languagesManager", "languageKeyRequired"), Severity.Error);
             return;
         }
 
@@ -153,12 +154,12 @@
             };
 
             await languageManagementService.CreateLanguageAsync(request);
-            Snackbar.Add(translationsService.T("languagesManager", "languageCreated", _newLanguageName), Severity.Success);
+            Snackbar.Add(t.T("languagesManager", "languageCreated", _newLanguageName), Severity.Success);
             await Load();
         }
         catch (Exception ex)
         {
-            Snackbar.Add(translationsService.T("languagesManager", "failedToCreateLanguage", ex.Message), Severity.Error);
+            Snackbar.Add(t.T("languagesManager", "failedToCreateLanguage", ex.Message), Severity.Error);
         }
         finally
         {
@@ -174,18 +175,18 @@
             if (language.IsPublic)
             {
                 await languageManagementService.HideLanguageAsync(language.Key);
-                Snackbar.Add(translationsService.T("languagesManager", "languageNowPrivate", language.Name), Severity.Success);
+                Snackbar.Add(t.T("languagesManager", "languageNowPrivate", language.Name), Severity.Success);
             }
             else
             {
                 await languageManagementService.PublishLanguageAsync(language.Key);
-                Snackbar.Add(translationsService.T("languagesManager", "languageNowPublic", language.Name), Severity.Success);
+                Snackbar.Add(t.T("languagesManager", "languageNowPublic", language.Name), Severity.Success);
             }
             await Load();
         }
         catch (Exception ex)
         {
-            Snackbar.Add(translationsService.T("languagesManager", "failedToUpdateLanguage", ex.Message), Severity.Error);
+            Snackbar.Add(t.T("languagesManager", "failedToUpdateLanguage", ex.Message), Severity.Error);
         }
         finally
         {
@@ -196,9 +197,9 @@
     private async Task DeleteLanguage(Language language)
     {
         if (!await DialogService.ShowConfirmationDialog(
-            translationsService.T("languagesManager", "deleteLanguageTitle"), 
-            translationsService.T("common", "delete"), 
-            translationsService.T("languagesManager", "language"), 
+            t.T("languagesManager", "deleteLanguageTitle"), 
+            t.T("common", "delete"), 
+            t.T("languagesManager", "language"), 
             $"{language.Name} ({language.Key})", 
             true))
             return;
@@ -207,12 +208,12 @@
         try
         {
             await languageManagementService.DeleteLanguageAsync(language.Key);
-            Snackbar.Add(translationsService.T("languagesManager", "languageDeleted", language.Name), Severity.Success);
+            Snackbar.Add(t.T("languagesManager", "languageDeleted", language.Name), Severity.Success);
             await Load();
         }
         catch (Exception ex)
         {
-            Snackbar.Add(translationsService.T("languagesManager", "failedToDeleteLanguage", ex.Message), Severity.Error);
+            Snackbar.Add(t.T("languagesManager", "failedToDeleteLanguage", ex.Message), Severity.Error);
         }
         finally
         {

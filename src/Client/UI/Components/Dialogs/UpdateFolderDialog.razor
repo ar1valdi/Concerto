@@ -74,6 +74,8 @@
 		ParentUserFolderPermissions = folderSettings.ParentUserPermissions.ToHashSet();
 		_parentPermissionType = folderSettings.ParentWorkspacePermission?.Type;
 		Loading = false;
+
+        t.LanguageChanged += () => InvokeAsync(StateHasChanged);
 	}
 
 	void Cancel()

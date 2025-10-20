@@ -14,6 +14,7 @@ namespace Concerto.Client.Services
         public Task<List<Translation>> FetchFullTranslationsAsync();
         public Task<List<TranslationLocation>> FetchAllTranslationLocationsAsync();
         public Task UpdateTranslations(List<Translation> updatedTranslations);
+        public event Action LanguageChanged;
     }
 
     public class TranslationsService : ITranslationsService
@@ -30,7 +31,7 @@ namespace Concerto.Client.Services
         private ILocalStorageService localStorage;
         private string currentLanguage;
 
-
+        public event Action LanguageChanged;
         public TranslationsService(
             ITranlsationsClient _translationsClient, 
             ITranlsationsClient _translationsClientUnauthroized, 
@@ -118,6 +119,7 @@ namespace Concerto.Client.Services
             currentLanguage = lang;
             await localStorage.SetItemAsync(CurrentLanguageKey, lang);
             translations = await localStorage.GetItemAsync<Dictionary<string, string>>($"{TranslationsKeyPrefix}{lang}");
+            LanguageChanged?.Invoke();
         }
 
         public string T(string view, string key)
