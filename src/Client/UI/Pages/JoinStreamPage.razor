@@ -147,7 +147,6 @@ else
     {
         if (firstRender)
         {
-            // Check if there's a stream ID in the URL parameters
             var uri = new Uri(Navigation.Uri);
             var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
             var streamIdFromUrl = query["id"];
@@ -170,10 +169,8 @@ else
             StatusMessage = "Connecting to stream...";
             StateHasChanged();
 
-            // Wait a bit to ensure DOM is rendered
             await Task.Delay(100);
 
-            // Initialize the stream viewer
             _streamViewer = await JS.InvokeAsync<IJSObjectReference>("initializeStreamViewer", "streamVideo", StreamIdInput, _dotNetObjectReference);
         }
         catch (Exception ex)
@@ -200,6 +197,42 @@ else
         IsConnecting = false;
         StatusMessage = $"Connection failed: {message}";
         StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task StreamJoined(string streamId, string hostConnectionId)
+    {
+        if (_streamViewer is not null)
+        {
+            await _streamViewer.InvokeVoidAsync("handleStreamJoined", streamId, hostConnectionId);
+        }
+    }
+
+    [JSInvokable]
+    public async Task ReceiveOffer(string streamId, string fromConnectionId, string offer)
+    {
+        if (_streamViewer is not null)
+        {
+            await _streamViewer.InvokeVoidAsync("handleOffer", streamId, fromConnectionId, offer);
+        }
+    }
+
+    [JSInvokable]
+    public async Task ReceiveAnswer(string streamId, string fromConnectionId, string answer)
+    {
+        if (_streamViewer is not null)
+        {
+            await _streamViewer.InvokeVoidAsync("handleAnswer", streamId, fromConnectionId, answer);
+        }
+    }
+
+    [JSInvokable]
+    public async Task ReceiveIceCandidate(string streamId, string fromConnectionId, string candidate)
+    {
+        if (_streamViewer is not null)
+        {
+            await _streamViewer.InvokeVoidAsync("handleIceCandidate", streamId, fromConnectionId, candidate);
+        }
     }
 
     private string GetStatusClass()

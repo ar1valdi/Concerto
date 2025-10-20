@@ -158,6 +158,7 @@ app.MapRazorPages();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notifications");
 app.MapHub<DawHub>("/daw");
+app.MapHub<StreamingHub>("/streaming");
 
 app.MapFallbackToFile("index.html");
 

@@ -1,6 +1,3 @@
-// Live Streaming functionality using WebRTC
-// This creates a real-time streaming solution where others can join
-
 import fixWebmDuration from 'webm-duration-fix';
 
 declare const DotNet: typeof import("@microsoft/dotnet-js-interop").DotNet;
@@ -16,105 +13,171 @@ declare global {
         liveStreamingManager: LiveStreamingManager | null | undefined;
         initializeLiveStreamingManager: (videoPreviewParentId: string, dotNetCaller: DotNetObject) => Promise<LiveStreamingManager>;
         initializeStreamViewer: (videoElementId: string, streamId: string, dotNetCaller: DotNetObject) => Promise<StreamViewer>;
-        signalingServer: SignalingServer;
     }
 }
 
-// Simple in-memory signaling server simulation
-class SignalingServer {
-    private streams: Map<string, LiveStreamingManager> = new Map();
-    private viewers: Map<string, StreamViewer[]> = new Map();
+class SignalingClient {
+    private connection: signalR.HubConnection | null = null;
+    private streamId: string | null = null;
+    private isHost: boolean = false;
+    private dotnetCaller: DotNetObject;
 
-    registerStream(streamId: string, manager: LiveStreamingManager): void {
-        this.streams.set(streamId, manager);
-        console.log(`Stream ${streamId} registered`);
+    constructor(dotnetCaller: DotNetObject) {
+        this.dotnetCaller = dotnetCaller;
     }
 
-    unregisterStream(streamId: string): void {
-        this.streams.delete(streamId);
-        this.viewers.delete(streamId);
-        console.log(`Stream ${streamId} unregistered`);
+    async connect(): Promise<void> {
+        this.connection = new signalR.HubConnectionBuilder()
+            .withUrl("/streaming", {
+                accessTokenFactory: () => this.getAccessToken()
+            })
+            .withAutomaticReconnect()
+            .build();
+
+        this.setupEventHandlers();
+        await this.connection.start();
     }
 
-    getStream(streamId: string): LiveStreamingManager | undefined {
-        return this.streams.get(streamId);
+    private setupEventHandlers(): void {
+        if (!this.connection) return;
+
+        this.connection.on("StreamStarted", (streamId: string) => {
+            console.log(`Stream ${streamId} started successfully`);
+        });
+
+        this.connection.on("StreamEnded", (streamId: string) => {
+            console.log(`Stream ${streamId} ended`);
+            this.dotnetCaller.invokeMethodAsync("StreamEnded", streamId);
+        });
+
+        this.connection.on("StreamNotFound", (streamId: string) => {
+            console.log(`Stream ${streamId} not found`);
+            this.dotnetCaller.invokeMethodAsync("StreamError", `Stream ${streamId} not found`);
+        });
+
+        this.connection.on("StreamJoined", (streamId: string, hostConnectionId: string) => {
+            console.log(`Joined stream ${streamId}, host: ${hostConnectionId}`);
+            this.dotnetCaller.invokeMethodAsync("StreamJoined", streamId, hostConnectionId);
+        });
+
+        this.connection.on("ViewerJoined", (viewerConnectionId: string) => {
+            console.log(`Viewer joined: ${viewerConnectionId}`);
+            this.dotnetCaller.invokeMethodAsync("ViewerJoined", viewerConnectionId);
+        });
+
+        this.connection.on("ViewerLeft", (viewerConnectionId: string) => {
+            console.log(`Viewer left: ${viewerConnectionId}`);
+            this.dotnetCaller.invokeMethodAsync("ViewerLeft", viewerConnectionId);
+        });
+
+        this.connection.on("ReceiveOffer", (streamId: string, fromConnectionId: string, offer: string) => {
+            this.dotnetCaller.invokeMethodAsync("ReceiveOffer", streamId, fromConnectionId, offer);
+        });
+
+        this.connection.on("ReceiveAnswer", (streamId: string, fromConnectionId: string, answer: string) => {
+            this.dotnetCaller.invokeMethodAsync("ReceiveAnswer", streamId, fromConnectionId, answer);
+        });
+
+        this.connection.on("ReceiveIceCandidate", (streamId: string, fromConnectionId: string, candidate: string) => {
+            this.dotnetCaller.invokeMethodAsync("ReceiveIceCandidate", streamId, fromConnectionId, candidate);
+        });
     }
 
-    getAllStreams(): Map<string, LiveStreamingManager> {
-        return this.streams;
+    async startStream(streamId: string): Promise<void> {
+        if (!this.connection) throw new Error("Not connected to signaling server");
+        
+        this.streamId = streamId;
+        this.isHost = true;
+        await this.connection.invoke("StartStream", streamId);
     }
 
-    addViewer(streamId: string, viewer: StreamViewer): void {
-        if (!this.viewers.has(streamId)) {
-            this.viewers.set(streamId, []);
+    async stopStream(): Promise<void> {
+        if (!this.connection || !this.streamId) return;
+        
+        await this.connection.invoke("StopStream", this.streamId);
+        this.streamId = null;
+        this.isHost = false;
+    }
+
+    async joinStream(streamId: string): Promise<void> {
+        if (!this.connection) throw new Error("Not connected to signaling server");
+        
+        this.streamId = streamId;
+        this.isHost = false;
+        await this.connection.invoke("JoinStream", streamId);
+    }
+
+    async leaveStream(): Promise<void> {
+        if (!this.connection || !this.streamId) return;
+        
+        await this.connection.invoke("LeaveStream", this.streamId);
+        this.streamId = null;
+        this.isHost = false;
+    }
+
+    async sendOffer(targetConnectionId: string, offer: RTCSessionDescriptionInit): Promise<void> {
+        if (!this.connection || !this.streamId) return;
+        await this.connection.invoke("SendOffer", this.streamId, targetConnectionId, JSON.stringify(offer));
+    }
+
+    async sendAnswer(targetConnectionId: string, answer: RTCSessionDescriptionInit): Promise<void> {
+        if (!this.connection || !this.streamId) return;
+        await this.connection.invoke("SendAnswer", this.streamId, targetConnectionId, JSON.stringify(answer));
+    }
+
+    async sendIceCandidate(targetConnectionId: string, candidate: RTCIceCandidateInit): Promise<void> {
+        if (!this.connection || !this.streamId) return;
+        await this.connection.invoke("SendIceCandidate", this.streamId, targetConnectionId, JSON.stringify(candidate));
+    }
+
+    private getAccessToken(): string {
+        const token = localStorage.getItem('access_token');
+        return token || '';
+    }
+
+    async disconnect(): Promise<void> {
+        if (this.connection) {
+            await this.connection.stop();
+            this.connection = null;
         }
-        this.viewers.get(streamId)!.push(viewer);
-        console.log(`Viewer added to stream ${streamId}`);
-    }
-
-    removeViewer(streamId: string, viewer: StreamViewer): void {
-        const viewers = this.viewers.get(streamId);
-        if (viewers) {
-            const index = viewers.indexOf(viewer);
-            if (index > -1) {
-                viewers.splice(index, 1);
-            }
-        }
-    }
-
-    getViewers(streamId: string): StreamViewer[] {
-        return this.viewers.get(streamId) || [];
     }
 }
 
 export class LiveStreamingManager {
     dotnetCaller: DotNetObject;
     
-    // Media components
     webcam: Webcam;
     microphone: Microphone;
     
-    // Video preview
     videoPreview: HTMLVideoElement;
     
-    // Canvas for video processing
     canvas: HTMLCanvasElement;
     canvasContext: CanvasRenderingContext2D;
     canvasStream: MediaStream;
     
-    // Audio context
     audioContext: AudioContext;
     microphoneInput: MediaStreamAudioSourceNode | null = null;
     audioOutput: MediaStreamAudioDestinationNode;
     
-    // Streaming state
     isStreaming: boolean = false;
     streamId: string | null = null;
     outputStream: MediaStream | null = null;
     
-    // Recording state
     isRecording: boolean = false;
     recorder: MediaRecorder | null = null;
     recordingStore: StreamRecordingStore | null = null;
     
-    // WebRTC components
-    peerConnection: RTCPeerConnection | null = null;
-    dataChannel: RTCDataChannel | null = null;
-    viewers: Set<MediaStream> = new Set();
-    
-    // Signaling server simulation (in real app, this would be a WebSocket server)
-    signalingServer: any = null;
+    peerConnections: Map<string, RTCPeerConnection> = new Map();
+    signalingClient: SignalingClient;
     
     saveInterval: number = 500;
     
     constructor(dotnetCaller: DotNetObject) {
         this.dotnetCaller = dotnetCaller;
         
-        // Initialize media components
         this.webcam = new Webcam();
         this.microphone = new Microphone();
         
-        // Video preview
         this.videoPreview = document.createElement("video");
         this.videoPreview.controls = false;
         this.videoPreview.muted = true;
@@ -122,22 +185,25 @@ export class LiveStreamingManager {
         this.videoPreview.style.pointerEvents = "none";
         this.videoPreview.classList.add("preview");
         
-        // Canvas for video processing
         this.canvas = document.createElement("canvas");
         this.canvasContext = this.canvas.getContext("2d")!;
         this.canvasStream = this.canvas.captureStream(30);
         
-        // Audio context
         this.audioContext = new AudioContext();
         this.audioOutput = this.audioContext.createMediaStreamDestination();
         
-        // Bind methods
+        this.signalingClient = new SignalingClient(dotnetCaller);
+        
         this.drawCanvasFrame = this.drawCanvasFrame.bind(this);
         this.drawCanvasFrame();
     }
     
+    async initialize(): Promise<void> {
+        await this.signalingClient.connect();
+    }
+    
     canStream(): boolean {
-        return this.microphone.isActive(); // Only require microphone, webcam is optional
+        return this.microphone.isActive();
     }
     
     appendPreviews(parentId: string): void {
@@ -181,136 +247,107 @@ export class LiveStreamingManager {
         this.streamId = streamId;
         this.audioContext.resume();
         
-        // Create output stream for streaming
         const videoTracks = this.webcam.isActive() ? this.canvasStream.getVideoTracks() : [];
         const audioTracks = this.audioOutput.stream.getAudioTracks();
         this.outputStream = new MediaStream([...videoTracks, ...audioTracks]);
         
-        // Set up video preview
         this.videoPreview.srcObject = this.outputStream;
         
-        // Start recording the stream
         await this.startRecording();
-        
-        // Initialize WebRTC for streaming
-        await this.initializeWebRTC();
+        await this.signalingClient.startStream(streamId);
         
         this.isStreaming = true;
-        
-        // Register with signaling server
-        if (window.signalingServer) {
-            window.signalingServer.registerStream(streamId, this);
-        }
-        
         await this.dotnetCaller.invokeMethodAsync("StreamingStateChanged", true);
         
         console.log(`Live stream started with ID: ${streamId}`);
     }
     
     async stopStream(): Promise<void> {
-        if (this.peerConnection) {
-            this.peerConnection.close();
-            this.peerConnection = null;
+        for (const [connectionId, peerConnection] of this.peerConnections) {
+            peerConnection.close();
         }
+        this.peerConnections.clear();
         
-        if (this.dataChannel) {
-            this.dataChannel.close();
-            this.dataChannel = null;
-        }
-        
-        // Stop recording
         await this.stopRecording();
+        await this.signalingClient.stopStream();
         
-        this.viewers.clear();
         this.isStreaming = false;
-        
-        // Unregister from signaling server
-        if (this.streamId && window.signalingServer) {
-            window.signalingServer.unregisterStream(this.streamId);
-        }
-        
         this.streamId = null;
         
         await this.dotnetCaller.invokeMethodAsync("StreamingStateChanged", false);
         console.log("Live stream stopped");
     }
     
-    async initializeWebRTC(): Promise<void> {
-        // In a real implementation, this would connect to a signaling server
-        // For now, we'll simulate the streaming setup
-        console.log("WebRTC initialized for streaming");
+    async handleViewerJoined(viewerConnectionId: string): Promise<void> {
+        if (!this.outputStream) return;
         
-        // Simulate peer connection setup
-        this.peerConnection = new RTCPeerConnection({
+        const peerConnection = new RTCPeerConnection({
             iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
         });
         
-        // Add tracks to peer connection
-        this.outputStream!.getTracks().forEach(track => {
-            this.peerConnection!.addTrack(track, this.outputStream!);
+        this.outputStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, this.outputStream!);
         });
         
-        // Set up data channel for stream metadata
-        this.dataChannel = this.peerConnection.createDataChannel('streamData');
-        this.dataChannel.onopen = () => {
-            console.log('Data channel opened');
-        };
-        
-        // Handle ICE candidates (in real app, these would be sent to signaling server)
-        this.peerConnection.onicecandidate = (event) => {
+        peerConnection.onicecandidate = (event) => {
             if (event.candidate) {
-                console.log('ICE candidate generated:', event.candidate);
-                // In real app: send to signaling server
+                this.signalingClient.sendIceCandidate(viewerConnectionId, event.candidate);
             }
         };
         
-        // Handle incoming connections (viewers joining)
-        this.peerConnection.ontrack = (event) => {
-            console.log('Viewer connected');
-            this.viewers.add(event.streams[0]);
+        peerConnection.onconnectionstatechange = () => {
+            if (peerConnection.connectionState === 'connected') {
+                console.log(`Connected to viewer ${viewerConnectionId}`);
+            } else if (peerConnection.connectionState === 'disconnected' || 
+                       peerConnection.connectionState === 'failed') {
+                this.peerConnections.delete(viewerConnectionId);
+                peerConnection.close();
+            }
         };
+        
+        this.peerConnections.set(viewerConnectionId, peerConnection);
+        
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        await this.signalingClient.sendOffer(viewerConnectionId, offer);
     }
     
-    // Method to generate stream sharing URL (for demonstration)
-    getStreamUrl(): string | null {
-        if (!this.streamId) return null;
-        return `${window.location.origin}/viewstream/${this.streamId}`;
+    async handleAnswer(viewerConnectionId: string, answer: string): Promise<void> {
+        const peerConnection = this.peerConnections.get(viewerConnectionId);
+        if (!peerConnection) return;
+        
+        await peerConnection.setRemoteDescription(JSON.parse(answer));
     }
     
-    // Method to get current viewer count
-    getViewerCount(): number {
-        return this.viewers.size;
+    async handleIceCandidate(viewerConnectionId: string, candidate: string): Promise<void> {
+        const peerConnection = this.peerConnections.get(viewerConnectionId);
+        if (!peerConnection) return;
+        
+        await peerConnection.addIceCandidate(JSON.parse(candidate));
     }
     
     async startRecording(): Promise<void> {
         if (!this.outputStream || this.isRecording) return;
         
-        // Get supported MIME type
         const [mimeType, extension] = this.getSupportedMimeType();
         
-        // Initialize recording store
         this.recordingStore = new StreamRecordingStore(mimeType, extension);
         
-        // Create MediaRecorder
         this.recorder = new MediaRecorder(this.outputStream, { mimeType });
         
-        // Handle data available
         this.recorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
                 this.recordingStore!.addChunk(event.data);
             }
         };
         
-        // Handle recording stop
         this.recorder.onstop = async () => {
             await this.recordingStore!.generateOutputAsync();
             const output = this.recordingStore!.getOutput();
             
-            // Convert Blob to IJSStreamReference for Blazor
             await this.dotnetCaller.invokeMethodAsync("StreamingFinished", DotNet.createJSStreamReference(output), this.recordingStore!.extension);
         };
         
-        // Start recording
         this.recorder.start(this.saveInterval);
         this.isRecording = true;
         
@@ -361,19 +398,18 @@ export class LiveStreamingManager {
             }
         }
         
-        return ['video/webm', 'webm']; // fallback
+        return ['video/webm', 'webm'];
     }
-    
     
     async dispose(): Promise<void> {
         await this.stopStream();
         await this.finalizeStreaming();
+        await this.signalingClient.disconnect();
         this.webcam.stop();
         this.microphone.stop();
         this.removePreview();
     }
     
-    // Canvas drawing for video preview
     drawCanvasFrame(): void {
         requestAnimationFrame(this.drawCanvasFrame);
         if (this.webcam.isActive()) {
@@ -389,7 +425,6 @@ export class LiveStreamingManager {
     }
 }
 
-// Webcam class (reused from recorder)
 class Webcam {
     private active: boolean = false;
     private deviceId: string | null = null;
@@ -447,7 +482,6 @@ class Webcam {
     }
 }
 
-// Microphone class (reused from recorder)
 class Microphone {
     private active: boolean = false;
     private deviceId: string | null = null;
@@ -486,7 +520,6 @@ class Microphone {
     }
 }
 
-// Stream Recording Store class (similar to RecordingStore)
 class StreamRecordingStore {
     chunks: Blob[] = [];
     length: number = 0;
@@ -507,7 +540,6 @@ class StreamRecordingStore {
     async generateOutputAsync(): Promise<void> {
         let recording = new Blob([...this.chunks], { type: this.mimeType });
         
-        // Apply WebM duration fix if needed
         if (this.extension === "webm") {
             try {
                 recording = await fixWebmDuration(recording);
@@ -563,57 +595,28 @@ class StreamRecordingStore {
     }
 }
 
-// Stream Viewer functionality
 export class StreamViewer {
     videoElement: HTMLVideoElement;
     streamId: string;
     dotnetCaller: DotNetObject;
     peerConnection: RTCPeerConnection | null = null;
     isConnected: boolean = false;
+    signalingClient: SignalingClient;
+    hostConnectionId: string | null = null;
     
     constructor(videoElement: HTMLVideoElement, streamId: string, dotnetCaller: DotNetObject) {
         this.videoElement = videoElement;
         this.streamId = streamId;
         this.dotnetCaller = dotnetCaller;
+        this.signalingClient = new SignalingClient(dotnetCaller);
     }
     
     async connect(): Promise<void> {
         try {
             console.log(`Attempting to connect to stream: ${this.streamId}`);
-            console.log("Signaling server available:", !!window.signalingServer);
             
-            // Check if stream exists in signaling server
-            if (!window.signalingServer) {
-                console.error("Signaling server not available, initializing...");
-                window.signalingServer = new SignalingServer();
-                console.log("Signaling server initialized in connect method");
-            }
-            
-            console.log("All streams in signaling server:", Array.from(window.signalingServer.getAllStreams().keys()));
-            
-            const streamManager = window.signalingServer.getStream(this.streamId);
-            if (!streamManager) {
-                // Get list of available streams for better error message
-                const availableStreams = Array.from(window.signalingServer.getAllStreams().keys());
-                const availableStreamsText = availableStreams.length > 0 
-                    ? ` Available streams: ${availableStreams.join(', ')}` 
-                    : ' No streams are currently active.';
-                
-                throw new Error(`Stream ${this.streamId} not found. Make sure the host is streaming.${availableStreamsText}`);
-            }
-            
-            // Register as viewer
-            window.signalingServer.addViewer(this.streamId, this);
-            
-            // Initialize WebRTC connection
-            await this.initializeWebRTC();
-            
-            // For demo purposes, we'll simulate a successful connection
-            // In a real implementation, this would establish actual WebRTC connection
-            setTimeout(() => {
-                this.isConnected = true;
-                this.dotnetCaller.invokeMethodAsync("StreamConnected");
-            }, 2000);
+            await this.signalingClient.connect();
+            await this.signalingClient.joinStream(this.streamId);
             
         } catch (error) {
             console.error('Failed to connect to stream:', error);
@@ -621,33 +624,61 @@ export class StreamViewer {
         }
     }
     
+    async handleStreamJoined(streamId: string, hostConnectionId: string): Promise<void> {
+        this.hostConnectionId = hostConnectionId;
+        await this.initializeWebRTC();
+    }
+    
     async initializeWebRTC(): Promise<void> {
-        // In a real implementation, this would:
-        // 1. Connect to signaling server
-        // 2. Send join request with stream ID
-        // 3. Receive offer from streamer
-        // 4. Create answer and send back
-        // 5. Establish peer connection
-        
         this.peerConnection = new RTCPeerConnection({
             iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
         });
         
-        // Handle incoming stream
         this.peerConnection.ontrack = (event) => {
             console.log('Received stream from broadcaster');
             this.videoElement.srcObject = event.streams[0];
+            this.isConnected = true;
+            this.dotnetCaller.invokeMethodAsync("StreamConnected");
         };
         
-        // Handle ICE candidates
         this.peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-                console.log('ICE candidate received');
-                // In real app: send to signaling server
+            if (event.candidate && this.hostConnectionId) {
+                this.signalingClient.sendIceCandidate(this.hostConnectionId, event.candidate);
+            }
+        };
+        
+        this.peerConnection.onconnectionstatechange = () => {
+            if (this.peerConnection!.connectionState === 'connected') {
+                console.log('Connected to stream');
+            } else if (this.peerConnection!.connectionState === 'disconnected' || 
+                       this.peerConnection!.connectionState === 'failed') {
+                this.isConnected = false;
+                this.dotnetCaller.invokeMethodAsync("StreamError", "Connection lost");
             }
         };
         
         console.log('WebRTC initialized for viewing');
+    }
+    
+    async handleOffer(streamId: string, fromConnectionId: string, offer: string): Promise<void> {
+        if (!this.peerConnection) return;
+        
+        await this.peerConnection.setRemoteDescription(JSON.parse(offer));
+        const answer = await this.peerConnection.createAnswer();
+        await this.peerConnection.setLocalDescription(answer);
+        await this.signalingClient.sendAnswer(fromConnectionId, answer);
+    }
+    
+    async handleAnswer(streamId: string, fromConnectionId: string, answer: string): Promise<void> {
+        if (!this.peerConnection) return;
+        
+        await this.peerConnection.setRemoteDescription(JSON.parse(answer));
+    }
+    
+    async handleIceCandidate(streamId: string, fromConnectionId: string, candidate: string): Promise<void> {
+        if (!this.peerConnection) return;
+        
+        await this.peerConnection.addIceCandidate(JSON.parse(candidate));
     }
     
     async dispose(): Promise<void> {
@@ -656,16 +687,13 @@ export class StreamViewer {
             this.peerConnection = null;
         }
         
-        // Unregister from signaling server
-        if (window.signalingServer) {
-            window.signalingServer.removeViewer(this.streamId, this);
-        }
+        await this.signalingClient.leaveStream();
+        await this.signalingClient.disconnect();
         
         this.isConnected = false;
     }
 }
 
-// Global functions for DotNet interop
 export async function initializeLiveStreamingManager(videoPreviewParentId?: string, dotNetCaller?: DotNetObject): Promise<LiveStreamingManager> {
     if (window.liveStreamingManager !== undefined && window.liveStreamingManager !== null) {
         console.log("LiveStreamingManager already initialized, returning existing instance");
@@ -673,6 +701,8 @@ export async function initializeLiveStreamingManager(videoPreviewParentId?: stri
     }
     
     let streamingManager = new LiveStreamingManager(dotNetCaller!);
+    await streamingManager.initialize();
+    
     if (videoPreviewParentId) {
         streamingManager.appendPreviews(videoPreviewParentId);
     }
@@ -683,7 +713,6 @@ export async function initializeLiveStreamingManager(videoPreviewParentId?: stri
 export async function initializeStreamViewer(videoElementId: string, streamId: string, dotNetCaller: DotNetObject): Promise<StreamViewer> {
     console.log(`Looking for video element with id: ${videoElementId}`);
     
-    // Wait a bit to ensure DOM is fully rendered
     await new Promise(resolve => setTimeout(resolve, 100));
     
     const videoElement = document.getElementById(videoElementId);
@@ -701,14 +730,5 @@ export async function initializeStreamViewer(videoElementId: string, streamId: s
     return viewer;
 }
 
-// Initialize signaling server
-if (!window.signalingServer) {
-    window.signalingServer = new SignalingServer();
-    console.log("Signaling server initialized");
-} else {
-    console.log("Signaling server already exists");
-}
-
-// Make functions available globally
 window.initializeLiveStreamingManager = initializeLiveStreamingManager;
 window.initializeStreamViewer = initializeStreamViewer;

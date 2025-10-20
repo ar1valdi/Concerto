@@ -256,13 +256,12 @@ else
         
         try
         {
-            StreamId = Guid.NewGuid().ToString("N")[..8].ToUpper(); // Generate 8-character stream ID
+            StreamId = Guid.NewGuid().ToString("N")[..8].ToUpper();
             await _streamingManager.InvokeVoidAsync("startStream", StreamId);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error starting stream: {ex.Message}");
-            // Reset stream ID if start failed
             StreamId = string.Empty;
         }
     }
@@ -290,6 +289,33 @@ else
         _streamExtension = extension;
         StreamName = $"Stream-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}";
         StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task ViewerJoined(string viewerConnectionId)
+    {
+        if (_streamingManager is not null)
+        {
+            await _streamingManager.InvokeVoidAsync("handleViewerJoined", viewerConnectionId);
+        }
+    }
+
+    [JSInvokable]
+    public async Task ReceiveAnswer(string viewerConnectionId, string answer)
+    {
+        if (_streamingManager is not null)
+        {
+            await _streamingManager.InvokeVoidAsync("handleAnswer", viewerConnectionId, answer);
+        }
+    }
+
+    [JSInvokable]
+    public async Task ReceiveIceCandidate(string viewerConnectionId, string candidate)
+    {
+        if (_streamingManager is not null)
+        {
+            await _streamingManager.InvokeVoidAsync("handleIceCandidate", viewerConnectionId, candidate);
+        }
     }
 
     public async Task DiscardStream()
@@ -333,7 +359,6 @@ else
         if (!string.IsNullOrEmpty(StreamUrl))
         {
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", StreamUrl);
-            // You could add a toast notification here if you have a notification service
         }
     }
 
