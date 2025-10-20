@@ -4,28 +4,20 @@
 @inject IDialogService DialogService
 @inject HubConnection HubConnection
 
-<MudTreeView T="TreeItemData" @key="@_treeKey"
-    Items="@_rootNodes"
-    ServerData="@LoadChildrenAsync"
-    MultiSelection="false"
-    Hover="true"
-    Dense="true"
-    ExpandOnClick="true">
-    <ItemTemplate>
-        <MudTreeViewItem T="TreeItemData"
-            Value="@context"
-            Text="@context.Name"
-            @bind-Expanded="@context.Expanded"
-            CanExpand="@context.Expandable"
-            Icon="@(context.IsFolder ? Icons.Material.Filled.Folder : Icons.Material.Filled.FilePresent)"
-            OnClick="@(() => OnItemClick(context))"
-            LoadingIconColor="Color.Info"/>
-    </ItemTemplate>
-</MudTreeView>
+<div class="storage-tree">
+    @foreach (var node in _rootNodes)
+    {
+        <TreeNode Node="@node"
+                  Depth="0"
+                  OnItemClick="@OnItemClick"
+                  OnToggleExpand="@OnToggleExpand"
+                  LoadChildren="@LoadChildrenAsync" />
+    }
+</div>
 
 @code {
     private HashSet<TreeItemData> _rootNodes = new();
-    private int _treeKey;
+    private HashSet<long> _expandedNodeIds = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -39,26 +31,44 @@
     }
 
     private async Task<HashSet<TreeItemData>> LoadChildrenAsync(TreeItemData node)
-	{
-		var nodes = await LoadNodesAsync(node.Id);
-		await InvokeAsync(StateHasChanged); // ensure UI update is queued
-		return nodes;
-	}
+    {
+        var nodes = await LoadNodesAsync(node.Id);
+        node.Children = nodes;
+        await InvokeAsync(StateHasChanged);
+        return nodes;
+    }
 
     private async Task<HashSet<TreeItemData>> LoadNodesAsync(long folderId)
     {
         var content = await StorageService.GetFolderContentAsync(folderId);
-        return content.SubFolders
+        var nodes = content.SubFolders
             .Select(folder => new TreeItemData { Expandable = folder.HasChildren, Item = folder })
             .Concat(content.Files.Select(file => new TreeItemData { Expandable = false, Item = file }))
             .ToHashSet();
+
+        foreach (var node in nodes.Where(n => n.IsFolder && _expandedNodeIds.Contains(n.Id)))
+        {
+            node.Expanded = true;
+            node.Children = await LoadNodesAsync(node.Id);
+        }
+
+        return nodes;
     }
 
     private async Task RefreshTree()
     {
         _rootNodes = await LoadNodesAsync(-1);
-        _treeKey++;
         await InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnToggleExpand(TreeItemData node, bool expanded)
+    {
+        if (expanded)
+            _expandedNodeIds.Add(node.Id);
+        else
+            _expandedNodeIds.Remove(node.Id);
+
+        return Task.CompletedTask;
     }
 
     private async Task OnItemClick(TreeItemData node)
@@ -67,15 +77,5 @@
             Navigation.NavigateTo($"storage/{node.Id}");
         else if (node.Item is FileItem file)
             await DialogService.ShowFilePreviewDialog(file);
-    }
-
-    private class TreeItemData
-    {
-        public FolderContentItem? Item { get; set; }
-        public bool Expanded { get; set; }
-        public bool Expandable { get; set; }
-        public long Id => Item?.Id ?? 0;
-        public string Name => Item?.Name ?? "";
-        public bool IsFolder => Item is FolderItem;
     }
 }
