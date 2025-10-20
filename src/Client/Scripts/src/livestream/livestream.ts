@@ -1,4 +1,5 @@
 import fixWebmDuration from 'webm-duration-fix';
+import * as signalR from '@microsoft/signalr';
 
 declare const DotNet: typeof import("@microsoft/dotnet-js-interop").DotNet;
 
@@ -29,7 +30,17 @@ class SignalingClient {
     async connect(): Promise<void> {
         this.connection = new signalR.HubConnectionBuilder()
             .withUrl("/streaming", {
-                accessTokenFactory: () => this.getAccessToken()
+                accessTokenFactory: async () => {
+                    try {
+                        console.log('Requesting access token for SignalR connection...');
+                        const token = await this.dotnetCaller.invokeMethodAsync<string>("GetAccessToken");
+                        console.log('Access token received:', token ? 'Token present' : 'No token');
+                        return token || '';
+                    } catch (error) {
+                        console.error('Failed to get access token:', error);
+                        return '';
+                    }
+                }
             })
             .withAutomaticReconnect()
             .build();
@@ -128,11 +139,6 @@ class SignalingClient {
     async sendIceCandidate(targetConnectionId: string, candidate: RTCIceCandidateInit): Promise<void> {
         if (!this.connection || !this.streamId) return;
         await this.connection.invoke("SendIceCandidate", this.streamId, targetConnectionId, JSON.stringify(candidate));
-    }
-
-    private getAccessToken(): string {
-        const token = localStorage.getItem('access_token');
-        return token || '';
     }
 
     async disconnect(): Promise<void> {
@@ -239,7 +245,12 @@ export class LiveStreamingManager {
     }
     
     async startStream(streamId: string): Promise<void> {
+        console.log('Starting stream with ID:', streamId);
+        console.log('Microphone active:', this.microphone.isActive());
+        console.log('Webcam active:', this.webcam.isActive());
+        
         if (!this.canStream()) {
+            console.error('Cannot start stream: No microphone selected');
             alert("Please select a microphone.");
             return;
         }
@@ -282,7 +293,29 @@ export class LiveStreamingManager {
         if (!this.outputStream) return;
         
         const peerConnection = new RTCPeerConnection({
-            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' },
+                { urls: 'stun:stun.voiparound.com' },
+                { urls: 'stun:stun.voipbuster.com' },
+                { urls: 'stun:stun.voipstunt.com' },
+                { urls: 'stun:stun.counterpath.com' },
+                { urls: 'stun:stun.1und1.de' },
+                // Add TURN servers for better connectivity
+                { 
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                { 
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                }
+            ]
         });
         
         this.outputStream.getTracks().forEach(track => {
@@ -291,7 +324,15 @@ export class LiveStreamingManager {
         
         peerConnection.onicecandidate = (event) => {
             if (event.candidate) {
+                console.log('Sending ICE candidate to viewer:', event.candidate);
                 this.signalingClient.sendIceCandidate(viewerConnectionId, event.candidate);
+            }
+        };
+        
+        peerConnection.oniceconnectionstatechange = () => {
+            console.log(`ICE connection state for viewer ${viewerConnectionId}:`, peerConnection.iceConnectionState);
+            if (peerConnection.iceConnectionState === 'failed') {
+                console.error(`ICE connection failed for viewer ${viewerConnectionId}`);
             }
         };
         
@@ -631,7 +672,28 @@ export class StreamViewer {
     
     async initializeWebRTC(): Promise<void> {
         this.peerConnection = new RTCPeerConnection({
-            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' },
+                { urls: 'stun:stun.voiparound.com' },
+                { urls: 'stun:stun.voipbuster.com' },
+                { urls: 'stun:stun.voipstunt.com' },
+                { urls: 'stun:stun.counterpath.com' },
+                { urls: 'stun:stun.1und1.de' },
+                { 
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                { 
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                }
+            ]
         });
         
         this.peerConnection.ontrack = (event) => {
@@ -643,7 +705,16 @@ export class StreamViewer {
         
         this.peerConnection.onicecandidate = (event) => {
             if (event.candidate && this.hostConnectionId) {
+                console.log('Sending ICE candidate:', event.candidate);
                 this.signalingClient.sendIceCandidate(this.hostConnectionId, event.candidate);
+            }
+        };
+        
+        this.peerConnection.oniceconnectionstatechange = () => {
+            console.log('ICE connection state:', this.peerConnection?.iceConnectionState);
+            if (this.peerConnection?.iceConnectionState === 'failed') {
+                console.error('ICE connection failed - WebRTC connection failed');
+                this.dotnetCaller.invokeMethodAsync("StreamError", "WebRTC connection failed");
             }
         };
         

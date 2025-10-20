@@ -32,6 +32,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.4.0",
     "@microsoft/dotnet-js-interop": "^7.0.5",
+    "@microsoft/signalr": "^8.0.0",
     "eventemitter3": "^5.0.1",
     "fade-curves": "^1.0.2",
     "fade-maker": "^1.0.3",

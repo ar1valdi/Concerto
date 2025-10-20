@@ -1,7 +1,11 @@
 @page "/joinstream"
 @using Concerto.Client.Services;
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+@using Microsoft.AspNetCore.Authorization;
+@attribute [Authorize]
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
+@inject IAccessTokenProvider _accessTokenProvider
 @implements IAsyncDisposable
 
 <PageTitle>Join Stream</PageTitle>
@@ -178,6 +182,24 @@ else
             StatusMessage = $"Failed to connect: {ex.Message}";
             IsConnecting = false;
             StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public async Task<string> GetAccessToken()
+    {
+        try
+        {
+            Console.WriteLine("JoinStreamPage: Requesting access token...");
+            var tokenResult = await _accessTokenProvider.RequestAccessToken();
+            var hasToken = tokenResult.TryGetToken(out var token);
+            Console.WriteLine($"JoinStreamPage: Token result - HasToken: {hasToken}, TokenValue: {(hasToken ? "Present" : "None")}");
+            return hasToken ? token.Value : string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"JoinStreamPage: Error getting access token: {ex.Message}");
+            return string.Empty;
         }
     }
 
