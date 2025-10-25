@@ -1,5 +1,6 @@
 ﻿@attribute [Authorize]
-@page "/workspaces/{SelectedWorkspaceId:long}"
+@* Workspace page hidden - using single workspace mode *@
+@* @page "/workspaces/{SelectedWorkspaceId:long}" *@
 
 @inject NavigationManager NavigationManager
 @inject IWorkspaceService WorkspaceService;
@@ -18,13 +19,13 @@ else
     <MudTabs @ref="_tabs" Outlined="true" Position="Position.Top" HeaderPosition="TabHeaderPosition.Before"
          ApplyEffectsToContainer="true" Class="" PanelClass="panel-height-maximum" Style="height: calc(100%);">
 
-
-        <Header>
+        @* Workspace back button hidden - using single workspace mode *@
+        @* <Header>
             <MudLink Class="mud-tab px-1"
                  Color="Color.Default" Underline="Underline.None" OnClick="@(() => NavigationManager.NavigateTo("workspaces"))">
                 <MudIcon Class="text-icon" Size="Size.Small" Icon="@Icons.Material.Filled.ArrowBack" />
             </MudLink>
-        </Header>
+        </Header> *@
 
         <ChildContent>
             <MudTabPanel Text=@t.T("workspace", "contentTab")>
@@ -40,12 +41,13 @@ else
                 <Forum WorkspaceId="SelectedWorkspaceId" Title=@t.T("workspace", "forumTitle") />
             </MudTabPanel>
 
-            @if (SelectedWorkspace!.CanManage)
+            @* Workspace settings hidden - using single workspace mode *@
+            @* @if (SelectedWorkspace!.CanManage)
             {
                 <MudTabPanel Text=@t.T("workspace", "settingsTab")>
                     <WorkspaceSettingsManager WorkspaceId="SelectedWorkspaceId" OnWorkspaceDeleted="OnWorkspaceDeleted" OnWorkspaceUpdated="OnWorkspaceUpdated" />
                 </MudTabPanel>
-            }
+            } *@
         </ChildContent>
 
 
@@ -78,26 +80,26 @@ else
         catch (WorkspaceException)
         {
             Snackbar.Add(t.T("workspace", "errorNoAccess"), Severity.Error);
-            NavigationManager.NavigateTo("workspaces");
+            NavigationManager.NavigateTo("/");
         }
         _loading = false;
         if (SelectedWorkspace != null)
             BreadcrumbsService.Set(
                 Icons.Material.Filled.MenuBook,
                 SelectedWorkspace?.Name ?? string.Empty,
-                new BreadcrumbItem(t.T("navigation", "workspaces"), "workspaces"),
+                new BreadcrumbItem(t.T("navigation", "home"), "/"),
                 new BreadcrumbItem(SelectedWorkspace?.Name, null, true)
                 );
     }
 
     private void OnSessionSelected(long sessionId)
     {
-        NavigationManager.NavigateTo($"workspaces/{SelectedWorkspaceId}/sessions/{sessionId}");
+        NavigationManager.NavigateTo($"/sessions/{sessionId}");
     }
 
     private void OnWorkspaceDeleted()
     {
-        NavigationManager.NavigateTo("workspaces");
+        NavigationManager.NavigateTo("/");
     }
 
     private async void OnWorkspaceUpdated()

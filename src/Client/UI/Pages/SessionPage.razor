@@ -1,5 +1,7 @@
 ﻿@attribute [Authorize]
-@page "/workspaces/{WorkspaceId:long}/sessions/{SelectedSessionId:long}"
+@* Session page with workspace routing hidden - using single workspace mode *@
+@page "/sessions/{SelectedSessionId:long}"
+@* @page "/workspaces/{WorkspaceId:long}/sessions/{SelectedSessionId:long}" *@
 
 @inject NavigationManager NavigationManager;
 @inject ITranslationsService t;
@@ -19,12 +21,13 @@ else
          ApplyEffectsToContainer="true" Class="" PanelClass="panel-height-maximum" Style="height: calc(100%);"
          KeepPanelsAlive="true">
 
-        <Header>
+        @* Workspace back button hidden - using single workspace mode *@
+        @* <Header>
             <MudLink Class="mud-tab px-1"
                  Color="Color.Default" Underline="Underline.None" OnClick="@(() => NavigationManager.NavigateTo($"workspaces/{WorkspaceId}"))">
                 <MudIcon Class="text-icon" Size="Size.Small" Icon="@Icons.Material.Filled.ArrowBack" />
             </MudLink>
-        </Header>
+        </Header> *@
 
         <ChildContent>
             <MudTabPanel Text=@t.T("session", "meetingTab")>
@@ -36,14 +39,15 @@ else
                          Class="flex-grow-1" Style="height: 100%;" Elevation="0" />
             </MudTabPanel>
 
-            <MudTabPanel Text=@t.T("session", "workspaceContentTab")>
+            @* Workspace-related tabs hidden - using single workspace mode *@
+            @* <MudTabPanel Text=@t.T("session", "workspaceContentTab")>
                 <FileManager InitialFolderId="SelectedSession!.WorkspaceRootFolderId"
                          Class="flex-grow-1" Style="height: 100%;" Elevation="0" />
             </MudTabPanel>
 
             <MudTabPanel Text=@t.T("session", "workspaceForumTab")>
                 <Forum WorkspaceId="WorkspaceId" Title=@t.T("session", "workspaceForumTab") />
-            </MudTabPanel>
+            </MudTabPanel> *@
 
             @if (SelectedSession!.CanManage)
             {
@@ -77,22 +81,21 @@ else
         catch
         {
             Snackbar.Add(t.T("session", "errorNoAccess"), Severity.Error);
-            NavigationManager.NavigateTo($"workspaces/{WorkspaceId}");
+            NavigationManager.NavigateTo("/");
             return;
         }
 
         BreadcrumbsService.Set(
             Icons.Material.Filled.MeetingRoom,
             SelectedSession.Name,
-            new BreadcrumbItem(t.T("navigation", "workspaces"), "workspaces"),
-            new BreadcrumbItem(SelectedSession.WorkspaceName, $"workspaces/{SelectedSession.WorkspaceId}"),
+            new BreadcrumbItem(t.T("navigation", "home"), "/"),
             new BreadcrumbItem(SelectedSession.Name, null, true)
         );
     }
 
     private void OnSessionDeleted()
     {
-        NavigationManager.NavigateTo($"workspaces/{SelectedSession!.WorkspaceId}");
+        NavigationManager.NavigateTo("/");
     }
 
     private async void OnSessionUpdated()

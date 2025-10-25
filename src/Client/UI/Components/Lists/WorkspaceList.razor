@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
+﻿﻿@using Microsoft.AspNetCore.Components.Authorization
 
 @inherits MudComponentBase
 
@@ -28,12 +28,13 @@ else
 				@if (LayoutState.SmAndUp)
 				{
 					<MudIconButton Title="@t.T("workspaceList", "refresh")" DisableElevation="true" Icon="@Icons.Material.Filled.Refresh" Color="Color.Default" Variant="Variant.Filled" OnClick="Initialize" />
-					@if (ManagementEnabled)
+					@* Workspace creation hidden - using single workspace mode *@
+					@* @if (ManagementEnabled)
 					{
 						<AuthorizeView Policy="@AuthorizationPolicies.IsModerator.Name">
 						<MudIconButton Title="@t.T("workspaceList", "createWorkspace")" DisableElevation="true" Icon="@Icons.Material.Filled.AddBox" Color="Color.Default" Variant="Variant.Filled" OnClick="CreateWorkspace" Disabled="false" />
 						</AuthorizeView>
-					}
+					} *@
 				}
 
 				<MudMenu Dense="true">
@@ -45,7 +46,8 @@ else
 								  OnTouch="Initialize" OnClick="Initialize">
 							@t.T("workspaceList", "refreshView")
 						</MudMenuItemW>
-
+						@* Workspace creation hidden - using single workspace mode *@
+						@* @if (ManagementEnabled)
 						@if (ManagementEnabled)
 						{
 							<AuthorizeView Policy="@AuthorizationPolicies.IsModerator.Name">
@@ -53,7 +55,7 @@ else
 									  OnClick="CreateWorkspace" OnTouch="CreateWorkspace" Disabled="false">
 								@t.T("workspaceList", "createWorkspace")
 								</MudMenuItemW>
-							</AuthorizeView>
+						} *@
 						}
 
 					</ChildContent>
@@ -84,12 +86,13 @@ else
 					</ActivatorContent>
 					<ChildContent>
 							<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@SelectIcon" OnTouch="() => SelectWorkspace(context)" OnClick="() => SelectWorkspace(context)">@SelectLabel</MudMenuItemW>
-						@if (ManagementEnabled)
+						@* Workspace cloning hidden - using single workspace mode *@
+						@* @if (ManagementEnabled)
 						{
 							<AuthorizeView Policy="@AuthorizationPolicies.IsModerator.Name" Context="auth">
 								<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.CopyAll" OnTouch="() => CloneWorkspace(context)" OnClick="() => CloneWorkspace(context)">@t.T("workspaceList", "clone")</MudMenuItemW>
 							</AuthorizeView>
-						}
+						} *@
 
 					</ChildContent>
 				</MudMenu>

@@ -80,15 +80,16 @@
 		</MudAppBar>
 		<MudDrawer @bind-Open="_drawerOpen" Elevation="1" Width="400px">
 			<MudDrawerHeader>
-				<MudStack Row="true" AlignItems="AlignItems.Center">
+				<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Style="width: 100%;">
 					<MudText Typo="Typo.h4">Concerto</MudText>
+					<MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Inherit" OnClick="@(e => DrawerToggle())" />
 				</MudStack>
 
 			</MudDrawerHeader>
-			<NavMenu />
-			<div style="flex-grow: 1;" />
-			<MudLink Class="px-4" Typo="Typo.caption" Target="blank" Href="https://www.linkedin.com/in/maciej-zakrzewski-16aa10202">© 2022-2024 Maciej Zakrzewski</MudLink>
-		</MudDrawer>
+		<NavMenu />
+		<div style="flex-grow: 1;" />
+		<MudLink Class="px-4" Style="text-align: center; display: block;" Typo="Typo.caption" Target="blank" Href="https://www.linkedin.com/in/maciej-zakrzewski-16aa10202">© 2025 Maciej Zakrzewski, Jan Kaczerski, Mateusz Przyborski, Adrian Belczak</MudLink>
+	</MudDrawer>
 		<MudMainContent Class="pt-12 d-flex" Style="height: 100%">
 			<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Style="overflow: auto" Class="px-0 flex-grow-1">
 				@Body
