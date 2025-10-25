@@ -11,13 +11,14 @@
 		{
 			<MudStack Spacing="0" Style="height: calc(100vh - 200px)" Class="flex-grow-1">
 				
-				<MudStack Row="true" AlignItems="AlignItems.Center">
+				@* Workspace selection hidden - using single workspace mode *@
+				@* <MudStack Row="true" AlignItems="AlignItems.Center">
 						<MudIcon Icon="@Icons.Material.Filled.ArrowRight" />
 				<MudText>@($"{@t.T("selectFolderDialog", "workspace")}: {_selectedWorkspace?.Name}")</MudText>
 					<MudButton Color="Color.Info" OnClick="ChooseWorkspace">@t.T("selectFolderDialog", "change")</MudButton>
-				</MudStack>
+				</MudStack> *@
 
-				<FileManager Class="" Style="height: calc(100% - 48px)" Outlined="true" Elevation="0"
+				<FileManager Class="" Style="height: calc(100%)" Outlined="true" Elevation="0"
 					             ChooseFolderMode="true" InitialFolderId="_selectedWorkspace!.RootFolderId"
 								 OnFolderLoaded="OnFolderChanged" />
 			</MudStack>
