@@ -59,11 +59,12 @@ public static class AppSettings
 
 	public static class Meetings
 	{
-		public static string RecorderKey = EnvironmentHelper.GetVariable("JITSI_RECORDER_PASSWORD");
-		public static string JwtSecret = EnvironmentHelper.GetVariable("JITSI_JWT_SECRET");
-		public static string JwtAppId = EnvironmentHelper.GetVariable("JITSI_JWT_APP_ID");
-		public static Uri  JitsiUrl = new Uri(EnvironmentHelper.GetVariable("JITSI_MEET_URL"));
-		public static string JitsiAppDownloadUrl = EnvironmentHelper.GetVariable("JITSI_APP_DOWNLOAD_URL");
+		// Jitsi components disabled - uncomment if needed
+		// public static string RecorderKey = EnvironmentHelper.GetVariable("JITSI_RECORDER_PASSWORD");
+		// public static string JwtSecret = EnvironmentHelper.GetVariable("JITSI_JWT_SECRET");
+		// public static string JwtAppId = EnvironmentHelper.GetVariable("JITSI_JWT_APP_ID");
+		// public static Uri  JitsiUrl = new Uri(EnvironmentHelper.GetVariable("JITSI_MEET_URL"));
+		// public static string JitsiAppDownloadUrl = EnvironmentHelper.GetVariable("JITSI_APP_DOWNLOAD_URL");
 	}
 }
 
