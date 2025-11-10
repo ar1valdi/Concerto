@@ -45,14 +45,6 @@ public static class DialogServiceExtensions
         await dialogService.Show<InfoDialog>(title, parameters).Result;
     }
 
-    public static async Task<long> ShowCreateWorkspaceDialog(this IDialogService dialogService)
-    {
-        // var options = new DialogOptions() { FullScreen = true,  };
-        var result = await dialogService.Show<CreateWorkspaceDialog>("Create new workspace").Result;
-        if (result.Canceled) return -1;
-        return (long)result.Data;
-    }
-
     public static async Task<FolderItem?> ShowSelectFolderDialog(this IDialogService dialogService, string title, string selectButtonText, long? initialWorkspaceId = null, IEnumerable<long>? excludedIds = null, IEnumerable<long>? excludedWithChildrenIds = null)
     {
 		var parameters = new DialogParameters
