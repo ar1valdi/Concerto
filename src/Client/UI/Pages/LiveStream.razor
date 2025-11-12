@@ -94,9 +94,17 @@ else
                                      Variant="Variant.Outlined" 
                                      Size="Size.Small"
                                      Class="mt-1"
-                                     AppendIcon="@Icons.Material.Filled.ContentCopy"
-                                     OnAppendIconClick="CopyStreamUrl" />
+                                     Adornment="Adornment.End"
+                                     AdornmentIcon="@Icons.Material.Filled.ContentCopy"
+                                     OnAdornmentClick="CopyStreamUrl" />
                     </div>
+                    
+                    @if (ViewerCount > 0)
+                    {
+                        <div class="mt-2">
+                            <MudText Typo="Typo.caption">?? Viewers: @ViewerCount</MudText>
+                        </div>
+                    }
                 </div>
             }
         </div>
@@ -211,6 +219,7 @@ else
     string StreamId { get; set; } = string.Empty;
     string StreamName { get; set; } = string.Empty;
     string StreamUrl => !string.IsNullOrEmpty(StreamId) ? $"{Navigation.BaseUri}joinstream?id={StreamId}" : string.Empty;
+    int ViewerCount { get; set; } = 0;
 
     private DotNetObjectReference<LiveStream> _dotNetObjectReference = null!;
     IJSObjectReference? _streamingManager;
@@ -275,6 +284,7 @@ else
         if (_streamingManager is null) return;
         await _streamingManager.InvokeVoidAsync("stopStream");
         StreamId = string.Empty;
+        ViewerCount = 0;
     }
 
     [JSInvokable]
@@ -313,10 +323,20 @@ else
     [JSInvokable]
     public async Task ViewerJoined(string viewerConnectionId)
     {
+        ViewerCount++;
+        StateHasChanged();
+        
         if (_streamingManager is not null)
         {
             await _streamingManager.InvokeVoidAsync("handleViewerJoined", viewerConnectionId);
         }
+    }
+
+    [JSInvokable]
+    public void ViewerLeft(string viewerConnectionId)
+    {
+        ViewerCount = Math.Max(0, ViewerCount - 1);
+        StateHasChanged();
     }
 
     [JSInvokable]

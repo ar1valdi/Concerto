@@ -32,8 +32,8 @@
 
     .stream-preview {
         width: 100%;
-        max-width: 640px;
-        height: 480px;
+        max-width: 1280px;
+        height: 720px;
         background-color: black;
         border-radius: 8px;
         margin-top: 20px;
@@ -80,39 +80,54 @@
 else
 {
     <div class="container">
-        <div class="join-form">
-            <MudText Typo="Typo.h4" Class="mb-4">Join Live Stream</MudText>
-            
-            <MudTextField @bind-Value="StreamIdInput" 
-                         Label="Stream ID" 
-                         Placeholder="Enter the stream ID shared by the host"
-                         Variant="Variant.Filled"
-                         Class="mb-4"
-                         Disabled="@IsConnecting" />
-            
-            <MudButton Color="Color.Primary" 
-                      Variant="Variant.Filled" 
-                      FullWidth="true"
-                      OnClick="JoinStreamAsync"
-                      Disabled="@(string.IsNullOrWhiteSpace(StreamIdInput) || IsConnecting)">
-                @if (IsConnecting)
-                {
-                    <MudProgressCircular Size="Size.Small" Class="mr-2" />
-                    <span>Connecting...</span>
-                }
-                else
-                {
-                    <span>Join Stream</span>
-                }
-            </MudButton>
+        @if (!IsConnected)
+        {
+            <div class="join-form">
+                <MudText Typo="Typo.h4" Class="mb-4">Join Live Stream</MudText>
+                
+                <MudTextField @bind-Value="StreamIdInput" 
+                             Label="Stream ID" 
+                             Placeholder="Enter the stream ID shared by the host"
+                             Variant="Variant.Filled"
+                             Class="mb-4"
+                             Disabled="@IsConnecting" />
+                
+                <MudButton Color="Color.Primary" 
+                          Variant="Variant.Filled" 
+                          FullWidth="true"
+                          OnClick="JoinStreamAsync"
+                          Disabled="@(string.IsNullOrWhiteSpace(StreamIdInput) || IsConnecting)">
+                    @if (IsConnecting)
+                    {
+                        <MudProgressCircular Size="Size.Small" Class="mr-2" />
+                        <span>Connecting...</span>
+                    }
+                    else
+                    {
+                        <span>Join Stream</span>
+                    }
+                </MudButton>
 
-            @if (!string.IsNullOrEmpty(StatusMessage))
-            {
-                <div class="status-message @GetStatusClass()">
-                    @StatusMessage
-                </div>
-            }
-        </div>
+                @if (!string.IsNullOrEmpty(StatusMessage))
+                {
+                    <div class="status-message @GetStatusClass()">
+                        @StatusMessage
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div style="width: 100%; text-align: center; margin-bottom: 20px;">
+                <MudText Typo="Typo.h5" Style="color: #2e7d32;">?? Connected to Stream: @StreamIdInput</MudText>
+                <MudButton Color="Color.Error" 
+                          Variant="Variant.Filled" 
+                          OnClick="LeaveStream"
+                          Class="mt-2">
+                    Leave Stream
+                </MudButton>
+            </div>
+        }
 
         <div class="stream-preview">
             <video id="streamVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: contain; display: @(IsConnected ? "block" : "none");"></video>
@@ -159,6 +174,10 @@ else
             {
                 StreamIdInput = streamIdFromUrl;
                 StateHasChanged();
+                
+                // Auto-join if stream ID provided in URL
+                await Task.Delay(500);
+                await JoinStreamAsync();
             }
         }
     }
@@ -173,9 +192,10 @@ else
             StatusMessage = "Connecting to stream...";
             StateHasChanged();
 
-            await Task.Delay(100);
-
+            // Initialize viewer FIRST, before connecting to SignalR
             _streamViewer = await JS.InvokeAsync<IJSObjectReference>("initializeStreamViewer", "streamVideo", StreamIdInput, _dotNetObjectReference);
+            
+            Console.WriteLine("Stream viewer initialized and connected to SignalR");
         }
         catch (Exception ex)
         {
@@ -183,6 +203,20 @@ else
             IsConnecting = false;
             StateHasChanged();
         }
+    }
+
+    private async Task LeaveStream()
+    {
+        if (_streamViewer is not null)
+        {
+            await _streamViewer.InvokeVoidAsync("dispose");
+            _streamViewer = null;
+        }
+        
+        IsConnected = false;
+        IsConnecting = false;
+        StatusMessage = string.Empty;
+        StateHasChanged();
     }
 
     [JSInvokable]
@@ -206,6 +240,7 @@ else
     [JSInvokable]
     public void StreamConnected()
     {
+        Console.WriteLine("JoinStreamPage: Stream successfully connected!");
         IsConnected = true;
         IsConnecting = false;
         StatusMessage = "Successfully connected to stream!";
@@ -218,6 +253,15 @@ else
         IsConnected = false;
         IsConnecting = false;
         StatusMessage = $"Connection failed: {message}";
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void StreamEnded(string streamId)
+    {
+        IsConnected = false;
+        IsConnecting = false;
+        StatusMessage = "Stream has ended";
         StateHasChanged();
     }
 

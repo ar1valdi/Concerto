@@ -47,6 +47,7 @@ class SignalingClient {
 
         this.setupEventHandlers();
         await this.connection.start();
+        console.log('SignalR connection started');
     }
 
     private setupEventHandlers(): void {
@@ -82,14 +83,17 @@ class SignalingClient {
         });
 
         this.connection.on("ReceiveOffer", (streamId: string, fromConnectionId: string, offer: string) => {
+            console.log(`Received offer from ${fromConnectionId}`);
             this.dotnetCaller.invokeMethodAsync("ReceiveOffer", streamId, fromConnectionId, offer);
         });
 
         this.connection.on("ReceiveAnswer", (streamId: string, fromConnectionId: string, answer: string) => {
-            this.dotnetCaller.invokeMethodAsync("ReceiveAnswer", streamId, fromConnectionId, answer);
+            console.log(`Received answer from ${fromConnectionId}`);
+            this.dotnetCaller.invokeMethodAsync("ReceiveAnswer", fromConnectionId, answer);
         });
 
         this.connection.on("ReceiveIceCandidate", (streamId: string, fromConnectionId: string, candidate: string) => {
+            console.log(`Received ICE candidate from ${fromConnectionId}`);
             this.dotnetCaller.invokeMethodAsync("ReceiveIceCandidate", streamId, fromConnectionId, candidate);
         });
     }
@@ -100,12 +104,14 @@ class SignalingClient {
         this.streamId = streamId;
         this.isHost = true;
         await this.connection.invoke("StartStream", streamId);
+        console.log(`Stream ${streamId} started on signaling server`);
     }
 
     async stopStream(): Promise<void> {
         if (!this.connection || !this.streamId) return;
         
         await this.connection.invoke("StopStream", this.streamId);
+        console.log(`Stream ${this.streamId} stopped on signaling server`);
         this.streamId = null;
         this.isHost = false;
     }
@@ -116,12 +122,14 @@ class SignalingClient {
         this.streamId = streamId;
         this.isHost = false;
         await this.connection.invoke("JoinStream", streamId);
+        console.log(`Joined stream ${streamId} on signaling server`);
     }
 
     async leaveStream(): Promise<void> {
         if (!this.connection || !this.streamId) return;
         
         await this.connection.invoke("LeaveStream", this.streamId);
+        console.log(`Left stream ${this.streamId}`);
         this.streamId = null;
         this.isHost = false;
     }
@@ -129,22 +137,26 @@ class SignalingClient {
     async sendOffer(targetConnectionId: string, offer: RTCSessionDescriptionInit): Promise<void> {
         if (!this.connection || !this.streamId) return;
         await this.connection.invoke("SendOffer", this.streamId, targetConnectionId, JSON.stringify(offer));
+        console.log(`Sent offer to ${targetConnectionId}`);
     }
 
     async sendAnswer(targetConnectionId: string, answer: RTCSessionDescriptionInit): Promise<void> {
         if (!this.connection || !this.streamId) return;
         await this.connection.invoke("SendAnswer", this.streamId, targetConnectionId, JSON.stringify(answer));
+        console.log(`Sent answer to ${targetConnectionId}`);
     }
 
     async sendIceCandidate(targetConnectionId: string, candidate: RTCIceCandidateInit): Promise<void> {
         if (!this.connection || !this.streamId) return;
         await this.connection.invoke("SendIceCandidate", this.streamId, targetConnectionId, JSON.stringify(candidate));
+        console.log(`Sent ICE candidate to ${targetConnectionId}`);
     }
 
     async disconnect(): Promise<void> {
         if (this.connection) {
             await this.connection.stop();
             this.connection = null;
+            console.log('SignalR connection stopped');
         }
     }
 }
@@ -274,7 +286,10 @@ export class LiveStreamingManager {
     }
     
     async stopStream(): Promise<void> {
+        console.log('Stopping stream, cleaning up peer connections...');
+        
         for (const [connectionId, peerConnection] of this.peerConnections) {
+            console.log(`Closing peer connection for ${connectionId}`);
             peerConnection.close();
         }
         this.peerConnections.clear();
@@ -290,21 +305,28 @@ export class LiveStreamingManager {
     }
     
     async handleViewerJoined(viewerConnectionId: string): Promise<void> {
-        if (!this.outputStream) return;
+        if (!this.outputStream) {
+            console.error('Cannot handle viewer joined: no output stream');
+            return;
+        }
+        
+        console.log(`Handling viewer joined: ${viewerConnectionId}`);
         
         const peerConnection = new RTCPeerConnection({
             iceServers: [
+                // Google STUN servers
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
                 { urls: 'stun:stun2.l.google.com:19302' },
                 { urls: 'stun:stun3.l.google.com:19302' },
                 { urls: 'stun:stun4.l.google.com:19302' },
+                // Additional STUN servers
                 { urls: 'stun:stun.voiparound.com' },
                 { urls: 'stun:stun.voipbuster.com' },
                 { urls: 'stun:stun.voipstunt.com' },
                 { urls: 'stun:stun.counterpath.com' },
                 { urls: 'stun:stun.1und1.de' },
-                // Add TURN servers for better connectivity
+                // Multiple free TURN servers for better reliability
                 { 
                     urls: 'turn:openrelay.metered.ca:80',
                     username: 'openrelayproject',
@@ -314,57 +336,103 @@ export class LiveStreamingManager {
                     urls: 'turn:openrelay.metered.ca:443',
                     username: 'openrelayproject',
                     credential: 'openrelayproject'
-                }
-            ]
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                // Twilio STUN (fallback)
+                { urls: 'stun:global.stun.twilio.com:3478' }
+            ],
+            iceTransportPolicy: 'all', // Try all candidates (relay, srflx, host)
+            iceCandidatePoolSize: 10 // Pre-gather candidates for faster connection
         });
         
         this.outputStream.getTracks().forEach(track => {
+            console.log(`Adding track to peer connection: ${track.kind}`);
             peerConnection.addTrack(track, this.outputStream!);
         });
         
         peerConnection.onicecandidate = (event) => {
             if (event.candidate) {
-                console.log('Sending ICE candidate to viewer:', event.candidate);
+                console.log('Sending ICE candidate to viewer:', event.candidate.type, event.candidate.candidate);
                 this.signalingClient.sendIceCandidate(viewerConnectionId, event.candidate);
+            } else {
+                console.log('All ICE candidates sent to viewer');
             }
         };
         
         peerConnection.oniceconnectionstatechange = () => {
             console.log(`ICE connection state for viewer ${viewerConnectionId}:`, peerConnection.iceConnectionState);
             if (peerConnection.iceConnectionState === 'failed') {
-                console.error(`ICE connection failed for viewer ${viewerConnectionId}`);
+                console.error(`ICE connection failed for viewer ${viewerConnectionId}, trying ICE restart`);
+                peerConnection.restartIce();
+            } else if (peerConnection.iceConnectionState === 'disconnected') {
+                console.warn(`ICE connection disconnected for viewer ${viewerConnectionId} - may recover`);
             }
         };
         
         peerConnection.onconnectionstatechange = () => {
+            console.log(`Connection state for viewer ${viewerConnectionId}:`, peerConnection.connectionState);
             if (peerConnection.connectionState === 'connected') {
-                console.log(`Connected to viewer ${viewerConnectionId}`);
-            } else if (peerConnection.connectionState === 'disconnected' || 
-                       peerConnection.connectionState === 'failed') {
+                console.log(`? Connected to viewer ${viewerConnectionId}`);
+            } else if (peerConnection.connectionState === 'disconnected') {
+                console.warn(`Viewer ${viewerConnectionId} disconnected - may recover`);
+            } else if (peerConnection.connectionState === 'failed') {
+                console.error(`? Viewer ${viewerConnectionId} connection permanently failed`);
                 this.peerConnections.delete(viewerConnectionId);
                 peerConnection.close();
             }
         };
         
+        peerConnection.onicegatheringstatechange = () => {
+            console.log(`ICE gathering state for viewer ${viewerConnectionId}:`, peerConnection.iceGatheringState);
+        };
+        
         this.peerConnections.set(viewerConnectionId, peerConnection);
         
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        await this.signalingClient.sendOffer(viewerConnectionId, offer);
+        try {
+            const offer = await peerConnection.createOffer({
+                offerToReceiveAudio: false,
+                offerToReceiveVideo: false
+            });
+            await peerConnection.setLocalDescription(offer);
+            await this.signalingClient.sendOffer(viewerConnectionId, offer);
+            console.log(`Offer created and sent to viewer ${viewerConnectionId}`);
+        } catch (error) {
+            console.error(`Failed to create/send offer to viewer ${viewerConnectionId}:`, error);
+        }
     }
     
     async handleAnswer(viewerConnectionId: string, answer: string): Promise<void> {
         const peerConnection = this.peerConnections.get(viewerConnectionId);
-        if (!peerConnection) return;
+        if (!peerConnection) {
+            console.error(`No peer connection found for viewer ${viewerConnectionId}`);
+            return;
+        }
         
-        await peerConnection.setRemoteDescription(JSON.parse(answer));
+        try {
+            await peerConnection.setRemoteDescription(JSON.parse(answer));
+            console.log(`Answer set for viewer ${viewerConnectionId}`);
+        } catch (error) {
+            console.error(`Failed to set remote description for viewer ${viewerConnectionId}:`, error);
+        }
     }
     
     async handleIceCandidate(viewerConnectionId: string, candidate: string): Promise<void> {
         const peerConnection = this.peerConnections.get(viewerConnectionId);
-        if (!peerConnection) return;
+        if (!peerConnection) {
+            console.error(`No peer connection found for viewer ${viewerConnectionId}`);
+            return;
+        }
         
-        await peerConnection.addIceCandidate(JSON.parse(candidate));
+        try {
+            await peerConnection.addIceCandidate(JSON.parse(candidate));
+            console.log(`ICE candidate added for viewer ${viewerConnectionId}`);
+        } catch (error) {
+            console.error(`Failed to add ICE candidate for viewer ${viewerConnectionId}:`, error);
+        }
     }
     
     async startRecording(): Promise<void> {
@@ -644,45 +712,73 @@ export class StreamViewer {
     isConnected: boolean = false;
     signalingClient: SignalingClient;
     hostConnectionId: string | null = null;
+    pendingIceCandidates: Array<{ streamId: string, fromConnectionId: string, candidate: string }> = [];
     
-    constructor(videoElement: HTMLVideoElement, streamId: string, dotnetCaller: DotNetObject) {
+    constructor(videoElement: HTMLVideoElement, streamId: string, dotNetCaller: DotNetObject) {
         this.videoElement = videoElement;
         this.streamId = streamId;
-        this.dotnetCaller = dotnetCaller;
-        this.signalingClient = new SignalingClient(dotnetCaller);
+        this.dotnetCaller = dotNetCaller;
+        this.signalingClient = new SignalingClient(dotNetCaller);
+        
+        console.log(`StreamViewer created for stream: ${streamId}`);
     }
     
     async connect(): Promise<void> {
         try {
-            console.log(`Attempting to connect to stream: ${this.streamId}`);
+            console.log(`StreamViewer: Connecting to SignalR and joining stream: ${this.streamId}`);
             
+            // First connect to SignalR
             await this.signalingClient.connect();
+            
+            // Initialize WebRTC BEFORE joining stream so peer connection is ready for incoming offers
+            await this.initializeWebRTC();
+            console.log('StreamViewer: WebRTC initialized, peer connection ready');
+            
+            // Now join the stream - offers and ICE candidates can arrive immediately after this
             await this.signalingClient.joinStream(this.streamId);
             
+            console.log(`StreamViewer: Successfully requested to join stream ${this.streamId}`);
+            
         } catch (error) {
-            console.error('Failed to connect to stream:', error);
+            console.error('StreamViewer: Failed to connect to stream:', error);
             this.dotnetCaller.invokeMethodAsync("StreamError", (error as Error).message);
         }
     }
     
     async handleStreamJoined(streamId: string, hostConnectionId: string): Promise<void> {
+        console.log(`StreamViewer: handleStreamJoined called - Stream: ${streamId}, Host: ${hostConnectionId}`);
         this.hostConnectionId = hostConnectionId;
-        await this.initializeWebRTC();
+        
+        // Process any ICE candidates that arrived before we knew the host ID
+        if (this.pendingIceCandidates.length > 0) {
+            console.log(`StreamViewer: Processing ${this.pendingIceCandidates.length} pending ICE candidates`);
+            for (const pending of this.pendingIceCandidates) {
+                await this.handleIceCandidate(pending.streamId, pending.fromConnectionId, pending.candidate);
+            }
+            this.pendingIceCandidates = [];
+        }
+        
+        console.log(`StreamViewer: Ready to receive offer from ${hostConnectionId}`);
     }
     
     async initializeWebRTC(): Promise<void> {
+        console.log('StreamViewer: Initializing WebRTC for viewing...');
+        
         this.peerConnection = new RTCPeerConnection({
             iceServers: [
+                // Google STUN servers
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
                 { urls: 'stun:stun2.l.google.com:19302' },
                 { urls: 'stun:stun3.l.google.com:19302' },
                 { urls: 'stun:stun4.l.google.com:19302' },
+                // Additional STUN servers
                 { urls: 'stun:stun.voiparound.com' },
                 { urls: 'stun:stun.voipbuster.com' },
                 { urls: 'stun:stun.voipstunt.com' },
                 { urls: 'stun:stun.counterpath.com' },
                 { urls: 'stun:stun.1und1.de' },
+                // Multiple free TURN servers for better reliability
                 { 
                     urls: 'turn:openrelay.metered.ca:80',
                     username: 'openrelayproject',
@@ -692,67 +788,131 @@ export class StreamViewer {
                     urls: 'turn:openrelay.metered.ca:443',
                     username: 'openrelayproject',
                     credential: 'openrelayproject'
-                }
-            ]
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                // Twilio STUN (fallback)
+                { urls: 'stun:global.stun.twilio.com:3478' }
+            ],
+            iceTransportPolicy: 'all', // Try all candidates (relay, srflx, host)
+            iceCandidatePoolSize: 10 // Pre-gather candidates for faster connection
         });
         
         this.peerConnection.ontrack = (event) => {
-            console.log('Received stream from broadcaster');
+            console.log('StreamViewer: Received stream from broadcaster', event.streams[0]);
             this.videoElement.srcObject = event.streams[0];
+            this.videoElement.style.display = 'block'; // Show video element
             this.isConnected = true;
             this.dotnetCaller.invokeMethodAsync("StreamConnected");
         };
         
         this.peerConnection.onicecandidate = (event) => {
             if (event.candidate && this.hostConnectionId) {
-                console.log('Sending ICE candidate:', event.candidate);
+                console.log('StreamViewer: Sending ICE candidate to host:', event.candidate);
                 this.signalingClient.sendIceCandidate(this.hostConnectionId, event.candidate);
+            } else if (!event.candidate) {
+                console.log('StreamViewer: All ICE candidates have been sent');
             }
         };
         
         this.peerConnection.oniceconnectionstatechange = () => {
-            console.log('ICE connection state:', this.peerConnection?.iceConnectionState);
+            console.log('StreamViewer: ICE connection state:', this.peerConnection?.iceConnectionState);
             if (this.peerConnection?.iceConnectionState === 'failed') {
-                console.error('ICE connection failed - WebRTC connection failed');
-                this.dotnetCaller.invokeMethodAsync("StreamError", "WebRTC connection failed");
+                console.error('StreamViewer: ICE connection failed - trying to restart ICE');
+                // Try ICE restart
+                if (this.peerConnection) {
+                    this.peerConnection.restartIce();
+                }
+            } else if (this.peerConnection?.iceConnectionState === 'disconnected') {
+                console.warn('StreamViewer: ICE connection disconnected - may recover');
             }
         };
         
         this.peerConnection.onconnectionstatechange = () => {
+            console.log('StreamViewer: Connection state:', this.peerConnection?.connectionState);
             if (this.peerConnection!.connectionState === 'connected') {
-                console.log('Connected to stream');
-            } else if (this.peerConnection!.connectionState === 'disconnected' || 
-                       this.peerConnection!.connectionState === 'failed') {
+                console.log('? StreamViewer: Connected to stream');
+            } else if (this.peerConnection!.connectionState === 'disconnected') {
+                console.warn('StreamViewer: Connection disconnected - may recover');
+            } else if (this.peerConnection!.connectionState === 'failed') {
+                console.error('StreamViewer: Connection permanently failed');
                 this.isConnected = false;
                 this.dotnetCaller.invokeMethodAsync("StreamError", "Connection lost");
             }
         };
         
-        console.log('WebRTC initialized for viewing');
+        this.peerConnection.onicegatheringstatechange = () => {
+            console.log('StreamViewer: ICE gathering state:', this.peerConnection?.iceGatheringState);
+        };
+        
+        console.log('StreamViewer: WebRTC peer connection initialized');
     }
     
     async handleOffer(streamId: string, fromConnectionId: string, offer: string): Promise<void> {
-        if (!this.peerConnection) return;
+        console.log(`StreamViewer: Handling offer from ${fromConnectionId}`);
         
-        await this.peerConnection.setRemoteDescription(JSON.parse(offer));
-        const answer = await this.peerConnection.createAnswer();
-        await this.peerConnection.setLocalDescription(answer);
-        await this.signalingClient.sendAnswer(fromConnectionId, answer);
+        if (!this.peerConnection) {
+            console.error('StreamViewer: No peer connection available when handling offer - this should not happen!');
+            this.dotnetCaller.invokeMethodAsync("StreamError", "Failed to initialize WebRTC");
+            return;
+        }
+        
+        try {
+            await this.peerConnection.setRemoteDescription(JSON.parse(offer));
+            console.log('StreamViewer: Remote description set');
+            
+            const answer = await this.peerConnection.createAnswer();
+            await this.peerConnection.setLocalDescription(answer);
+            console.log('StreamViewer: Answer created');
+            
+            await this.signalingClient.sendAnswer(fromConnectionId, answer);
+            console.log('StreamViewer: Answer sent to host');
+        } catch (error) {
+            console.error('StreamViewer: Failed to handle offer:', error);
+            this.dotnetCaller.invokeMethodAsync("StreamError", "Failed to establish connection");
+        }
     }
     
     async handleAnswer(streamId: string, fromConnectionId: string, answer: string): Promise<void> {
-        if (!this.peerConnection) return;
+        if (!this.peerConnection) {
+            console.error('StreamViewer: No peer connection available for answer');
+            return;
+        }
         
-        await this.peerConnection.setRemoteDescription(JSON.parse(answer));
+        try {
+            await this.peerConnection.setRemoteDescription(JSON.parse(answer));
+            console.log('StreamViewer: Answer set from host');
+        } catch (error) {
+            console.error('StreamViewer: Failed to set answer:', error);
+        }
     }
     
     async handleIceCandidate(streamId: string, fromConnectionId: string, candidate: string): Promise<void> {
-        if (!this.peerConnection) return;
+        if (!this.peerConnection) {
+            console.error('StreamViewer: No peer connection available for ICE candidate');
+            return;
+        }
         
-        await this.peerConnection.addIceCandidate(JSON.parse(candidate));
+        try {
+            // Only add ICE candidates after we've set the remote description (received the offer)
+            if (this.peerConnection.remoteDescription) {
+                await this.peerConnection.addIceCandidate(JSON.parse(candidate));
+                console.log('StreamViewer: ICE candidate added from host');
+            } else {
+                console.log('StreamViewer: Queueing ICE candidate - waiting for remote description');
+                this.pendingIceCandidates.push({ streamId, fromConnectionId, candidate });
+            }
+        } catch (error) {
+            console.error('StreamViewer: Failed to add ICE candidate:', error);
+        }
     }
     
     async dispose(): Promise<void> {
+        console.log('StreamViewer: Disposing...');
+        
         if (this.peerConnection) {
             this.peerConnection.close();
             this.peerConnection = null;
@@ -762,6 +922,7 @@ export class StreamViewer {
         await this.signalingClient.disconnect();
         
         this.isConnected = false;
+        this.pendingIceCandidates = [];
     }
 }
 
