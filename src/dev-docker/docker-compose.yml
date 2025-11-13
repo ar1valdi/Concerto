@@ -59,7 +59,7 @@ services:
             concerto:
 
     keycloak:
-        image: quay.io/keycloak/keycloak:21.1.0
+        image: quay.io/keycloak/keycloak:20.0.0
         restart: unless-stopped
         depends_on:
             postgres:
