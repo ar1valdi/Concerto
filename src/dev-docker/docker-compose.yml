@@ -19,6 +19,7 @@ services:
 
             CONCERTO_BASE_URL: ${CONCERTO_BASE_URL}
             CONCERTO_BASE_PATH: ${CONCERTO_BASE_PATH}
+            CONCERTO_API_URL: ${CONCERTO_API_URL}
 
             DB_STRING: ${DB_STRING}
             ConnectionStrings__DefaultConnection: ${DB_STRING}
