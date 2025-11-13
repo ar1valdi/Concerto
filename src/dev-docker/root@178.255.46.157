@@ -1,0 +1,58 @@
+## Version
+CONCERTO_VERSION=dev-1
+CONCERTO_NGINX_VERSION=dev-1
+
+## Application Settings
+ASPNETCORE_ENVIRONMENT=Production
+
+## Volume configuration ##
+# Base directory for docker mounts
+CONCERTO_VOLUME_PATH=./data
+
+## Domain configuration ##
+CONCERTO_DOMAIN=concertomoltimondi.ddns.net
+CONCERTO_BASE_URL=https://${CONCERTO_DOMAIN}
+CONCERTO_BASE_PATH=""
+CONCERTO_API_URL=${CONCERTO_BASE_URL}
+
+KEYCLOAK_DOMAIN=auth.concertomoltimondi.ddns.net
+KEYCLOAK_BASE_URL=https://${KEYCLOAK_DOMAIN}
+KEYCLOAK_BASE_PATH=""
+
+# Internal reverse proxy
+# Certificate can be generated using ACME
+# Certificate should include ${CONCERTO_DOMAIN} and ${KEYCLOAK_DOMAIN}
+# Each domain has mapped /.well-known path to ${CONCERTO_VOLUME_PATH}/acme (mounted to nginx container)
+# Certificate and key should be placed in ${CONCERTO_VOLUME_PATH}/ssl
+# Filenames relative to ${CONCERTO_VOLUME_PATH}/ssl
+SSL_CERTIFICATE_FILENAME=cert.crt
+SSL_CERTIFICATE_KEY_FILENAME=cert.key
+
+# Security
+# Keycloak Master Realm Admin (for /admin/master/console)
+# This is created automatically by Keycloak on first start
+KEYCLOAK_ADMIN=admin
+KEYCLOAK_ADMIN_PASSWORD=cCbec1yS45BTHyWo30DI
+
+# Concerto Application Admin (for logging into the app at https://concertomoltimondi.ddns.com)
+# NOTE: This password is hardcoded in the SQL dumps as 'admin'
+# To change: Use Keycloak admin console -> Users -> admin -> Credentials -> Reset Password
+# Or update credential table directly in Keycloak database
+CONCERTO_ADMIN_USERNAME=admin
+CONCERTO_ADMIN_PASSWORD=admin
+
+KC_DB_USERNAME=admin
+KC_DB_PASSWORD=SDe71rwhsu5pA0vS0I8u
+KC_DB=postgres
+KC_DB_URL=jdbc:postgresql://postgres:5432/Keycloak
+
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=SDe71rwhsu5pA0vS0I8u
+POSTGRES_DB=ConcertoDb
+
+DB_STRING="Host=postgres;Port=5432;Database=ConcertoDb;Username=admin;Password=SDe71rwhsu5pA0vS0I8u"
+SERVER_CLIENT_ID=concerto-server
+SERVER_CLIENT_SECRET=Wxs9xJ3aFjPqCK9PsXsuHuriaS3MNf5j
+
+PGADMIN_DEFAULT_EMAIL=admin@admin.com
+PGADMIN_DEFAULT_PASSWORD=lEQ08SBALFNaZIix2e8g

@@ -3,7 +3,7 @@ networks:
 
 services:
     concerto_server:
-        image: concerto_server:${CONCERTO_VERSION}
+        image: misphe/concerto_server:${CONCERTO_VERSION}
         restart: always
         depends_on:
             postgres:
@@ -41,7 +41,7 @@ services:
             SERVER_CLIENT_SECRET: ${SERVER_CLIENT_SECRET}
 
     proxy:
-        image: concerto_nginx:${CONCERTO_NGINX_VERSION}
+        image: misphe/concerto_nginx:${CONCERTO_NGINX_VERSION}
         restart: always
         volumes:
             - ${CONCERTO_VOLUME_PATH:?}/acme:/etc/nginx/acme
