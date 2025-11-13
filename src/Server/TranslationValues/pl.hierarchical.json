@@ -265,15 +265,14 @@
     "languageKeyRequired": "Klucz języka jest wymagany",
     "languageCreated": "Język '{0}' utworzony pomyślnie",
     "failedToCreateLanguage": "Nie udało się utworzyć języka: {0}",
-    "languageNowPrivate": "Język '{0}' jest teraz prywatny",
-    "languageNowPublic": "Język '{0}' jest teraz publiczny",
+    "languageNowPrivate": "Język '{0}' jest teraz prywatny. Odśwież stronę, aby zobaczyć zmiany.",
+    "languageNowPublic": "Język '{0}' jest teraz publiczny. Odśwież stronę, aby zobaczyć zmiany.",
     "failedToUpdateLanguage": "Nie udało się zaktualizować języka: {0}",
     "deleteLanguageTitle": "Usuń język",
     "language": "język",
-    "languageDeleted": "Język '{0}' usunięty pomyślnie",
+    "languageDeleted": "Język '{0}' usunięty pomyślnie. Odśwież stronę, aby zobaczyć zmiany.",
     "failedToDeleteLanguage": "Nie udało się usunąć języka: {0}"
-  }
-  ,
+  },
   "userManager": {
     "title": "Użytkownicy",
     "nameColumn": "Imię",
@@ -519,6 +518,14 @@
   },
   "infoDialog": {
     "ok": "OK"
+  },
+  "dialogService": {
+    "confirmationDialogText": "Czy na pewno chcesz {0} {1}?",
+    "itemWithTypeFormat": "{0} '{1}'",
+    "deleteManyConfirmationText": "Czy na pewno chcesz usunąć poniższe {0}?\n\n{1}",
+    "createWorkspaceDialogTitle": "Utwórz nową przestrzeń roboczą",
+    "selectFilesDialogTitle": "Wybierz pliki",
+    "postsRelatedToFileDialogTitle": "Posty powiązane z {0}",
+    "updateUserDialogTitle": "Zaktualizuj użytkownika"
   }
-  
 }

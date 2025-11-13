@@ -197,6 +197,7 @@
     private async Task DeleteLanguage(Language language)
     {
         if (!await DialogService.ShowConfirmationDialog(
+            t,
             t.T("languagesManager", "deleteLanguageTitle"), 
             t.T("common", "delete"), 
             t.T("languagesManager", "language"), 

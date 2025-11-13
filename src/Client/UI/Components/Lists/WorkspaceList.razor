@@ -148,7 +148,7 @@ else
 
 	private async Task DeleteWorkspace(WorkspaceListItem workspace)
 	{
-		if (!await DialogService.ShowConfirmationDialog(t.T("workspaceList", "deleteWorkspaceTitle"), t.T("common", "delete"), t.T("workspaceList", "workspace"), workspace.Name, true)) return;
+		if (!await DialogService.ShowConfirmationDialog(t, t.T("workspaceList", "deleteWorkspaceTitle"), t.T("common", "delete"), t.T("workspaceList", "workspace"), workspace.Name, true)) return;
 		try
 		{
 			await WorkspaceService.DeleteWorkspaceAsync(workspace.Id);
@@ -168,7 +168,7 @@ else
 
 	private async Task CreateWorkspace()
 	{
-		var newWorkspaceId = await DialogService.ShowCreateWorkspaceDialog();
+		var newWorkspaceId = await DialogService.ShowCreateWorkspaceDialog(t);
 		if (newWorkspaceId > 0)
 		{
 			WorkspaceService.GetCurrentUserWorkspacesAsync().AndForget();

@@ -126,7 +126,7 @@ else
 
 	private async Task Delete()
 	{
-		if (!await DialogService.ShowConfirmationDialog(translationsService.T("sessionSettingsManager", "deleteSessionTitle"), translationsService.T("common", "delete"), translationsService.T("sessionSettingsManager", "session"), _sessionSettings!.Name, true)) return;
+		if (!await DialogService.ShowConfirmationDialog(translationsService, translationsService.T("sessionSettingsManager", "deleteSessionTitle"), translationsService.T("common", "delete"), translationsService.T("sessionSettingsManager", "session"), _sessionSettings!.Name, true)) return;
 		try
 		{
 			await SessionService.DeleteSessionAsync(_sessionSettings.Id);

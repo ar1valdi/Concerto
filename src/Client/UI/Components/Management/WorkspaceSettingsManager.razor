@@ -141,7 +141,7 @@ else
 
 	private async Task Delete()
 	{
-		if (!await DialogService.ShowConfirmationDialog(translationsService.T("workspaceSettingsManager", "deleteWorkspaceTitle"), translationsService.T("common", "delete"), translationsService.T("workspaceSettingsManager", "workspace"), WorkspaceSettings!.Name, true)) return;
+		if (!await DialogService.ShowConfirmationDialog(translationsService, translationsService.T("workspaceSettingsManager", "deleteWorkspaceTitle"), translationsService.T("common", "delete"), translationsService.T("workspaceSettingsManager", "workspace"), WorkspaceSettings!.Name, true)) return;
 		try
 		{
 			await WorkspaceService.DeleteWorkspaceAsync(WorkspaceSettings.Id);

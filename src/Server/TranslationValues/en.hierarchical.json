@@ -194,15 +194,14 @@
     "languageKeyRequired": "Language key is required",
     "languageCreated": "Language '{0}' created successfully",
     "failedToCreateLanguage": "Failed to create language: {0}",
-    "languageNowPrivate": "Language '{0}' is now private",
-    "languageNowPublic": "Language '{0}' is now public",
+    "languageNowPrivate": "Language '{0}' is now private. Refresh to see changes.",
+    "languageNowPublic": "Language '{0}' is now public. Refresh to see changes.",
     "failedToUpdateLanguage": "Failed to update language: {0}",
     "deleteLanguageTitle": "Delete language",
     "language": "language",
-    "languageDeleted": "Language '{0}' deleted successfully",
+    "languageDeleted": "Language '{0}' deleted successfully. Refresh to see changes.",
     "failedToDeleteLanguage": "Failed to delete language: {0}"
-  }
-  ,
+  },
   "userManager": {
     "title": "Users",
     "nameColumn": "Name",
@@ -516,5 +515,14 @@
   },
   "infoDialog": {
     "ok": "OK"
+  },
+  "dialogService": {
+    "confirmationDialogText": "Are you sure you want to {0} {1}?",
+    "itemWithTypeFormat": "{0} '{1}'",
+    "deleteManyConfirmationText": "Are you sure you want to delete below {0}?\n\n{1}",
+    "createWorkspaceDialogTitle": "Create new workspace",
+    "selectFilesDialogTitle": "Select files",
+    "postsRelatedToFileDialogTitle": "Posts related to {0}",
+    "updateUserDialogTitle": "Update user"
   }
 }

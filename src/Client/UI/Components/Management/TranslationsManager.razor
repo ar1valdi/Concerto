@@ -2,7 +2,7 @@
 
 @using Concerto.Client.UI.Components.Dialogs
 
-@inject ITranslationsService translationsService
+@inject ITranslationsService t
 @inject ILanguageManagementService languageManagementService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -31,7 +31,7 @@ else
 
         @if (!paginatedViewSections.Any())
         {
-            <div class="no-matches">@translationsService.T("translationsManager", "noMatches")</div>
+            <div class="no-matches">@t.T("translationsManager", "noMatches")</div>
         }
     </div>
 
@@ -39,7 +39,7 @@ else
     {
         <button class="save-button" @onclick="ShowSavePreview">
             <MudIcon Icon="@Icons.Material.Filled.Save" />
-            @translationsService.T("translationsManager", "saveCta") (@changedTranslations.Count)
+            @t.T("translationsManager", "saveCta") (@changedTranslations.Count)
         </button>
     }
 }
@@ -174,12 +174,12 @@ else
     private RenderFragment RenderFilters() => __builder =>
     {
         <MudPaper Class="pa-4 mb-4" Elevation="2">
-            <MudText Typo="Typo.h6" Class="mb-3">@translationsService.T("translationsManager", "filtersHeader")</MudText>
+            <MudText Typo="Typo.h6" Class="mb-3">@t.T("translationsManager", "filtersHeader")</MudText>
             <MudGrid>
                 <MudItem xs="12" sm="6" md="3">
                     <MudTextField 
                         @bind-Value="filterView" 
-                        Label="@translationsService.T("translationsManager", "filterViewLabel")" 
+                        Label="@t.T("translationsManager", "filterViewLabel")" 
                         Variant="Variant.Outlined"
                         Margin="Margin.Dense"
                         Clearable="true"
@@ -191,7 +191,7 @@ else
                 <MudItem xs="12" sm="6" md="3">
                     <MudTextField 
                         @bind-Value="filterKey" 
-                        Label="@translationsService.T("translationsManager", "filterKeyLabel")" 
+                        Label="@t.T("translationsManager", "filterKeyLabel")" 
                         Variant="Variant.Outlined"
                         Margin="Margin.Dense"
                         Clearable="true"
@@ -203,7 +203,7 @@ else
                 <MudItem xs="12" sm="6" md="3">
                     <MudSelect 
                         @bind-Value="filterValueLanguage" 
-                        Label="@translationsService.T("translationsManager", "filterValueLanguageLabel")" 
+                        Label="@t.T("translationsManager", "filterValueLanguageLabel")" 
                         Variant="Variant.Outlined"
                         Margin="Margin.Dense"
                         Clearable="true"
@@ -217,7 +217,7 @@ else
                 <MudItem xs="12" sm="6" md="3">
                     <MudTextField 
                         @bind-Value="filterValue" 
-                        Label="@translationsService.T("translationsManager", "filterValueLabel")" 
+                        Label="@t.T("translationsManager", "filterValueLabel")" 
                         Variant="Variant.Outlined"
                         Margin="Margin.Dense"
                         Clearable="true"
@@ -230,7 +230,7 @@ else
                 <MudItem xs="12">
                     <MudSelect 
                         @bind-SelectedValues="selectedLanguageKeys" 
-                        Label="@translationsService.T("translationsManager", "showOnlySelectedLanguagesLabel")" 
+                        Label="@t.T("translationsManager", "showOnlySelectedLanguagesLabel")" 
                         Variant="Variant.Outlined"
                         Margin="Margin.Dense"
                         MultiSelection="true"
@@ -332,8 +332,8 @@ else
         try
         {
             languages = await languageManagementService.GetAllLanguagesAsync();
-            var locations = await translationsService.FetchAllTranslationLocationsAsync();
-            var translations = await translationsService.FetchFullTranslationsAsync();
+            var locations = await t.FetchAllTranslationLocationsAsync();
+            var translations = await t.FetchFullTranslationsAsync();
 
             var translationDict = new Dictionary<string, Translation>();
             foreach (var t in translations)
@@ -347,10 +347,15 @@ else
             
             ApplyPagination();
             isLoading = false;
+
+            t.LanguageChanged += async () =>
+            {
+                await InvokeAsync(StateHasChanged);
+			};
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"{translationsService.T("translationsManager", "failedToLoadTranslations")}: {ex.Message}", Severity.Error);
+            Snackbar.Add($"{t.T("translationsManager", "failedToLoadTranslations")}: {ex.Message}", Severity.Error);
             isLoading = false;
         }
     }
@@ -567,7 +572,7 @@ else
     {
         if (!changedTranslations.Any())
         {
-            Snackbar.Add(translationsService.T("translationsManager", "noChangesToSave"), Severity.Info);
+            Snackbar.Add(t.T("translationsManager", "noChangesToSave"), Severity.Info);
             return;
         }
 
@@ -589,7 +594,7 @@ else
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<TranslationsSavePreviewDialog>(translationsService.T("translationsManager", "reviewChangesTitle"), parameters, options);
+        var dialog = await DialogService.ShowAsync<TranslationsSavePreviewDialog>(t.T("translationsManager", "reviewChangesTitle"), parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
@@ -615,11 +620,11 @@ else
                 ))
                 .ToList();
 
-            await translationsService.UpdateTranslations(translationsToUpdate);
+            await t.UpdateTranslations(translationsToUpdate);
             
-            var message = translationsService.T("translationsManager", "successfullySavedMessage", translationsToUpdate.Count);
+            var message = t.T("translationsManager", "successfullySavedMessage", translationsToUpdate.Count);
             await DialogService.ShowMessageBox(
-                translationsService.T("translationsManager", "translationsSavedTitle"), 
+                t.T("translationsManager", "translationsSavedTitle"), 
                 message, 
                 yesText: "OK");
 
@@ -627,7 +632,7 @@ else
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"{translationsService.T("translationsManager", "failedToSaveTranslations")}: {ex.Message}", Severity.Error);
+            Snackbar.Add($"{t.T("translationsManager", "failedToSaveTranslations")}: {ex.Message}", Severity.Error);
         }
         finally
         {
