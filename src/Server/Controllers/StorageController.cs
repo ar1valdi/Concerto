@@ -34,6 +34,15 @@ public class StorageController : ControllerBase
 	}
 
 	[HttpGet]
+	public async Task<ActionResult<IEnumerable<FolderItem>>> GetFolderPath([FromQuery] long folderId)
+	{
+		if (User.IsAdmin()) return Ok(await _storageService.GetFolderPath(folderId, UserId, true));
+
+		if (!await _storageService.CanReadInFolder(UserId, folderId)) return Forbid();
+		return Ok(await _storageService.GetFolderPath(folderId, UserId));
+	}
+
+	[HttpGet]
 	public async Task<ActionResult<FolderSettings>> GetFolderSettings([FromQuery] long folderId)
 	{
 		if (User.IsAdmin() || await _storageService.CanWriteInFolder(UserId, folderId))
