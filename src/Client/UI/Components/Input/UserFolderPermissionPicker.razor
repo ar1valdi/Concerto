@@ -100,7 +100,7 @@ else
 
 	private Task<IEnumerable<User>> SearchContacts(string searchString)
 	{
-		if (string.IsNullOrEmpty(searchString)) return Task.FromResult(Enumerable.Empty<User>());
+		// if (string.IsNullOrEmpty(searchString)) return Task.FromResult(Enumerable.Empty<User>());
 		return Task.Run(() =>
 		{
 			if (Users is null) return Enumerable.Empty<User>();
