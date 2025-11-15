@@ -336,11 +336,6 @@
     "cancel": "Anuluj",
     "ok": "OK"
   },
-  "postsRelatedToFileDialog": {
-    "postsRelatedTo": "Posty powiązane z",
-    "close": "Zamknij",
-    "noPostsRelatedTo": "Brak postów powiązanych z"
-  },
   "confirmationDialog": {
     "imSure": "Jestem pewien.",
     "no": "Nie",

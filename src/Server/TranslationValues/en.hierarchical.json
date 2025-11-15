@@ -334,11 +334,6 @@
     "cancel": "Cancel",
     "ok": "OK"
   },
-  "postsRelatedToFileDialog": {
-    "postsRelatedTo": "Posts related to",
-    "close": "Close",
-    "noPostsRelatedTo": "No posts related to"
-  },
   "confirmationDialog": {
     "imSure": "I'm sure.",
     "no": "No",

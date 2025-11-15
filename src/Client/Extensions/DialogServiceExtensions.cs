@@ -72,19 +72,6 @@ public static class DialogServiceExtensions
         return true;
     }
 
-    public static async Task<bool> ShowPostsRelatedToFileDialog(this IDialogService dialogService, long workspaceId, FileItem file)
-    {
-        var options = new DialogOptions() { FullScreen = true, MaxWidth = MaxWidth.Large };
-        var parameters = new DialogParameters
-        {
-            ["File"] = file,
-            ["WorkspaceId"] = workspaceId
-        };
-        var result = await dialogService.Show<PostsRelatedToFileDialog>($"Posts related to {file.FullName}", parameters, options).Result;
-        if (result.Canceled) return false;
-        return true;
-    }
-
     public static async Task<string?> ShowInputStringDialog(this IDialogService dialogService, string title, string placeholder)
     {
         var parameters = new DialogParameters
