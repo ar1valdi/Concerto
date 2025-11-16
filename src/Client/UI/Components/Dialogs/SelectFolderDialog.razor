@@ -10,14 +10,7 @@
 		@if (!Loading)
 		{
 			<MudStack Spacing="0" Style="height: calc(100vh - 200px)" Class="flex-grow-1">
-				
-				<MudStack Row="true" AlignItems="AlignItems.Center">
-						<MudIcon Icon="@Icons.Material.Filled.ArrowRight" />
-				<MudText>@($"{@t.T("selectFolderDialog", "workspace")}: {_selectedWorkspace?.Name}")</MudText>
-					<MudButton Color="Color.Info" OnClick="ChooseWorkspace">@t.T("selectFolderDialog", "change")</MudButton>
-				</MudStack>
-
-				<FileManager Class="" Style="height: calc(100% - 48px)" Outlined="true" Elevation="0"
+				<FileManager Class="" Style="height: calc(100%)" Outlined="true" Elevation="0"
 					             ChooseFolderMode="true" InitialFolderId="_selectedWorkspace!.RootFolderId"
 								 OnFolderLoaded="OnFolderChanged" />
 			</MudStack>
@@ -65,27 +58,15 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		if (InitialWorkspaceId is null)
-			await ChooseWorkspace();
-		else
-			_selectedWorkspace = await WorkspaceService.GetWorkspaceAsync(InitialWorkspaceId.Value);
+		// Use default workspace (ID -1) when no initial workspace specified
+		var workspaceId = InitialWorkspaceId ?? -1;
+		_selectedWorkspace = await WorkspaceService.GetWorkspaceAsync(workspaceId);
 
 		if (_selectedWorkspace is null)
 			Cancel();
 
 		_excludedFolderIds = ExcludedIds?.ToHashSet() ?? new HashSet<long>();
 		_excludedWithChildrenFolderIds = ExcludedWithChildrenIds?.ToHashSet() ?? new HashSet<long>();
-	}
-
-	private async Task ChooseWorkspace()
-	{
-		var name = @t.T("selectFolderDialog", "selectWorkspace");
-		var result = await DialogService.Show<SelectWorkspaceDialog>(name).Result;
-		if (result.Canceled) return;
-		var workspaceId = result.Data as long?;
-		if (workspaceId is null) return;
-		_selectedWorkspace = await WorkspaceService.GetWorkspaceAsync(workspaceId.Value);
-		StateHasChanged();
 	}
 
 	private void OnFolderChanged(FileManager.FolderSelectedEventArgs args)
