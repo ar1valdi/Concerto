@@ -13,9 +13,6 @@ public class Session : Entity
 	public long WorkspaceId { get; set; }
 	public Workspace Workspace { get; set; } = null!;
 
-	public long FolderId { get; set; }
-	public Folder Folder { get; set; } = null!;
-
 	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 	public Guid MeetingGuid { get; set; }
 }
@@ -31,7 +28,6 @@ public static partial class ViewModelConversions
 			WorkspaceName: session.Workspace.Name,
 			ScheduledDateTime: session.ScheduledDate,
 			WorkspaceRootFolderId: session.Workspace.RootFolderId!.Value,
-			FolderId: session.FolderId,
 			MeetingGuid: session.MeetingGuid,
 			CanManage: canManage
 		);
@@ -41,8 +37,7 @@ public static partial class ViewModelConversions
 	{
 		return new SessionListItem(session.Id,
 			session.Name,
-			session.ScheduledDate,
-			session.FolderId
+			session.ScheduledDate
 		);
 	}
 

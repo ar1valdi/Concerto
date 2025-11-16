@@ -70,16 +70,6 @@ public class StorageService
 		// Load owners of subfolders
 		await _context.Entry(folder).Collection(f => f.SubFolders).Query().Include(f => f.Owner).LoadAsync();
 
-		// get sessions folder if workspace root
-		if (folder.IsWorkspaceRoot)
-		{
-			var workspace = await _context.Workspaces.FindAsync(folder.WorkspaceId);
-			if (workspace == null) return null;
-			await _context.Entry(workspace).Reference(c => c.SessionsFolder).LoadAsync();
-			if (workspace.SessionsFolder == null) return null;
-			folder.SubFolders.Add(workspace.SessionsFolder);
-		}
-
 		var subFolders = new List<Dto.FolderItem>();
 		foreach (var subFolder in folder.SubFolders)
 		{
@@ -733,49 +723,6 @@ public class StorageService
 		var file = await _context.UploadedFiles.FindAsync(fileId);
 		if (file == null) return false;
 		return file.FolderId != destinationFolderId;
-	}
-
-	internal async Task SaveRecording(string meetingId, string filePath)
-	{
-		var fileInfo = new FileInfo(filePath);
-		if (!fileInfo.Exists) throw new FileNotFoundException("File not found", filePath);
-
-		var meetingGuid = Guid.Parse(meetingId);
-		var session = await _context.Sessions.Where(s => s.MeetingGuid == meetingGuid).FirstAsync();
-
-		var storageName = $"{fileInfo.Name}.{Guid.NewGuid()}";
-		var timeStamp = fileInfo.CreationTime.ToString("dd-MM-yyyy HH-mm-ss");
-		var newFilename = $"{session.Name} {timeStamp}";
-		foreach (char c in Path.GetInvalidFileNameChars())
-		{
-		   newFilename = newFilename.Replace(c, '_');
-		}
-
-		var recordingFile = new UploadedFile
-		{
-			OwnerId = null,
-			DisplayName = newFilename,
-			Extension = fileInfo.Extension,
-			MimeType = MimeUtility.GetMimeMapping(fileInfo.Name),
-			Size = fileInfo.Length,
-			StorageName = storageName,
-			FolderId = session.FolderId,
-		};
-
-		await FileExtensions.CopyAsync(fileInfo.FullName, recordingFile.Path, true);
-		try
-		{
-			await _context.AddAsync(recordingFile);
-			await _context.SaveChangesAsync();
-		}
-		catch
-		{
-			await FileExtensions.DeleteAsync(recordingFile.Path);
-			throw;
-		}
-
-		if(fileInfo.DirectoryName != null)
-			Directory.Delete(fileInfo.DirectoryName, true);
 	}
 
 

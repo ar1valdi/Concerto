@@ -31,11 +31,6 @@ else
                     <Meeting Session="SelectedSession" />
             </MudTabPanel>
 
-            <MudTabPanel Text=@t.T("session", "recordingsTab")>
-                <FileManager InitialFolderId="SelectedSession!.FolderId"
-                         Class="flex-grow-1" Style="height: 100%;" Elevation="0" />
-            </MudTabPanel>
-
             <MudTabPanel Text=@t.T("session", "workspaceContentTab")>
                 <FileManager InitialFolderId="SelectedSession!.WorkspaceRootFolderId"
                          Class="flex-grow-1" Style="height: 100%;" Elevation="0" />
