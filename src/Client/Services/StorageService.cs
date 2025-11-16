@@ -18,6 +18,7 @@ public interface IStorageService : IStorageClient
 
     public Task DownloadFile(long fileId, string saveAs);
     public Task<string> GetFileUrl(long fileId, bool inline = false);
+    public Task<ICollection<FolderItem>?> GetFolderPathAsync(long folderId, CancellationToken cancellationToken = default);
 
     public void ClearIfInactive(UploadQueueItem item);
     public EventHandler<IReadOnlyCollection<UploadQueueItem>>? QueueChangedEventHandler { get; set; }
@@ -220,6 +221,24 @@ public class StorageService : StorageClient, IStorageService
 	{
 		var token = await GetFileDownloadTokenAsync(fileId);
 		return $"Storage/DownloadFile?fileId={fileId}&token={token}&inline={inline}";
+	}
+
+	public async Task<ICollection<FolderItem>?> GetFolderPathAsync(long folderId, CancellationToken cancellationToken = default)
+	{
+		try
+		{
+			var response = await _http.GetAsync($"Storage/GetFolderPath?folderId={folderId}", cancellationToken);
+			if (response.IsSuccessStatusCode)
+			{
+				return await response.Content.ReadFromJsonAsync<List<FolderItem>>(cancellationToken: cancellationToken);
+			}
+			return null;
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine($"Error getting folder path: {e.Message}");
+			return null;
+		}
 	}
 
 }
