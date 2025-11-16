@@ -1,4 +1,5 @@
 ﻿using Concerto.Client.UI.Components.Dialogs;
+using Concerto.Client.Services;
 using Concerto.Shared.Models.Dto;
 using MudBlazor;
 
@@ -8,6 +9,7 @@ public static class DialogServiceExtensions
 {
     public static async Task<bool> ShowConfirmationDialog(
         this IDialogService dialogService,
+        ITranslationsService t,
         string title,
         string action,
         string itemType,
@@ -15,8 +17,8 @@ public static class DialogServiceExtensions
         bool additionalConfirmation = false
     )
     {
-        var item = string.IsNullOrEmpty(itemType) ? itemName : $"{itemType} '{itemName}'";
-        var text = $"Are you sure you want to {action} {item}?";
+        var item = string.IsNullOrEmpty(itemType) ? itemName : t.T("dialogService", "itemWithTypeFormat", itemType, itemName);
+        var text = t.T("dialogService", "confirmationDialogText", action, item);
         var parameters = new DialogParameters { ["Text"] = text, ["Confirmation"] = additionalConfirmation };
         var result = await dialogService.Show<ConfirmationDialog>(title, parameters).Result;
         if (result.Canceled) return false;
@@ -25,13 +27,14 @@ public static class DialogServiceExtensions
 
     public static async Task<bool> ShowDeleteManyConfirmationDialog(
         this IDialogService dialogService,
+        ITranslationsService t,
         string title,
         string category,
         string items,
         bool additionalConfirmation = false
     )
     {
-        var text = $"Are you sure you want to delete below {category}?\n\n{items}";
+        var text = t.T("dialogService", "deleteManyConfirmationText", category, items);
         var parameters = new DialogParameters { ["Text"] = text, ["Confirmation"] = additionalConfirmation };
         var result = await dialogService.Show<ConfirmationDialog>(title, parameters).Result;
         if (result.Canceled) return false;
@@ -59,7 +62,7 @@ public static class DialogServiceExtensions
 		return (FolderItem)result.Data;
     }
 
-    public static async Task<bool> ShowSelectFilesDialog(this IDialogService dialogService, HashSet<FileItem> selectedFiles, long workspaceId)
+    public static async Task<bool> ShowSelectFilesDialog(this IDialogService dialogService, ITranslationsService t, HashSet<FileItem> selectedFiles, long workspaceId)
     {
         var options = new DialogOptions() { FullScreen = true, MaxWidth = MaxWidth.Large };
         var parameters = new DialogParameters
@@ -67,7 +70,7 @@ public static class DialogServiceExtensions
             ["SelectedFiles"] = selectedFiles,
             ["WorkspaceId"] = workspaceId
         };
-        var result = await dialogService.Show<SelectFilesDialog>("Select files", parameters, options).Result;
+        var result = await dialogService.Show<SelectFilesDialog>(t.T("dialogService", "selectFilesDialogTitle"), parameters, options).Result;
         if (result.Canceled) return false;
         return true;
     }
@@ -83,13 +86,13 @@ public static class DialogServiceExtensions
         return (string)result.Data;
     }
 
-    public static async Task<bool> ShowUpdateUserDialog(this IDialogService dialogService, UserIdentity user)
+    public static async Task<bool> ShowUpdateUserDialog(this IDialogService dialogService, ITranslationsService t, UserIdentity user)
     {
         var parameters = new DialogParameters
         {
             ["User"] = user
         };
-        var result = await dialogService.Show<UpdateUserDialog>($"Update user", parameters).Result;
+        var result = await dialogService.Show<UpdateUserDialog>(t.T("dialogService", "updateUserDialogTitle"), parameters).Result;
         if (result.Canceled) return false;
         return true;
     }

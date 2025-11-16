@@ -410,7 +410,7 @@ else
 	{
 		try
 		{
-			if (!await DialogService.ShowConfirmationDialog(t.T("forum", "deletePostConfirmTitle"), "delete", "post", post.Title)) return;
+			if (!await DialogService.ShowConfirmationDialog(t, t.T("forum", "deletePostConfirmTitle"), "delete", "post", post.Title)) return;
 			await ForumService.DeletePostAsync(post.Id);
 			var postToDeleteIndex = Posts?.FindIndex(p => p.Id == post.Id);
 			if (postToDeleteIndex != null) Posts?.RemoveAt(postToDeleteIndex.Value);
@@ -426,7 +426,7 @@ else
 	{
 		try
 		{
-			if (!await DialogService.ShowConfirmationDialog(t.T("forum", "deleteCommentConfirmTitle"), "delete", "comment", "")) return;
+			if (!await DialogService.ShowConfirmationDialog(t, t.T("forum", "deleteCommentConfirmTitle"), "delete", "comment", "")) return;
 			await ForumService.DeleteCommentAsync(comment.Id);
 			var post = Posts?.FirstOrDefault(p => p.Id == comment.PostId);
 			post?.deleteComment(comment);
@@ -441,7 +441,7 @@ else
 
 	private async Task EditReferencedFiles(HashSet<FileItem> referencedFiles)
 	{
-		await DialogService.ShowSelectFilesDialog(referencedFiles, WorkspaceId);
+		await DialogService.ShowSelectFilesDialog(t, referencedFiles, WorkspaceId);
 	}
 
 	private void CloseCreatePostFileChip(MudChip chip)

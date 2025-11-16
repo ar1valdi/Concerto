@@ -26,18 +26,19 @@
 <CascadingValue Value="@_layoutState">
 	<MudLayout Style="height: 100vh;">
 		<MudAppBar Elevation="0" Dense="true">
-			<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@(e => DrawerToggle())" />
+			<MudIconButton Icon="@Icons.Material.Filled.Menu" Style="color: var(--mud-palette-appbar-text)" Edge="Edge.Start" OnClick="@(e => DrawerToggle())" />
 			<NavigationToolbar />
 			<MudSelect 
+						Class="select"
 						Value="_selectedLanguage"
 						ValueChanged="OnLanguageChanged"
 						OpenIcon="@Icons.Material.Filled.Language"
-						Style="max-width: 120px;"
+					    Style="max-width: 120px;"
 						Margin="Margin.Dense"
 						T="string">
 				@foreach (var language in _availableLanguages)
 				{
-					<MudSelectItem Value="@language.Key">@language.Name</MudSelectItem>
+					<MudSelectItem Class="selectItem" Value="@language.Key">@language.Name</MudSelectItem>
 				}
 			</MudSelect>
 			<AuthorizeView Policy="@AuthorizationPolicies.IsAuthenticated.Name">
@@ -65,7 +66,10 @@
 							</MudMenuItemW>
 							</MudLink>
 							<MudMenuItemW Icon="@(_layoutState.DarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" OnTouch="()=> toggleDarkMode(!_layoutState.DarkMode)" OnClick="() => toggleDarkMode(!_layoutState.DarkMode)">@t.T("mainLayout", "toggleTheme")</MudMenuItemW>
-							<MudMenuItemW Icon="@Icons.Material.Filled.Help" OnTouch="GoToManual" OnClick="GoToManual">@t.T("mainLayout", "userManual")</MudMenuItemW>
+							<!-- 
+								Restore when updated manual is ready
+								<MudMenuItemW Icon="@Icons.Material.Filled.Help" OnTouch="GoToManual" OnClick="GoToManual">@t.T("mainLayout", "userManual")</MudMenuItemW> 
+							-->
 							<MudMenuItemW Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error" OnTouch="BeginLogout" OnClick="BeginLogout">@t.T("mainLayout", "logOut")</MudMenuItemW>
 						</ChildContent>
 					</MudMenu>

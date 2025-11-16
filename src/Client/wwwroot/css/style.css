@@ -18,3 +18,11 @@ border-box *, border-box *:before, border-box *:after { box-sizing: inherit; }
 .tree-mudstack {
     width: 100%;
 }
+
+.mud-select-input {
+    color: var(--mud-palette-appbar-text) !important;
+}
+
+.mud-select-input .mud-icon-root {
+    color: var(--mud-palette-appbar-text) !important;
+}
