@@ -4,8 +4,7 @@
     "home": "Home",
     "adminPanel": "Admin Panel",
     "videoRecorder": "Video Recorder",
-    "storage": "Storage",
-    "workspaces": "Workspaces"
+    "storage": "Storage"
   },
   "home": {
     "title": "Home",
@@ -32,22 +31,6 @@
     "notFoundTitle": "Not found",
     "notFoundBody": "Sorry, there's nothing at this address."
   },
-  "workspace": {
-    "contentTab": "Content",
-    "sessionsTab": "Sessions",
-    "forumTab": "Forum",
-    "settingsTab": "Settings",
-    "forumTitle": "Workspace forum",
-    "errorNoAccess": "Workspace does not exist or you don't have access"
-  },
-  "session": {
-    "meetingTab": "Meeting",
-    "recordingsTab": "Recordings",
-    "workspaceContentTab": "Workspace content",
-    "workspaceForumTab": "Workspace forum",
-    "sessionSettingsTab": "Session settings",
-    "errorNoAccess": "Session does not exists or you don't have access"
-  },
   "profile": {
     "title": "Your profile",
     "details": "Details",
@@ -71,7 +54,7 @@
     "recordingPrefix": "Recording-",
     "recordButton": "Record",
     "stopButton": "Stop",
-    "saveInWorkspace": "Save in workspace",
+    "saveInApp": "Save in Concerto",
     "saveOnComputer": "Save on computer",
     "discardButton": "Discard",
     "noneOption": "None",
@@ -86,25 +69,6 @@
     "getClaimsButton": "Get ClaimsPrincipal Data",
     "isAuthenticatedSuffix": " is authenticated.",
     "notAuthenticated": "The user is NOT authenticated."
-  },
-  "sessionList": {
-    "toolbarTitle": "Sessions",
-    "refresh": "Refresh",
-    "createSession": "Create session",
-    "more": "More",
-    "refreshView": "Refresh view",
-    "headerName": "Name",
-    "headerDate": "Date",
-    "dataLabelName": "Name",
-    "dataLabelScheduledFor": "Scheduled for",
-    "actions": "Actions",
-    "open": "Open",
-    "delete": "Delete",
-    "createNewSession": "Create new session",
-    "deleteSessionTitle": "Delete session",
-    "session": "session",
-    "sessionDeleted": "Session {0} deleted",
-    "failedToDeleteSession": "Failed to delete session {0}."
   },
   "mainLayout": {
     "manageAccount": "Manage account",
@@ -217,54 +181,7 @@
     "confirm": "confirm",
     "user": "user",
     "deleteUserTitle": "Delete user"
-  }
-  ,
-  "workspaceSettingsManager": {
-    "discard": "Discard",
-    "save": "Save",
-    "delete": "Delete",
-    "role": "Role",
-    "yourRolePrefix": "Your role",
-    "workspaceNameLabel": "Workspace name",
-    "workspaceUpdated": "Workspace updated",
-    "failedToUpdateWorkspace": "Failed to update workspace",
-    "deleteWorkspaceTitle": "Delete workspace",
-    "workspace": "workspace",
-    "workspaceDeleted": "{0} deleted",
-    "failedToDeleteWorkspace": "Failed to delete workspace {0}."
-  }
-  ,
-  "sessionSettingsManager": {
-    "discard": "Discard",
-    "save": "Save",
-    "deleteSession": "Delete session",
-    "nameLabel": "Name",
-    "dateLabel": "Date",
-    "timeLabel": "Time",
-    "sessionUpdated": "Session updated",
-    "failedToUpdateSession": "Failed to update session",
-    "deleteSessionTitle": "Delete session",
-    "session": "session",
-    "sessionDeleted": "Session {0} deleted",
-    "failedToDeleteSession": "Failed to delete session {0}."
-  }
-  ,
-  "workspaceMemberManager": {
-    "title": "Users",
-    "addMembers": "Add members",
-    "memberColumn": "Member",
-    "nameColumn": "Name",
-    "surnameColumn": "Surname",
-    "usernameColumn": "Username",
-    "roleColumn": "Role",
-    "selectAll": "Select All",
-    "legend": "Legend",
-    "legendNew": "New",
-    "legendModified": "Modified",
-    "legendDeleted": "Deleted",
-    "legendEditing": "Editing"
-  }
-  ,
+  },
   "uploadManager": {
     "uploads": "Uploads",
     "noUploads": "No uploads",
@@ -292,40 +209,6 @@
     "cancelButton": "Cancel",
     "confirmAndSaveButton": "Confirm and Save",
     "saveConfirmationMessage": "You are about to save {0} translation(s). Please review the changes below:"
-  }
-  ,
-  "workspaceList": {
-    "yourWorkspaces": "Your workspaces",
-    "search": "Search",
-    "refresh": "Refresh",
-    "createWorkspace": "Create workspace",
-    "more": "More",
-    "refreshView": "Refresh view",
-    "workspaceNameHeader": "Workspace name",
-    "creationDateHeader": "Creation date",
-    "nameColumn": "Name",
-    "createdOnColumn": "Created on",
-    "actions": "Actions",
-    "clone": "Clone",
-    "deleteWorkspaceTitle": "Delete workspace",
-    "workspace": "workspace",
-    "workspaceDeleted": "Workspace {0} deleted",
-    "failedToDeleteWorkspace": "Failed to delete workspace {0}.",
-    "cloneWorkspaceTitle": "Clone workspace {0}"
-  },
-  "workspaceMemberPicker": {
-    "sortBy": "Sort By",
-    "workspaceMembers": "Workspace members",
-    "search": "Search",
-    "selectedHeader": "Selected",
-    "nameHeader": "Name",
-    "surnameHeader": "Surname",
-    "usernameHeader": "Username",
-    "selectedColumn": "Selected",
-    "nameColumn": "Name",
-    "surnameColumn": "Surname",
-    "usernameColumn": "Username",
-    "selectAll": "Select All"
   },
   "userFolderPermissionPicker": {
     "addUser": "Add user",
@@ -443,32 +326,13 @@
     "failedToUpdateFile": "Failed to update file"
   },
   "selectFolderDialog": {
-    "workspace": "Workspace",
     "change": "Change",
-    "cancel": "Cancel",
-    "selectWorkspace": "Select workspace"
+    "cancel": "Cancel"
   },
   "selectFilesDialog": {
     "selectedFiles": "Selected Files",
     "cancel": "Cancel",
     "ok": "OK"
-  },
-  "postsRelatedToFileDialog": {
-    "postsRelatedTo": "Posts related to",
-    "close": "Close",
-    "noPostsRelatedTo": "No posts related to"
-  },
-  "cloneWorkspaceDialog": {
-    "workspaceName": "Workspace name",
-    "copyMembers": "Copy members",
-    "withRoles": "With roles",
-    "copyFolders": "Copy folders",
-    "withFiles": "With files",
-    "withUserSpecificPermissions": "With user specific permissions",
-    "cancel": "Cancel",
-    "ok": "OK",
-    "clonedWorkspace": "Cloned workspace",
-    "failedToCloneWorkspace": "Failed to clone workspace"
   },
   "confirmationDialog": {
     "imSure": "I'm sure.",
@@ -482,27 +346,6 @@
     "folderNameCannotBeEmpty": "Folder name cannot be empty",
     "folderCreated": "Folder created",
     "failedToCreateFolder": "Failed to create folder"
-  },
-  "createSessionDialog": {
-    "name": "Name",
-    "date": "Date",
-    "time": "Time",
-    "cancel": "Cancel",
-    "create": "Create",
-    "sessionNameCannotBeEmpty": "Session name cannot be empty",
-    "timeNotSet": "Time not set",
-    "dateNotSet": "Date not set",
-    "sessionCreated": "Session created",
-    "failedToCreateSession": "Failed to create session"
-  },
-  "createWorkspaceDialog": {
-    "workspaceName": "Workspace name",
-    "workspaceDescription": "Workspace description",
-    "cancel": "Cancel",
-    "create": "Create",
-    "workspaceNameCannotBeEmpty": "Workspace name cannot be empty",
-    "workspaceCreated": "Workspace created",
-    "failedToCreateWorkspace": "Failed to create workspace"
   },
   "inputStringDialog": {
     "cancel": "Cancel",
