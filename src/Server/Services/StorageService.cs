@@ -152,6 +152,69 @@ public class StorageService
 		return new Dto.FileSettings(file.Id, file.DisplayName);
 	}
 
+	internal async Task<List<Dto.FolderItem>?> GetFolderPath(long folderId, Guid userId, bool isAdmin = false)
+	{
+		// Build list of folder IDs from current to root
+		var folderIds = new List<long>();
+		long? currentFolderId = folderId;
+		
+		// Navigate up the hierarchy to collect all folder IDs
+		while (currentFolderId.HasValue)
+		{
+			folderIds.Add(currentFolderId.Value);
+			var parentId = await _context.Folders
+				.Where(f => f.Id == currentFolderId.Value)
+				.Select(f => f.ParentId)
+				.FirstOrDefaultAsync();
+			currentFolderId = parentId;
+		}
+
+		if (!folderIds.Any()) return null;
+
+		// Reverse to get path from root to current folder
+		folderIds.Reverse();
+
+		// Load all folders in path with their owners in one query
+		var folders = await _context.Folders
+			.Include(f => f.Owner)
+			.Where(f => folderIds.Contains(f.Id))
+			.ToListAsync();
+
+		// Maintain the correct order
+		var orderedFolders = folderIds
+			.Select(id => folders.FirstOrDefault(f => f.Id == id))
+			.Where(f => f != null)
+			.ToList();
+
+		// Build folder items with permissions
+		var path = new List<Dto.FolderItem>();
+		foreach (var folder in orderedFolders)
+		{
+			// Check if folder has children (without loading all of them)
+			var hasChildren = await _context.Folders.AnyAsync(f => f.ParentId == folder!.Id) 
+				|| await _context.UploadedFiles.AnyAsync(f => f.FolderId == folder.Id);
+			
+			Dto.FolderItem folderItem;
+			if (isAdmin)
+			{
+				folderItem = folder.ToFolderItem(true, true, 
+					canDelete: await CanDeleteFolder(userId, folder.Id), 
+					hasChildren: hasChildren);
+			}
+			else
+			{
+				var canWrite = await CanWriteInFolder(userId, folder.Id);
+				var canEdit = await CanEditFolder(userId, folder.Id);
+				var canDelete = await CanDeleteFolder(userId, folder.Id);
+				folderItem = folder.ToFolderItem(canWrite, canEdit, canDelete, hasChildren);
+			}
+
+			path.Add(folderItem);
+		}
+
+		return path;
+	}
+
 	internal async Task<bool> CanReadFile(Guid userId, long fileId)
 	{
 		var file = await _context.UploadedFiles.FindAsync(fileId);

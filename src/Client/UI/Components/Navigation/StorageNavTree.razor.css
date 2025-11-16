@@ -1,7 +1,27 @@
 ﻿.storage-tree {
     width: 100%;
-    padding: 0;
+    padding: 0.5rem 0;
     background-color: transparent;
     border-right: none;
     min-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.storage-tree::-webkit-scrollbar {
+    width: 8px;
+}
+
+.storage-tree::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.storage-tree::-webkit-scrollbar-thumb {
+    background: rgba(var(--mud-palette-text-primary-rgb, 0, 0, 0), 0.2);
+    border-radius: 4px;
+    transition: background 0.2s ease-in-out;
+}
+
+.storage-tree::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--mud-palette-text-primary-rgb, 0, 0, 0), 0.3);
 }
