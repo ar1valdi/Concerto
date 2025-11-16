@@ -351,10 +351,6 @@
 										OnClick="() => DownloadFile(file)" OnTouch="() => DownloadFile(file)">
 										@t.T("fileManager", "download")
 									</MudMenuItemW>
-									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Forum"
-									  OnClick="async () => await DialogService.ShowPostsRelatedToFileDialog(FolderContent.WorkspaceId, file)" OnTouch="async () => await DialogService.ShowPostsRelatedToFileDialog(FolderContent.WorkspaceId, file)">
-										@t.T("fileManager", "showRelatedPosts")
-									</MudMenuItemW>
 									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Edit"
 									  OnClick="() => ShowUpdateFileDialog(file)" OnTouch="() => ShowUpdateFileDialog(file)"
 									  Disabled=@(!file.CanEdit)>
