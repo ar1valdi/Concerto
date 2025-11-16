@@ -1412,57 +1412,6 @@
         }
       }
     },
-    "/Session/CreateSession": {
-      "post": {
-        "tags": [
-          "Session"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSessionRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSessionRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSessionRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "integer",
-                  "format": "int64"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "integer",
-                  "format": "int64"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/Session/GetSession": {
       "get": {
         "tags": [
@@ -1498,28 +1447,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/Session/DeleteSession": {
-      "delete": {
-        "tags": [
-          "Session"
-        ],
-        "parameters": [
-          {
-            "name": "sessionId",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
           }
         }
       }
@@ -1611,37 +1538,6 @@
         }
       }
     },
-    "/Session/UpdateSession": {
-      "post": {
-        "tags": [
-          "Session"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateSessionRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateSessionRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateSessionRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
     "/Session/GetMeetingToken": {
       "get": {
         "tags": [
@@ -1664,97 +1560,6 @@
               "text/plain": {
                 "schema": {
                   "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/Session/RecordingFinished": {
-      "post": {
-        "tags": [
-          "Session"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RecordingFinishedRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RecordingFinishedRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/RecordingFinishedRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -3249,24 +3054,6 @@
         },
         "additionalProperties": false
       },
-      "CreateSessionRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "scheduledDateTime": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "workspaceId": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "additionalProperties": false
-      },
       "CreateWorkspaceRequest": {
         "type": "object",
         "properties": {
@@ -3524,6 +3311,9 @@
           "canWrite": {
             "type": "boolean"
           },
+          "hasChildren": {
+            "type": "boolean"
+          },
           "type": {
             "$ref": "#/components/schemas/FolderType"
           },
@@ -3749,24 +3539,6 @@
         },
         "additionalProperties": { }
       },
-      "RecordingFinishedRequest": {
-        "type": "object",
-        "properties": {
-          "filePath": {
-            "type": "string",
-            "nullable": true
-          },
-          "meetingId": {
-            "type": "string",
-            "nullable": true
-          },
-          "recorderKey": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
       "Role": {
         "enum": [
           0,
@@ -3804,10 +3576,6 @@
             "type": "integer",
             "format": "int64"
           },
-          "folderId": {
-            "type": "integer",
-            "format": "int64"
-          },
           "canManage": {
             "type": "boolean"
           },
@@ -3832,10 +3600,6 @@
           "scheduledDate": {
             "type": "string",
             "format": "date-time"
-          },
-          "folderId": {
-            "type": "integer",
-            "format": "int64"
           }
         },
         "additionalProperties": false
@@ -4020,24 +3784,6 @@
           },
           "forceInherit": {
             "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateSessionRequest": {
-        "type": "object",
-        "properties": {
-          "sessionId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "scheduledDateTime": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "additionalProperties": false
