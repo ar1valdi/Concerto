@@ -18,23 +18,26 @@
 					   Disabled="@(BreadCrumbs.Count <= 1)" OnClick="Back" DisableElevation="true" Size="Size.Small" />
 
 			@if (LayoutState.SmAndUp)
-			foreach (var breadcrumb in BreadCrumbs)
 			{
-				var isCurrent = FolderContent.Self.Equals(breadcrumb);
-
-				@if (!isCurrent)
+				for (int i = 0; i < BreadCrumbs.Count; i++)
 				{
+					var breadcrumb = BreadCrumbs[i];
+					var isCurrent = i == BreadCrumbs.Count - 1;
+
+					@if (!isCurrent)
+					{
 						<MudButton Class="d-inline-block " Style="text-transform: none; min-width:auto;" Variant="Variant.Text" Color="Color.Default"
 								   OnClick="async () => await BreadcrumbBack(breadcrumb)">
 							@breadcrumb.Name
 						</MudButton>
 						<p style="display: inline-block; user-select: none;" class="mx-2">></p>
-				}
-				else
-				{
+					}
+					else
+					{
 						<MudButton Class="d-inline-block " Style="text-transform: none; min-width:auto;" Variant="Variant.Text" Color="Color.Primary">
 							@breadcrumb.Name
 						</MudButton>
+					}
 				}
 			}
 			else
@@ -351,10 +354,6 @@
 										OnClick="() => DownloadFile(file)" OnTouch="() => DownloadFile(file)">
 										@t.T("fileManager", "download")
 									</MudMenuItemW>
-									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Forum"
-									  OnClick="async () => await DialogService.ShowPostsRelatedToFileDialog(t, FolderContent.WorkspaceId, file)" OnTouch="async () => await DialogService.ShowPostsRelatedToFileDialog(t, FolderContent.WorkspaceId, file)">
-										@t.T("fileManager", "showRelatedPosts")
-									</MudMenuItemW>
 									<MudMenuItemW IconSize="Size.Small" IconColor="Color.Default" Icon="@Icons.Material.Filled.Edit"
 									  OnClick="() => ShowUpdateFileDialog(file)" OnTouch="() => ShowUpdateFileDialog(file)"
 									  Disabled=@(!file.CanEdit)>
@@ -485,7 +484,7 @@
 
 	protected override async Task OnParametersSetAsync()
 	{
-		if(InitialFolderId is not null && _initialFolderId != InitialFolderId)
+		if(InitialFolderId is not null && (CurrentFolderId != InitialFolderId || _initialFolderId != InitialFolderId))
 		{
 			_initialFolderId = InitialFolderId;
 
@@ -495,7 +494,15 @@
 			{
 				await LoadFolderContent(InitialFolderId.Value);
 				BreadCrumbs.Clear();
-				BreadCrumbs.Add(FolderContent!.Self);
+				var folderPath = await StorageService.GetFolderPathAsync(InitialFolderId.Value);
+				if (folderPath != null && folderPath.Any())
+				{
+					BreadCrumbs.AddRange(folderPath);
+				}
+				else
+				{
+					BreadCrumbs.Add(FolderContent!.Self);
+				}
 			}
 			catch(OperationCanceledException) {}
 		}

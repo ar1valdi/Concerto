@@ -5,7 +5,8 @@
         @if (Node.Expandable)
         {
             <MudIcon Icon="@(Node.Expanded ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.ChevronRight)"
-                     Size="Size.Medium" />
+                     Size="Size.Small"
+                     Color="Color.Default" />
         }
         else
         {
@@ -13,7 +14,8 @@
         }
 
         <MudIcon Icon="@(Node.IsFolder ? Icons.Material.Filled.Folder : Icons.Material.Filled.FilePresent)"
-                 Size="Size.Small" />
+                 Size="Size.Small"
+                 Color="Color.Default" />
 
         <span class="tree-node-text">@Node.Name</span>
     </div>

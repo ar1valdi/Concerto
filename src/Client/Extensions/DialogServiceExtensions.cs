@@ -48,14 +48,6 @@ public static class DialogServiceExtensions
         await dialogService.Show<InfoDialog>(title, parameters).Result;
     }
 
-    public static async Task<long> ShowCreateWorkspaceDialog(this IDialogService dialogService, ITranslationsService t)
-    {
-        // var options = new DialogOptions() { FullScreen = true,  };
-        var result = await dialogService.Show<CreateWorkspaceDialog>(t.T("dialogService", "createWorkspaceDialogTitle")).Result;
-        if (result.Canceled) return -1;
-        return (long)result.Data;
-    }
-
     public static async Task<FolderItem?> ShowSelectFolderDialog(this IDialogService dialogService, string title, string selectButtonText, long? initialWorkspaceId = null, IEnumerable<long>? excludedIds = null, IEnumerable<long>? excludedWithChildrenIds = null)
     {
 		var parameters = new DialogParameters
@@ -79,19 +71,6 @@ public static class DialogServiceExtensions
             ["WorkspaceId"] = workspaceId
         };
         var result = await dialogService.Show<SelectFilesDialog>(t.T("dialogService", "selectFilesDialogTitle"), parameters, options).Result;
-        if (result.Canceled) return false;
-        return true;
-    }
-
-    public static async Task<bool> ShowPostsRelatedToFileDialog(this IDialogService dialogService, ITranslationsService t, long workspaceId, FileItem file)
-    {
-        var options = new DialogOptions() { FullScreen = true, MaxWidth = MaxWidth.Large };
-        var parameters = new DialogParameters
-        {
-            ["File"] = file,
-            ["WorkspaceId"] = workspaceId
-        };
-        var result = await dialogService.Show<PostsRelatedToFileDialog>(t.T("dialogService", "postsRelatedToFileDialogTitle", file.FullName), parameters, options).Result;
         if (result.Canceled) return false;
         return true;
     }

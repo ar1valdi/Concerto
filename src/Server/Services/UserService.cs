@@ -93,6 +93,15 @@ public class UserService
 		await _identityManagerService.VerifyUser(subjectId);
 		var user = await _identityManagerService.UserFromIdentity(subjectId);
 		await _context.Users.AddAsync(user);
+		
+		var workspaceUser = new Data.Models.WorkspaceUser
+		{
+			WorkspaceId = -1,
+			UserId = user.Id,
+			Role = Data.Models.WorkspaceUserRole.Member
+		};
+		await _context.WorkspaceUsers.AddAsync(workspaceUser);
+		
 		await _context.SaveChangesAsync();
 	}
 

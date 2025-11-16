@@ -4,8 +4,7 @@
     "home": "Strona główna",
     "adminPanel": "Panel administracyjny",
     "videoRecorder": "Rejestrator wideo",
-    "storage": "Zasoby",
-    "workspaces": "Przestrzenie robocze"
+    "storage": "Zasoby"
   },
   "home": {
     "title": "Strona główna",
@@ -32,22 +31,6 @@
     "notFoundTitle": "Nie znaleziono",
     "notFoundBody": "Przepraszamy, pod tym adresem nic nie ma."
   },
-  "workspace": {
-    "contentTab": "Zawartość",
-    "sessionsTab": "Sesje",
-    "forumTab": "Forum",
-    "settingsTab": "Ustawienia",
-    "forumTitle": "Forum przestrzeni roboczej",
-    "errorNoAccess": "Przestrzeń robocza nie istnieje lub nie masz dostępu"
-  },
-  "session": {
-    "meetingTab": "Spotkanie",
-    "recordingsTab": "Nagrania",
-    "workspaceContentTab": "Zawartość przestrzeni",
-    "workspaceForumTab": "Forum przestrzeni",
-    "sessionSettingsTab": "Ustawienia sesji",
-    "errorNoAccess": "Sesja nie istnieje lub nie masz dostępu"
-  },
   "profile": {
     "title": "Twój profil",
     "details": "Szczegóły",
@@ -71,7 +54,7 @@
     "recordingPrefix": "Nagranie-",
     "recordButton": "Nagrywaj",
     "stopButton": "Zatrzymaj",
-    "saveInWorkspace": "Zapisz w przestrzeni roboczej",
+    "saveInApp": "Zapisz w Concerto",
     "saveOnComputer": "Zapisz na komputerze",
     "discardButton": "Odrzuć",
     "noneOption": "Brak",
@@ -86,40 +69,6 @@
     "getClaimsButton": "Pobierz dane ClaimsPrincipal",
     "isAuthenticatedSuffix": " jest uwierzytelniony.",
     "notAuthenticated": "Użytkownik NIE jest uwierzytelniony."
-  }
-  ,
-  "workspaceList": {
-    "yourWorkspaces": "Twoje przestrzenie",
-    "search": "Szukaj",
-    "refresh": "Odśwież",
-    "createWorkspace": "Utwórz przestrzeń",
-    "more": "Więcej",
-    "refreshView": "Odśwież widok",
-    "workspaceNameHeader": "Nazwa przestrzeni",
-    "creationDateHeader": "Data utworzenia",
-    "nameColumn": "Nazwa",
-    "createdOnColumn": "Utworzono",
-    "actions": "Akcje",
-    "clone": "Sklonuj",
-    "deleteWorkspaceTitle": "Usuń przestrzeń roboczą",
-    "workspace": "przestrzeń robocza",
-    "workspaceDeleted": "Przestrzeń robocza {0} usunięta",
-    "failedToDeleteWorkspace": "Nie udało się usunąć przestrzeni roboczej {0}.",
-    "cloneWorkspaceTitle": "Sklonuj przestrzeń roboczą {0}"
-  },
-  "workspaceMemberPicker": {
-    "sortBy": "Sortuj wg",
-    "workspaceMembers": "Członkowie przestrzeni",
-    "search": "Szukaj",
-    "selectedHeader": "Zaznaczono",
-    "nameHeader": "Imię",
-    "surnameHeader": "Nazwisko",
-    "usernameHeader": "Nazwa użytkownika",
-    "selectedColumn": "Zaznaczono",
-    "nameColumn": "Imię",
-    "surnameColumn": "Nazwisko",
-    "usernameColumn": "Nazwa użytkownika",
-    "selectAll": "Zaznacz wszystko"
   },
   "userFolderPermissionPicker": {
     "addUser": "Dodaj użytkownika",
@@ -156,26 +105,6 @@
     "contributor": "Współtwórca",
     "editor": "Redaktor"
   },
-  "sessionList": {
-    "toolbarTitle": "Sesje",
-    "refresh": "Odśwież",
-    "createSession": "Utwórz sesję",
-    "more": "Więcej",
-    "refreshView": "Odśwież widok",
-    "headerName": "Nazwa",
-    "headerDate": "Data",
-    "dataLabelName": "Nazwa",
-    "dataLabelScheduledFor": "Zaplanowano na",
-    "actions": "Akcje",
-    "open": "Otwórz",
-    "delete": "Usuń",
-    "createNewSession": "Utwórz nową sesję",
-    "deleteSessionTitle": "Usuń sesję",
-    "session": "sesja",
-    "sessionDeleted": "Sesja {0} usunięta",
-    "failedToDeleteSession": "Nie udało się usunąć sesji {0}."
-  }
-  ,
   "mainLayout": {
     "manageAccount": "Zarządzaj kontem",
     "toggleTheme": "Przełącz motyw",
@@ -287,54 +216,7 @@
     "confirm": "potwierdź",
     "user": "użytkownik",
     "deleteUserTitle": "Usuń użytkownika"
-  }
-  ,
-  "workspaceSettingsManager": {
-    "discard": "Odrzuć",
-    "save": "Zapisz",
-    "delete": "Usuń",
-    "role": "Rola",
-    "yourRolePrefix": "Twoja rola",
-    "workspaceNameLabel": "Nazwa przestrzeni",
-    "workspaceUpdated": "Przestrzeń robocza zaktualizowana",
-    "failedToUpdateWorkspace": "Nie udało się zaktualizować przestrzeni roboczej",
-    "deleteWorkspaceTitle": "Usuń przestrzeń roboczą",
-    "workspace": "przestrzeń robocza",
-    "workspaceDeleted": "{0} usunięta",
-    "failedToDeleteWorkspace": "Nie udało się usunąć przestrzeni roboczej {0}."
-  }
-  ,
-  "sessionSettingsManager": {
-    "discard": "Odrzuć",
-    "save": "Zapisz",
-    "deleteSession": "Usuń sesję",
-    "nameLabel": "Nazwa",
-    "dateLabel": "Data",
-    "timeLabel": "Godzina",
-    "sessionUpdated": "Sesja zaktualizowana",
-    "failedToUpdateSession": "Nie udało się zaktualizować sesji",
-    "deleteSessionTitle": "Usuń sesję",
-    "session": "sesja",
-    "sessionDeleted": "Sesja {0} usunięta",
-    "failedToDeleteSession": "Nie udało się usunąć sesji {0}."
-  }
-  ,
-  "workspaceMemberManager": {
-    "title": "Użytkownicy",
-    "addMembers": "Dodaj członków",
-    "memberColumn": "Członek",
-    "nameColumn": "Imię",
-    "surnameColumn": "Nazwisko",
-    "usernameColumn": "Nazwa użytkownika",
-    "roleColumn": "Rola",
-    "selectAll": "Zaznacz wszystko",
-    "legend": "Legenda",
-    "legendNew": "Nowy",
-    "legendModified": "Zmodyfikowany",
-    "legendDeleted": "Usunięty",
-    "legendEditing": "Edycja"
-  }
-  ,
+  },
   "uploadManager": {
     "uploads": "Przesyłania",
     "noUploads": "Brak przesyłań",
@@ -395,7 +277,6 @@
     "open": "Otwórz",
     "delete": "Usuń",
     "download": "Pobierz",
-    "showRelatedPosts": "Pokaż powiązane posty",
     "edit": "Edytuj",
     "uploadFilesToFolder": "Prześlij pliki do folderu",
     "deleteFolderItems": "Usuń elementy folderu",
@@ -445,32 +326,13 @@
     "failedToUpdateFile": "Nie udało się zaktualizować pliku"
   },
   "selectFolderDialog": {
-    "workspace": "Przestrzeń robocza",
     "change": "Zmień",
-    "cancel": "Anuluj",
-    "selectWorkspace": "Wybierz przestrzeń roboczą"
+    "cancel": "Anuluj"
   },
   "selectFilesDialog": {
     "selectedFiles": "Wybrane pliki",
     "cancel": "Anuluj",
     "ok": "OK"
-  },
-  "postsRelatedToFileDialog": {
-    "postsRelatedTo": "Posty powiązane z",
-    "close": "Zamknij",
-    "noPostsRelatedTo": "Brak postów powiązanych z"
-  },
-  "cloneWorkspaceDialog": {
-    "workspaceName": "Nazwa przestrzeni roboczej",
-    "copyMembers": "Skopiuj członków",
-    "withRoles": "Z rolami",
-    "copyFolders": "Skopiuj foldery",
-    "withFiles": "Z plikami",
-    "withUserSpecificPermissions": "Z uprawnieniami użytkowników",
-    "cancel": "Anuluj",
-    "ok": "OK",
-    "clonedWorkspace": "Sklonowano przestrzeń roboczą",
-    "failedToCloneWorkspace": "Nie udało się sklonować przestrzeni roboczej"
   },
   "confirmationDialog": {
     "imSure": "Jestem pewien.",
@@ -484,27 +346,6 @@
     "folderNameCannotBeEmpty": "Nazwa folderu nie może być pusta",
     "folderCreated": "Folder utworzony",
     "failedToCreateFolder": "Nie udało się utworzyć folderu"
-  },
-  "createSessionDialog": {
-    "name": "Nazwa",
-    "date": "Data",
-    "time": "Godzina",
-    "cancel": "Anuluj",
-    "create": "Utwórz",
-    "sessionNameCannotBeEmpty": "Nazwa sesji nie może być pusta",
-    "timeNotSet": "Godzina nie została ustawiona",
-    "dateNotSet": "Data nie została ustawiona",
-    "sessionCreated": "Sesja utworzona",
-    "failedToCreateSession": "Nie udało się utworzyć sesji"
-  },
-  "createWorkspaceDialog": {
-    "workspaceName": "Nazwa przestrzeni roboczej",
-    "workspaceDescription": "Opis przestrzeni roboczej",
-    "cancel": "Anuluj",
-    "create": "Utwórz",
-    "workspaceNameCannotBeEmpty": "Nazwa przestrzeni roboczej nie może być pusta",
-    "workspaceCreated": "Przestrzeń robocza utworzona",
-    "failedToCreateWorkspace": "Nie udało się utworzyć przestrzeni roboczej"
   },
   "inputStringDialog": {
     "cancel": "Anuluj",
