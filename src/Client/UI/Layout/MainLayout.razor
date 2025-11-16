@@ -66,7 +66,10 @@
 							</MudMenuItemW>
 							</MudLink>
 							<MudMenuItemW Icon="@(_layoutState.DarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" OnTouch="()=> toggleDarkMode(!_layoutState.DarkMode)" OnClick="() => toggleDarkMode(!_layoutState.DarkMode)">@t.T("mainLayout", "toggleTheme")</MudMenuItemW>
-							<MudMenuItemW Icon="@Icons.Material.Filled.Help" OnTouch="GoToManual" OnClick="GoToManual">@t.T("mainLayout", "userManual")</MudMenuItemW>
+							<!-- 
+								Restore when updated manual is ready
+								<MudMenuItemW Icon="@Icons.Material.Filled.Help" OnTouch="GoToManual" OnClick="GoToManual">@t.T("mainLayout", "userManual")</MudMenuItemW> 
+							-->
 							<MudMenuItemW Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error" OnTouch="BeginLogout" OnClick="BeginLogout">@t.T("mainLayout", "logOut")</MudMenuItemW>
 						</ChildContent>
 					</MudMenu>
