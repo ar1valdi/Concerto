@@ -3,7 +3,7 @@ networks:
 
 services:
     concerto_server:
-        image: misphe/concerto_server:${CONCERTO_VERSION}
+        image: misphe/concerto_server:dev-1.1
         restart: always
         depends_on:
             postgres:
