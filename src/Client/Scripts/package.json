@@ -32,15 +32,19 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.4.0",
     "@microsoft/dotnet-js-interop": "^7.0.5",
+    "@microsoft/signalr": "^8.0.0",
     "eventemitter3": "^5.0.1",
     "fade-curves": "^1.0.2",
     "fade-maker": "^1.0.3",
     "file-loader": "^6.2.0",
     "inline-worker": "^1.1.0",
     "is-mobile": "^4.0.0",
-    "lodash.assign": "^4.2.0",
+    "lodash.assign": "^4.0.0",
     "lodash.defaultsdeep": "^4.6.1",
-    "lodash.forown": "^4.4.0",
+    "lodash.forown": "^4.0.0",
+    "uuid": "^13.0.0",
+    "virtual-dom": "^2.1.1",
+    "webaudio-peaks": "^1.0.0",
     "webm-duration-fix": "^1.0.4"
   }
 }

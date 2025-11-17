@@ -103,7 +103,7 @@ export class RecordingManager {
     recordingStore: RecordingStore; 
     recordingPreview: HTMLVideoElement = document.createElement("video");
 
-    canRecord = () => { return this.microphone.isActive() }; // Only require microphone, webcam is optional
+    canRecord = () => { return this.microphone.isActive() };
 
     public constructor(dotnetCaller: DotNetObject) {
         this.dotnetCaller = dotnetCaller;
