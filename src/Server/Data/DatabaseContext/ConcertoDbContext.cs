@@ -36,12 +36,6 @@ public class ConcertoDbContext : DbContext
 			.HasForeignKey(c => c.RootFolderId);
 
 		modelBuilder.Entity<Workspace>()
-			.HasOne(c => c.SessionsFolder)
-			.WithMany()
-			.IsRequired(false)
-			.HasForeignKey(c => c.SessionsFolderId);
-
-		modelBuilder.Entity<Workspace>()
 			.HasMany(c => c.Posts)
 			.WithOne(c => c.Workspace)
 			.HasForeignKey(c => c.WorkspaceId)
@@ -70,11 +64,6 @@ public class ConcertoDbContext : DbContext
 		modelBuilder.Entity<Session>()
 			.Property(p => p.MeetingGuid)
 			.HasDefaultValueSql("gen_random_uuid()");
-
-		modelBuilder.Entity<Session>()
-			.HasOne(s => s.Folder)
-			.WithOne()
-			.OnDelete(DeleteBehavior.SetNull);
 
 		// Folder entity configuration
 		// Folder n-1 Owner
