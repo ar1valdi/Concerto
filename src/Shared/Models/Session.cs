@@ -7,7 +7,6 @@ public record Session(
 	long WorkspaceId,
 	string WorkspaceName,
 	long WorkspaceRootFolderId,
-	long FolderId,
 	bool CanManage,
 	Guid MeetingGuid
 ) : EntityModel(Id);
@@ -15,8 +14,7 @@ public record Session(
 public record SessionListItem(
 	long Id,
 	string Name,
-	DateTime ScheduledDate,
-	long FolderId
+	DateTime ScheduledDate
 ) : EntityModel(Id);
 
 public record SessionSettings(

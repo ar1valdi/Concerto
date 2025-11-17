@@ -79,85 +79,12 @@ public class SessionService
 		return workspaceRole is WorkspaceUserRole.Admin or WorkspaceUserRole.Supervisor;
 	}
 
-	internal async Task<bool> DeleteSession(long sessionId)
-	{
-		var session = await _context.Sessions.FindAsync(sessionId);
-		if (session == null) return false;
-
-		// change folder type to recordings
-		var folder = await _context.Folders.FindAsync(session.FolderId);
-		if (folder != null)
-		{
-			folder.Type = FolderType.Recordings;
-		}
-		_context.Remove(session);
-		await _context.SaveChangesAsync();
-
-		if(folder != null && !(await _context.Folders.AnyAsync(f => f.ParentId == folder.Id) || await _context.UploadedFiles.AnyAsync(f => f.FolderId == folder.Id)))
-		{
-			_context.Folders.Remove(folder);
-			await _context.SaveChangesAsync();
-		}
-
-		return true;
-	}
-
-	public async Task<long?> CreateSession(Dto.CreateSessionRequest request, Guid ownerId)
-	{
-		var workspace = await _context.Workspaces
-			.Include(r => r.WorkspaceUsers)
-			.ThenInclude(ru => ru.User)
-			.FirstOrDefaultAsync(r => r.Id == request.WorkspaceId);
-
-		if (workspace == null || !workspace.SessionsFolderId.HasValue)
-			return null;
-
-		var createFolderRequest = new Dto.CreateFolderRequest
-		{
-			ParentId = workspace.SessionsFolderId.Value!,
-			Name = request.Name,
-			Type = Dto.FolderType.Sessions,
-			WorkspacePermission = new Dto.FolderPermission(Dto.FolderPermissionType.ReadWriteOwned, false)
-		};
-
-		var folderId = await _storageService.CreateFolder(createFolderRequest, ownerId);
-		if (folderId == null)
-			return null;
-
-		var session = new Data.Models.Session
-		{
-			Name = request.Name,
-			ScheduledDate = request.ScheduledDateTime.ToUniversalTime(),
-			Workspace = workspace,
-			FolderId = folderId.Value
-		};
-
-		await _context.Sessions.AddAsync(session);
-		await _context.SaveChangesAsync();
-		return session.Id;
-	}
-
 	internal async Task<IEnumerable<Dto.SessionListItem>> GetWorkspaceSessions(long workspaceId)
 	{
 		return await _context.Sessions
 			.Where(s => s.Workspace.Id == workspaceId)
 			.Select(s => s.ToSessionListItem())
 			.ToListAsync();
-	}
-
-	internal async Task<bool> UpdateSession(Dto.UpdateSessionRequest request)
-	{
-		var session = await _context.Sessions.FindAsync(request.SessionId);
-		if (session == null)
-			return false;
-
-		session.Name = request.Name;
-		session.ScheduledDate = request.ScheduledDateTime.ToUniversalTime();
-
-		await _context.Entry(session).Reference(s => s.Folder).LoadAsync();
-		session.Folder.Name = request.Name;
-		await _context.SaveChangesAsync();
-		return true;
 	}
 
 	public async Task<Dto.SessionSettings?> GetSessionSettings(long sessionId)

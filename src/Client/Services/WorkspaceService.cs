@@ -21,11 +21,3 @@ public class WorkspaceService : WorkspaceClient, IWorkspaceService
     }
 }
 
-public interface ISessionService : ISessionClient { }
-
-public class SessionService : SessionClient, ISessionService
-{
-    public SessionService(HttpClient httpClient) : base(httpClient) { }
-}
-
-

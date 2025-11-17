@@ -35,14 +35,11 @@ public class WorkspaceService
 		await _context.SaveChangesAsync();
 
 		var rootFolder = Folder.NewRoot(workspace.Id);
-		var sessionsFolder = Folder.NewSessionsFolder(workspace.Id);
 
 		await _context.Folders.AddAsync(rootFolder);
-		await _context.Folders.AddAsync(sessionsFolder);
 		await _context.SaveChangesAsync();
 
 		workspace.RootFolderId = rootFolder.Id;
-		workspace.SessionsFolderId = sessionsFolder.Id;
 
 		await _context.SaveChangesAsync();
 
@@ -171,7 +168,6 @@ public class WorkspaceService
 
 		await _context.Entry(workspace).Reference(c => c.RootFolder).LoadAsync();
 		await _context.Entry(workspace).Collection(c => c.Sessions).LoadAsync();
-		await _context.Entry(workspace).Reference(c => c.SessionsFolder).LoadAsync();
 
 		await using var transaction = _context.Database.BeginTransaction();
 
@@ -180,9 +176,6 @@ public class WorkspaceService
 
 		if (workspace.RootFolder != null)
 			await _storageService.DeleteFolder(workspace.RootFolder.Id);
-
-		if (workspace.SessionsFolder != null)
-			await _storageService.DeleteFolder(workspace.SessionsFolder.Id);
 
 		_context.Remove(workspace);
 		await _context.SaveChangesAsync();

@@ -171,9 +171,6 @@ namespace Concerto.Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("FolderId")
-                        .HasColumnType("bigint");
-
                     b.Property<Guid>("MeetingGuid")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
@@ -190,9 +187,6 @@ namespace Concerto.Server.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("FolderId")
-                        .IsUnique();
 
                     b.HasIndex("MeetingGuid");
 
@@ -397,14 +391,9 @@ namespace Concerto.Server.Migrations
                     b.Property<long?>("RootFolderId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("SessionsFolderId")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
 
                     b.HasIndex("RootFolderId");
-
-                    b.HasIndex("SessionsFolderId");
 
                     b.ToTable("Workspaces");
                 });
@@ -531,19 +520,11 @@ namespace Concerto.Server.Migrations
 
             modelBuilder.Entity("Concerto.Server.Data.Models.Session", b =>
                 {
-                    b.HasOne("Concerto.Server.Data.Models.Folder", "Folder")
-                        .WithOne()
-                        .HasForeignKey("Concerto.Server.Data.Models.Session", "FolderId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .IsRequired();
-
                     b.HasOne("Concerto.Server.Data.Models.Workspace", "Workspace")
                         .WithMany("Sessions")
                         .HasForeignKey("WorkspaceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Folder");
 
                     b.Navigation("Workspace");
                 });
@@ -651,13 +632,7 @@ namespace Concerto.Server.Migrations
                         .WithMany()
                         .HasForeignKey("RootFolderId");
 
-                    b.HasOne("Concerto.Server.Data.Models.Folder", "SessionsFolder")
-                        .WithMany()
-                        .HasForeignKey("SessionsFolderId");
-
                     b.Navigation("RootFolder");
-
-                    b.Navigation("SessionsFolder");
                 });
 
             modelBuilder.Entity("Concerto.Server.Data.Models.WorkspaceUser", b =>
