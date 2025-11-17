@@ -177,6 +177,10 @@ public class SessionService
 
 	public async Task<string> GenerateMeetingToken(Guid userId, Guid roomGuid)
 	{
+		// Jitsi disabled - return empty token
+		return string.Empty;
+		
+		/* Jitsi token generation disabled
 		var user = await _context.Users.FindAsync(userId);
 		if (user == null)
 			throw new Exception("User not found");
@@ -209,6 +213,7 @@ public class SessionService
 		);
 		Console.WriteLine(token.ToString());
 		return tokenHandler.WriteToken(token);
+		*/
 	}
 }
 
