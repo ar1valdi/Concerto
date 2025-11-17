@@ -1,4 +1,4 @@
-Pracy dyplomowa inżynierska Concerto o tytule "System wspierania zdalnego uczenia muzyki i koncertów online". 
+Praca dyplomowa inżynierska Concerto o tytule "System wspierania zdalnego uczenia muzyki i koncertów online". 
 
 # O aplikacji
 Aplikacja Concerto to kompleksowy system wspierający zdalne uczenie muzyki i organizację koncertów online. Głównym celem aplikacji jest umożliwienie użytkownikom nauki muzyki poprzez oglądanie streamowanych koncertów na żywo oraz przeglądanie i analizowanie nut powiązanych z nagraniami. System pełni rolę zaawansowanego repozytorium multimedialnego, które łączy w sobie funkcjonalności przechowywania zasobów muzycznych, streamingu wideo w czasie rzeczywistym oraz nagrywania i archiwizacji koncertów. Aplikacja oferuje wielojęzyczne wsparcie dzięki dynamicznemu systemowi tłumaczeń zintegrowanemu z CMS, co pozwala na łatwe zarządzanie treścią i dostosowanie interfejsu do różnych użytkowników. Dzięki zaawansowanemu systemowi autoryzacji opartemu na Keycloak, każdy użytkownik ma dostęp jedynie do zasobów, do których został uprawniony, zapewniając bezpieczne i spersonalizowane środowisko do nauki muzyki.
