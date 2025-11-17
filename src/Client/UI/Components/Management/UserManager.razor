@@ -138,7 +138,7 @@
 
 	private async Task VerifyUser(UserIdentity user)
 	{
-		if (!await DialogService.ShowConfirmationDialog(translationsService.T("userManager", "verifyUserTitle"), translationsService.T("userManager", "confirm"), translationsService.T("userManager", "user"), $"{user.FullName} ({user.Username}) ({user.Email})"))
+		if (!await DialogService.ShowConfirmationDialog(translationsService, translationsService.T("userManager", "verifyUserTitle"), translationsService.T("userManager", "confirm"), translationsService.T("userManager", "user"), $"{user.FullName} ({user.Username}) ({user.Email})"))
 			return;
 		await AccountService.VerifiyUserAsync(user.SubjectId);
 		await Load();
@@ -146,7 +146,7 @@
 
 	private async Task DeleteUser(UserIdentity user)
 	{
-		if (!await DialogService.ShowConfirmationDialog(translationsService.T("userManager", "deleteUserTitle"), translationsService.T("common", "delete"), translationsService.T("userManager", "user"), $"{user.FullName} ({user.Username}) ({user.Email})", true))
+		if (!await DialogService.ShowConfirmationDialog(translationsService, translationsService.T("userManager", "deleteUserTitle"), translationsService.T("common", "delete"), translationsService.T("userManager", "user"), $"{user.FullName} ({user.Username}) ({user.Email})", true))
 			return;
 		await AccountService.DeleteUserAsync(user.SubjectId);
 		await Load();
@@ -154,7 +154,7 @@
 
 	private async Task UpdateUser(UserIdentity user)
 	{
-		if(await DialogService.ShowUpdateUserDialog(user))
+		if(await DialogService.ShowUpdateUserDialog(translationsService, user))
 			await Load();
 	}
 

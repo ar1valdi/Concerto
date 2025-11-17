@@ -484,7 +484,11 @@
 
 	protected override async Task OnParametersSetAsync()
 	{
-		if(InitialFolderId is not null && (CurrentFolderId != InitialFolderId || _initialFolderId != InitialFolderId))
+		var shouldReload = InitialFolderId is not null && 
+			(_initialFolderId != InitialFolderId || 
+			(!HideManagementButtons && CurrentFolderId != InitialFolderId));
+			
+		if(shouldReload)
 		{
 			_initialFolderId = InitialFolderId;
 
@@ -574,7 +578,7 @@
 		try
 		{
 			var itemsNames = string.Join(",\n\n", SelectedItems.Select(x => x.Name));
-			if (!await DialogService.ShowDeleteManyConfirmationDialog(@t.T("fileManager", "deleteFolderItems"), @t.T("fileManager", "folderItems"), itemsNames)) return;
+			if (!await DialogService.ShowDeleteManyConfirmationDialog(t, @t.T("fileManager", "deleteFolderItems"), @t.T("fileManager", "folderItems"), itemsNames)) return;
 			await StorageService.DeleteFolderItemsAsync(request);
 			SelectionMode = false;
 			Snackbar.Add(@t.T("fileManager", "itemsDeleted"), Severity.Success);
@@ -643,7 +647,7 @@
 	{
 		try
 		{
-			if (!await DialogService.ShowConfirmationDialog(@t.T("fileManager", "deleteFolder"), @t.T("fileManager", "delete"), @t.T("fileManager", "folder"), folder.Name)) return;
+			if (!await DialogService.ShowConfirmationDialog(t, @t.T("fileManager", "deleteFolder"), @t.T("fileManager", "delete"), @t.T("fileManager", "folder"), folder.Name)) return;
 			await StorageService.DeleteFolderAsync(folder.Id);
 			Snackbar.Add(@t.T("fileManager", "folderDeleted"), Severity.Success);
 		}
@@ -659,7 +663,7 @@
 	{
 		try
 		{
-			if (!await DialogService.ShowConfirmationDialog(@t.T("fileManager", "deleteFile"), @t.T("fileManager", "delete"), @t.T("fileManager", "file"), file.Name)) return;
+			if (!await DialogService.ShowConfirmationDialog(t, @t.T("fileManager", "deleteFile"), @t.T("fileManager", "delete"), @t.T("fileManager", "file"), file.Name)) return;
 			await StorageService.DeleteFileAsync(file.Id);
 			Snackbar.Add(@t.T("fileManager", "fileDeleted"), Severity.Success);
 		}
