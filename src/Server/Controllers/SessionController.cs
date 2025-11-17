@@ -98,7 +98,9 @@ public class SessionController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status400BadRequest)]
 	public async Task<ActionResult<Guid>> RecordingFinished([FromBody] RecordingFinishedRequest request)
 	{
-		if(request.RecorderKey != AppSettings.Meetings.RecorderKey) return Unauthorized();
+		// Jitsi disabled - always return Unauthorized
+		return Unauthorized();
+		// if(request.RecorderKey != AppSettings.Meetings.RecorderKey) return Unauthorized();
 
 		try
 		{
