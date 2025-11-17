@@ -484,7 +484,11 @@
 
 	protected override async Task OnParametersSetAsync()
 	{
-		if(InitialFolderId is not null && (CurrentFolderId != InitialFolderId || _initialFolderId != InitialFolderId))
+		var shouldReload = InitialFolderId is not null && 
+			(_initialFolderId != InitialFolderId || 
+			(!HideManagementButtons && CurrentFolderId != InitialFolderId));
+			
+		if(shouldReload)
 		{
 			_initialFolderId = InitialFolderId;
 
