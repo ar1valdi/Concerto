@@ -1,0 +1,12 @@
+\contentsline {chapter}{Wykaz ważniejszych oznaczeń i skrótów}{5}{chapter*.4}%
+\contentsline {chapter}{\numberline {1}\MakeUppercase []{Wstęp i cel pracy}}{6}{chapter.1}%
+\contentsline {chapter}{\numberline {2}\MakeUppercase []{Przegląd rozwiązań}}{7}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Podrozdział 1}{7}{section.2.1}%
+\contentsline {chapter}{\numberline {3}\MakeUppercase []{Implementacja}}{8}{chapter.3}%
+\contentsline {chapter}{\numberline {4}\MakeUppercase []{Eksperymenty i rezultaty}}{9}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Eksperymenty 1}{9}{section.4.1}%
+\contentsline {chapter}{Wykaz literatury}{9}{section.4.1}%
+\contentsline {chapter}{Wykaz rysunków}{9}{section.4.1}%
+\contentsline {chapter}{Wykaz tabel}{10}{chapter*.5}%
+\contentsline {chapter}{Dodatek A}{12}{chapter*.7}%
+\contentsfinish 
