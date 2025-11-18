@@ -10,7 +10,17 @@
 		<Configurations>Debug;Release</Configurations>
 		<EnableSdkContainerSupport>true</EnableSdkContainerSupport>
 	</PropertyGroup>
-
+    
+    <Target Name="FixGlobPatternsOnArmMac" BeforeTargets="BeforeCompile;CoreCompile">
+        <ItemGroup>
+            <Compile Remove="**/*.cs" Condition="'%(Compile.FullPath)' == '**/*.cs' or '%(Compile.Identity)' == '**/*.cs'" />
+            <Compile Remove="**/*.razor" Condition="'%(Compile.FullPath)' == '**/*.razor' or '%(Compile.Identity)' == '**/*.razor'" />
+            <Content Remove="**/*.cshtml" Condition="'%(Content.FullPath)' == '**/*.cshtml' or '%(Content.Identity)' == '**/*.cshtml'" />
+            <EmbeddedResource Remove="**/*.resx" Condition="'%(EmbeddedResource.FullPath)' == '**/*.resx' or '%(EmbeddedResource.Identity)' == '**/*.resx'" />
+            <None Remove="**/*.*" Condition="'%(None.FullPath)' == '**/*.*' or '%(None.Identity)' == '**/*.*'" />
+        </ItemGroup>
+    </Target>
+    
 	<ItemGroup>
 		<Content Include="Properties\launchSettings.json" />
 	</ItemGroup>
