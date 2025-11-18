@@ -20,9 +20,9 @@ border-box *, border-box *:before, border-box *:after { box-sizing: inherit; }
 }
 
 .mud-select-input {
-    color: var(--mud-palette-appbar-text) !important;
+    color: var(--mud-palette-text-primary) !important;
 }
 
 .mud-select-input .mud-icon-root {
-    color: var(--mud-palette-appbar-text) !important;
+    color: var(--mud-palette-text-primary) !important;
 }
