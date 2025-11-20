@@ -150,6 +150,9 @@ services:
             --cert=/etc/turn/ssl/${SSL_CERTIFICATE_FILENAME}
             --pkey=/etc/turn/ssl/${SSL_CERTIFICATE_KEY_FILENAME}
             --no-cli
+            --listening-ip=0.0.0.0
+            --relay-ip=${RELAY_IP}
+            --external-ip=${SERVER_IP}/${RELAY_IP}
         volumes:
             - ${CONCERTO_VOLUME_PATH:?}/ssl:/etc/turn/ssl:ro
         ports:
