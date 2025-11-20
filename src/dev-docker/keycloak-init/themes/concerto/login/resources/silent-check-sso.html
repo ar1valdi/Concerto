@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Concerto Silent Check</title>
+    <script>
+        (function () {
+            function buildResult() {
+                var result = {
+                    message: "kcSilentRefresh",
+                    hash: window.location.hash || "",
+                    search: window.location.search || "",
+                    href: window.location.href
+                };
+
+                if (window.location.hash) {
+                    window.location.hash.substring(1).split("&").forEach(function (pair) {
+                        var parts = pair.split("=");
+                        if (parts.length === 2) {
+                            result[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
+                        }
+                    });
+                }
+
+                return result;
+            }
+
+            function resolveParentOrigin() {
+                try {
+                    var url = new URL(document.referrer);
+                    return url.origin;
+                } catch (err) {
+                    return "*";
+                }
+            }
+
+            try {
+                var payload = buildResult();
+                var parentOrigin = resolveParentOrigin();
+                window.parent.postMessage(payload, parentOrigin);
+            } catch (err) {
+                window.parent.postMessage({ message: "kcSilentRefreshError", error: err && err.message ? err.message : err }, "*");
+            }
+        })();
+    </script>
+</head>
+<body>
+</body>
+</html>

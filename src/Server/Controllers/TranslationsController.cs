@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace Concerto.Server.Controllers;
 [Route("[controller]/[action]")]
 [ApiController]
-[Authorize]
 public class TranlsationsController : ControllerBase
 {
 	private readonly ITranslationsService _translationsService;

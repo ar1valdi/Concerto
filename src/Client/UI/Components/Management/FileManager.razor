@@ -5,6 +5,7 @@
 
 @inject IDialogService DialogService
 @inject IStorageService StorageService
+@inject IAccessTokenProvider AccessTokenProvider
 @inject ISnackbar Snackbar;
 @inject ITranslationsService t;
 
@@ -484,10 +485,13 @@
 
 	protected override async Task OnParametersSetAsync()
 	{
+		if (!await EnsureAuthenticatedAsync())
+			return;
+
 		var shouldReload = InitialFolderId is not null && 
 			(_initialFolderId != InitialFolderId || 
 			(!HideManagementButtons && CurrentFolderId != InitialFolderId));
-			
+        
 		if(shouldReload)
 		{
 			_initialFolderId = InitialFolderId;
@@ -534,6 +538,12 @@
 
 	private async Task LoadFolderContent(long folderId)
 	{
+		if (!await EnsureAuthenticatedAsync())
+		{
+			_loading = false;
+			return;
+		}
+
 		_loading = true;
 		_lastRefreshCancellation?.Cancel();
 		_lastRefreshCancellation = new();
@@ -589,6 +599,12 @@
 			Snackbar.Add(@t.T("fileManager", "failedToDeleteItems"), Severity.Error);
 			await Refresh();
 		}
+	}
+
+	private async Task<bool> EnsureAuthenticatedAsync()
+	{
+		var tokenResult = await AccessTokenProvider.RequestAccessToken();
+		return tokenResult.TryGetToken(out _);
 	}
 
 	public async Task MoveSelected()

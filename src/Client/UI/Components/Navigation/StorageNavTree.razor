@@ -1,8 +1,11 @@
 ﻿@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject IStorageService StorageService
 @inject NavigationManager Navigation
 @inject IDialogService DialogService
 @inject HubConnection HubConnection
+@inject IAccessTokenProvider AccessTokenProvider
+@implements IDisposable
 
 <div class="storage-tree">
     @foreach (var node in _rootNodes)
@@ -18,11 +21,14 @@
 @code {
     private HashSet<TreeItemData> _rootNodes = new();
     private HashSet<long> _expandedNodeIds = new();
+    private EventHandler<long>? _uploadHandler;
+    private IDisposable? _treeUpdatedSubscription;
 
     protected override async Task OnInitializedAsync()
     {
-        StorageService.OnUploadedToFolderEventHandler += (_, id) => _ = RefreshTree();
-        HubConnection.On<long?>("TreeUpdated", async _ => await RefreshTree());
+        _uploadHandler = (_, _) => _ = RefreshTree();
+        StorageService.OnUploadedToFolderEventHandler += _uploadHandler;
+        _treeUpdatedSubscription = HubConnection.On<long?>("TreeUpdated", async _ => await RefreshTree());
 
         if (HubConnection.State == HubConnectionState.Disconnected)
             await HubConnection.StartAsync();
@@ -38,8 +44,11 @@
         return nodes;
     }
 
-    private async Task<HashSet<TreeItemData>> LoadNodesAsync(long folderId)
+    private async Task<HashSet<TreeItemData>> LoadNodesAsync(long folderId, bool skipAuthCheck = false)
     {
+        if (!skipAuthCheck && !await EnsureAuthenticatedAsync())
+            return new HashSet<TreeItemData>();
+
         var content = await StorageService.GetFolderContentAsync(folderId);
         var nodes = content.SubFolders
             .Select(folder => new TreeItemData { Expandable = folder.HasChildren, Item = folder })
@@ -49,7 +58,7 @@
         foreach (var node in nodes.Where(n => n.IsFolder && _expandedNodeIds.Contains(n.Id)))
         {
             node.Expanded = true;
-            node.Children = await LoadNodesAsync(node.Id);
+            node.Children = await LoadNodesAsync(node.Id, skipAuthCheck: true);
         }
 
         return nodes;
@@ -57,8 +66,17 @@
 
     private async Task RefreshTree()
     {
-        _rootNodes = await LoadNodesAsync(-1);
+        if (!await EnsureAuthenticatedAsync())
+            return;
+
+        _rootNodes = await LoadNodesAsync(-1, skipAuthCheck: true);
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task<bool> EnsureAuthenticatedAsync()
+    {
+        var tokenResult = await AccessTokenProvider.RequestAccessToken();
+        return tokenResult.TryGetToken(out _);
     }
 
     private Task OnToggleExpand(TreeItemData node, bool expanded)
@@ -77,5 +95,13 @@
             Navigation.NavigateTo($"storage/{node.Id}");
         else if (node.Item is FileItem file)
             await DialogService.ShowFilePreviewDialog(file);
+    }
+
+    public void Dispose()
+    {
+        if (_uploadHandler is not null)
+            StorageService.OnUploadedToFolderEventHandler -= _uploadHandler;
+
+        _treeUpdatedSubscription?.Dispose();
     }
 }

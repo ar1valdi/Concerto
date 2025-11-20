@@ -77,6 +77,7 @@ services:
                 condition: service_healthy
         volumes:
             - ${CONCERTO_VOLUME_PATH}/keycloak:/var/lib/keycloak/data
+            - ./keycloak-init/themes/concerto:/opt/keycloak/themes/concerto:ro
         environment:
             KC_DB_USERNAME: ${KC_DB_USERNAME}
             KC_DB_PASSWORD: ${KC_DB_PASSWORD}
