@@ -40,6 +40,12 @@ services:
             SERVER_CLIENT_ID: ${SERVER_CLIENT_ID}
             SERVER_CLIENT_SECRET: ${SERVER_CLIENT_SECRET}
 
+            TURN_DOMAIN: ${TURN_DOMAIN}
+            TURN_USERNAME: ${TURN_USERNAME}
+            TURN_PASSWORD: ${TURN_PASSWORD}
+            TURN_STUN_PORT: ${TURN_STUN_PORT}
+            TURN_TLS_PORT: ${TURN_TLS_PORT}
+
     proxy:
         image: misphe/concerto_nginx:${CONCERTO_NGINX_VERSION}
         restart: always
@@ -49,6 +55,9 @@ services:
         ports:
             - 80:80
             - 443:443
+            - 3478:3478
+            - 3478:3478/udp
+            - 5349:5349
         environment:
             BASE_PATH: ${CONCERTO_BASE_PATH}
             CONCERTO_DOMAIN: ${CONCERTO_DOMAIN:?}
@@ -123,3 +132,28 @@ services:
             - ${CONCERTO_VOLUME_PATH}/pgadmin:/var/lib/pgadmin
         networks:
             - concerto
+
+    coturn:
+        image: coturn/coturn:4.6
+        restart: unless-stopped
+        command: >
+            turnserver
+            --log-file=stdout
+            --realm=${TURN_DOMAIN}
+            --server-name=${TURN_DOMAIN}
+            --listening-port=${TURN_STUN_PORT}
+            --tls-listening-port=${TURN_TLS_PORT}
+            --min-port=${TURN_UDP_MIN_PORT}
+            --max-port=${TURN_UDP_MAX_PORT}
+            --fingerprint
+            --lt-cred-mech
+            --user=${TURN_USERNAME}:${TURN_PASSWORD}
+            --cert=/etc/turn/ssl/${SSL_CERTIFICATE_FILENAME}
+            --pkey=/etc/turn/ssl/${SSL_CERTIFICATE_KEY_FILENAME}
+            --no-loopback-peers
+            --no-multicast-peers
+            --no-cli
+        volumes:
+            - ${CONCERTO_VOLUME_PATH:?}/ssl:/etc/turn/ssl:ro
+        networks:
+            concerto:

@@ -84,8 +84,6 @@ export class RecordingManager {
 
     webcam: Webcam = new Webcam();
     microphone: Microphone = new Microphone();
-    
-    videoPreview: HTMLVideoElement = document.createElement("video");
 
     canvas: HTMLCanvasElement = document.createElement("canvas");
     canvasContext: CanvasRenderingContext2D;
@@ -111,12 +109,11 @@ export class RecordingManager {
         this.canvasContext = this.canvas.getContext("2d");
         this.canvasStream = this.canvas.captureStream(30);
 
-        this.videoPreview.controls = false;
-        this.videoPreview.muted = true;
-        this.videoPreview.autoplay = true;
-        this.videoPreview.style.pointerEvents = "none";
-        this.videoPreview.srcObject = this.canvasStream;
-        this.videoPreview.classList.add("preview");
+        // Setup canvas for preview
+        this.canvas.style.width = "100%";
+        this.canvas.style.height = "100%";
+        this.canvas.style.objectFit = "contain";
+        this.canvas.classList.add("preview");
 
         this.recordingPreview.controls = true;
         this.recordingPreview.style.display = "none";
@@ -155,12 +152,12 @@ export class RecordingManager {
 
     public appendPreviews(parentId: string) {
             let videoPreviewParent = document.getElementById(parentId);
-            videoPreviewParent.appendChild(this.videoPreview);
+            videoPreviewParent.appendChild(this.canvas);
             videoPreviewParent.appendChild(this.recordingPreview);
     }
 
     public removePreview() {
-        this.videoPreview?.remove();
+        this.canvas?.remove();
         this.recordingPreview?.remove();
     }
 
@@ -214,13 +211,6 @@ export class RecordingManager {
 
         this.recorder.onstop = () => recordingManager.finishRecording();
 
-        // stop recording on stream inactive
-        // this.screenMediaStream?.getTracks().forEach((track) => {
-        //     track.onended = async () => {
-        //         await recordingManager.stopRecording();
-        //     };
-        // });
-
         this.recorder.start(this.saveInterval);
         window.enablePreventWindowClose("recording");
         await this.dotnetCaller.invokeMethodAsync("RecordingStateChanged", true);
@@ -238,10 +228,9 @@ export class RecordingManager {
 
         let output = this.recordingStore.getOutput();
 
-        // await this.dotnetCaller.invokeMethodAsync("RecordingStateChanged", false);
         await this.dotnetCaller.invokeMethodAsync("RecordingFinished", DotNet.createJSStreamReference(output), this.recordingStore.extension);
 
-        this.videoPreview.style.display = "none";
+        this.canvas.style.display = "none";
         this.recordingPreview.style.display = "initial";
         this.recordingPreview.controls = true;
         this.recordingPreview.src = URL.createObjectURL(output);
@@ -249,7 +238,7 @@ export class RecordingManager {
     }
 
     public finalizeRecording() {
-        this.videoPreview.style.display = "initial";
+        this.canvas.style.display = "initial";
         this.recordingPreview.style.display = "none";
         URL.revokeObjectURL(this.recordingPreview.src);
         this.recordingPreview.src = "";
@@ -360,6 +349,8 @@ class Webcam
         this.preview = document.createElement("video");
         this.preview.muted = true;
         this.preview.autoplay = true;
+        this.preview.playsInline = true; // Critical for mobile devices, especially iOS
+        this.preview.setAttribute('playsinline', ''); // Additional attribute for compatibility
     }
 
     public isActive = () => this.active;
@@ -400,13 +391,20 @@ class Webcam
         this.height = settings.height;
 
         this.preview.srcObject = this.stream;
-        this.preview.play();
+        
+        // Ensure video plays on mobile
+        try {
+            await this.preview.play();
+        } catch (e) {
+            console.warn("Failed to autoplay video, this is expected on some mobile browsers", e);
+        }
+        
         this.active = true;
     }
 
     public stop() {
         this.stream?.getTracks().forEach((track) => track.stop());
-        this.preview.remove();
+        this.preview.srcObject = null;
         this.deviceId = null;
         this.width = this.height = null;
         this.active = false;

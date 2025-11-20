@@ -1,5 +1,6 @@
 global using Dto = Concerto.Shared.Models.Dto;
 using Concerto.Server.Data.DatabaseContext;
+using Concerto.Server.Extensions;
 using Concerto.Server.Hubs;
 using Concerto.Server.Middlewares;
 using Concerto.Server.Services;
