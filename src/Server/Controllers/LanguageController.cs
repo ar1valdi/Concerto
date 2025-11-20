@@ -8,7 +8,6 @@ namespace Concerto.Server.Controllers;
 
 [Route("[controller]")]
 [ApiController]
-[Authorize]
 public class LanguagesController : ControllerBase
 {
     private readonly ILanguageManagementService _languageManagementService;
