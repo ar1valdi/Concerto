@@ -1,5 +1,8 @@
 networks:
-    concerto: {}
+    concerto:
+        ipam:
+            config:
+                - subnet: 172.18.0.0/16
 
 services:
     concerto_server:
@@ -163,3 +166,4 @@ services:
             - "${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}:${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}/udp"
         networks:
             concerto:
+                ipv4_address: 172.18.0.4

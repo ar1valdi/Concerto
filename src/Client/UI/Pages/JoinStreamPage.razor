@@ -148,6 +148,7 @@
 
     private DotNetObjectReference<JoinStreamPage> _dotNetObjectReference = null!;
     private IJSObjectReference? _streamViewer;
+    private (string streamId, string hostConnectionId)? _pendingStreamJoined;
 
     protected override void OnInitialized()
     {
@@ -186,6 +187,13 @@
 
             // Initialize viewer FIRST, before connecting to SignalR
             _streamViewer = await JS.InvokeAsync<IJSObjectReference>("initializeStreamViewer", "streamVideo", StreamIdInput, _dotNetObjectReference);
+
+            if (_pendingStreamJoined is not null)
+            {
+                var pending = _pendingStreamJoined.Value;
+                _pendingStreamJoined = null;
+                await _streamViewer.InvokeVoidAsync("handleStreamJoined", pending.streamId, pending.hostConnectionId);
+            }
             
             Console.WriteLine("Stream viewer initialized and connected to SignalR");
         }
@@ -204,6 +212,7 @@
             await _streamViewer.InvokeVoidAsync("dispose");
             _streamViewer = null;
         }
+        _pendingStreamJoined = null;
         
         IsConnected = false;
         IsConnecting = false;
@@ -264,6 +273,10 @@
         {
             await _streamViewer.InvokeVoidAsync("handleStreamJoined", streamId, hostConnectionId);
         }
+        else
+        {
+            _pendingStreamJoined = (streamId, hostConnectionId);
+        }
     }
 
     [JSInvokable]
@@ -307,6 +320,7 @@
         {
             await _streamViewer.InvokeVoidAsync("dispose");
         }
+        _pendingStreamJoined = null;
         _dotNetObjectReference?.Dispose();
     }
 }
