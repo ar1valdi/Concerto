@@ -57,6 +57,26 @@ public static class AppSettings
         public static string DbString = EnvironmentHelper.GetVariable("DB_STRING");
     }
 
+    public static class Turn
+    {
+        private static int ParsePort(string variableName, int defaultValue)
+        {
+            var value = EnvironmentHelper.GetVariable(variableName);
+            return int.TryParse(value, out var parsed) && parsed > 0 ? parsed : defaultValue;
+        }
+
+        public static string Domain = EnvironmentHelper.GetVariable("TURN_DOMAIN");
+        public static string Username = EnvironmentHelper.GetVariable("TURN_USERNAME");
+        public static string Password = EnvironmentHelper.GetVariable("TURN_PASSWORD");
+        public static int StunPort = ParsePort("TURN_STUN_PORT", 3478);
+        public static int TlsPort = ParsePort("TURN_TLS_PORT", 5349);
+        public static int RelayMinPort = ParsePort("TURN_UDP_MIN_PORT", 10000);
+        public static int RelayMaxPort = ParsePort("TURN_UDP_MAX_PORT", 10100);
+
+        public static bool IsConfigured => !string.IsNullOrWhiteSpace(Domain);
+        public static bool HasCredentials => !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
+    }
+
     public static class Meetings { }
 }
 

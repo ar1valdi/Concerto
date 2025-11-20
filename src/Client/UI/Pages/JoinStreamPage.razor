@@ -1,8 +1,9 @@
-@page "/joinstream"
+﻿@page "/joinstream"
 @using Concerto.Client.Services;
+@using Concerto.Shared.Extensions;
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 @using Microsoft.AspNetCore.Authorization;
-@attribute [Authorize]
+@attribute [Authorize(Policy = AuthorizationPolicies.IsAuthenticated.Name)]
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 @inject IAccessTokenProvider _accessTokenProvider
@@ -71,80 +72,71 @@
     }
 </style>
 
-@if (LayoutState.IsMobile)
-{
-    <div class="d-flex align-center justify-center" style="height: 100%">
-        <MudText role="alert" Style="text-align: center; margin:auto;" Typo="Typo.h4">Feature unavailable on mobile devices</MudText>
-    </div>
-}
-else
-{
-    <div class="container">
-        @if (!IsConnected)
-        {
-            <div class="join-form">
-                <MudText Typo="Typo.h4" Class="mb-4">Join Live Stream</MudText>
-                
-                <MudTextField @bind-Value="StreamIdInput" 
-                             Label="Stream ID" 
-                             Placeholder="Enter the stream ID shared by the host"
-                             Variant="Variant.Filled"
-                             Class="mb-4"
-                             Disabled="@IsConnecting" />
-                
-                <MudButton Color="Color.Primary" 
-                          Variant="Variant.Filled" 
-                          FullWidth="true"
-                          OnClick="JoinStreamAsync"
-                          Disabled="@(string.IsNullOrWhiteSpace(StreamIdInput) || IsConnecting)">
-                    @if (IsConnecting)
-                    {
-                        <MudProgressCircular Size="Size.Small" Class="mr-2" />
-                        <span>Connecting...</span>
-                    }
-                    else
-                    {
-                        <span>Join Stream</span>
-                    }
-                </MudButton>
-
-                @if (!string.IsNullOrEmpty(StatusMessage))
-                {
-                    <div class="status-message @GetStatusClass()">
-                        @StatusMessage
-                    </div>
-                }
-            </div>
-        }
-        else
-        {
-            <div style="width: 100%; text-align: center; margin-bottom: 20px;">
-                <MudText Typo="Typo.h5" Style="color: #2e7d32;">?? Connected to Stream: @StreamIdInput</MudText>
-                <MudButton Color="Color.Error" 
-                          Variant="Variant.Filled" 
-                          OnClick="LeaveStream"
-                          Class="mt-2">
-                    Leave Stream
-                </MudButton>
-            </div>
-        }
-
-        <div class="stream-preview">
-            <video id="streamVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: contain; display: @(IsConnected ? "block" : "none");"></video>
-            @if (!IsConnected)
-            {
+<div class="container">
+    @if (!IsConnected)
+    {
+        <div class="join-form">
+            <MudText Typo="Typo.h4" Class="mb-4">Join Live Stream</MudText>
+            
+            <MudTextField @bind-Value="StreamIdInput" 
+                         Label="Stream ID" 
+                         Placeholder="Enter the stream ID shared by the host"
+                         Variant="Variant.Filled"
+                         Class="mb-4"
+                         Disabled="@IsConnecting" />
+            
+            <MudButton Color="Color.Primary" 
+                      Variant="Variant.Filled" 
+                      FullWidth="true"
+                      OnClick="JoinStreamAsync"
+                      Disabled="@(string.IsNullOrWhiteSpace(StreamIdInput) || IsConnecting)">
                 @if (IsConnecting)
                 {
-                    <MudText Typo="Typo.h6" Style="color: white;">Connecting to stream...</MudText>
+                    <MudProgressCircular Size="Size.Small" Class="mr-2" />
+                    <span>Connecting...</span>
                 }
                 else
                 {
-                    <MudText Typo="Typo.h6" Style="color: white;">Enter a stream ID above to join</MudText>
+                    <span>Join Stream</span>
                 }
+            </MudButton>
+
+            @if (!string.IsNullOrEmpty(StatusMessage))
+            {
+                <div class="status-message @GetStatusClass()">
+                    @StatusMessage
+                </div>
             }
         </div>
+    }
+    else
+    {
+        <div style="width: 100%; text-align: center; margin-bottom: 20px;">
+            <MudText Typo="Typo.h5" Style="color: #2e7d32;">✅ Connected to Stream: @StreamIdInput</MudText>
+            <MudButton Color="Color.Error" 
+                      Variant="Variant.Filled" 
+                      OnClick="LeaveStream"
+                      Class="mt-2">
+                Leave Stream
+            </MudButton>
+        </div>
+    }
+
+    <div class="stream-preview">
+        <video id="streamVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: contain; display: @(IsConnected ? "block" : "none");"></video>
+        @if (!IsConnected)
+        {
+            @if (IsConnecting)
+            {
+                <MudText Typo="Typo.h6" Style="color: white;">Connecting to stream...</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.h6" Style="color: white;">Enter a stream ID above to join</MudText>
+            }
+        }
     </div>
-}
+</div>
 
 @code {
     [CascadingParameter] LayoutState LayoutState { get; set; } = LayoutState.Default;
