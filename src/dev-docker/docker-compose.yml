@@ -57,9 +57,6 @@ services:
         ports:
             - 80:80
             - 443:443
-            - 3478:3478
-            - 3478:3478/udp
-            - 5349:5349
         environment:
             BASE_PATH: ${CONCERTO_BASE_PATH}
             CONCERTO_DOMAIN: ${CONCERTO_DOMAIN:?}
@@ -155,5 +152,11 @@ services:
             --no-cli
         volumes:
             - ${CONCERTO_VOLUME_PATH:?}/ssl:/etc/turn/ssl:ro
+        ports:
+            - "3478:3478"
+            - "3478:3478/udp"
+            - "5349:5349"
+            - "5349:5349/udp"
+            - "${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}:${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}/udp"
         networks:
             concerto:
