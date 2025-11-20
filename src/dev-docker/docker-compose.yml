@@ -3,7 +3,7 @@ networks:
 
 services:
     concerto_server:
-        image: misphe/concerto_server:dev-1.1
+        image: misphe/concerto_server:test-streaming-1.1
         restart: always
         depends_on:
             postgres:
@@ -47,8 +47,10 @@ services:
             TURN_TLS_PORT: ${TURN_TLS_PORT}
 
     proxy:
-        image: misphe/concerto_nginx:${CONCERTO_NGINX_VERSION}
+        image: misphe/concerto_nginx:dev-1.1
         restart: always
+        depends_on:
+            - coturn
         volumes:
             - ${CONCERTO_VOLUME_PATH:?}/acme:/etc/nginx/acme
             - ${CONCERTO_VOLUME_PATH:?}/ssl:/etc/nginx/ssl
@@ -150,8 +152,6 @@ services:
             --user=${TURN_USERNAME}:${TURN_PASSWORD}
             --cert=/etc/turn/ssl/${SSL_CERTIFICATE_FILENAME}
             --pkey=/etc/turn/ssl/${SSL_CERTIFICATE_KEY_FILENAME}
-            --no-loopback-peers
-            --no-multicast-peers
             --no-cli
         volumes:
             - ${CONCERTO_VOLUME_PATH:?}/ssl:/etc/turn/ssl:ro
