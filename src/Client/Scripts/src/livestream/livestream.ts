@@ -452,7 +452,7 @@ export class LiveStreamingManager {
 
         const peerConnection = new RTCPeerConnection({
             iceServers,
-            iceTransportPolicy: "all", // Try all candidates (relay, srflx, host)
+            iceTransportPolicy: "relay", // Try all candidates (relay, srflx, host)
             iceCandidatePoolSize: 10, // Pre-gather candidates for faster connection
             bundlePolicy: "max-bundle", // Bundle all media on single transport
             rtcpMuxPolicy: "require", // Multiplex RTP and RTCP
@@ -902,10 +902,11 @@ export class StreamViewer {
         // Process any ICE candidates that arrived before we knew the host ID
         if (this.pendingIceCandidates.length > 0) {
             console.log(`StreamViewer: Processing ${this.pendingIceCandidates.length} pending ICE candidates`);
-            for (const pending of this.pendingIceCandidates) {
+            const queuedCandidates = [...this.pendingIceCandidates];
+            this.pendingIceCandidates = [];
+            for (const pending of queuedCandidates) {
                 await this.handleIceCandidate(pending.streamId, pending.fromConnectionId, pending.candidate);
             }
-            this.pendingIceCandidates = [];
         }
 
         console.log(`StreamViewer: Ready to receive offer from ${hostConnectionId}`);
@@ -918,7 +919,7 @@ export class StreamViewer {
 
         this.peerConnection = new RTCPeerConnection({
             iceServers,
-            iceTransportPolicy: "all", // Try all candidates (relay, srflx, host)
+            iceTransportPolicy: "relay", // Try all candidates (relay, srflx, host)
             iceCandidatePoolSize: 10, // Pre-gather candidates for faster connection
             bundlePolicy: "max-bundle", // Bundle all media on single transport
             rtcpMuxPolicy: "require", // Multiplex RTP and RTCP
