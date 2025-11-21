@@ -11,12 +11,12 @@ interface DotNetObject {
 
 declare global {
     interface Window {
-        liveStreamingManager: LiveStreamingManager | null | undefined;
-        initializeLiveStreamingManager: (
+        liveStreamingManager?: LiveStreamingManager | null;
+        initializeLiveStreamingManager?: (
             videoPreviewParentId: string,
             dotNetCaller: DotNetObject
         ) => Promise<LiveStreamingManager>;
-        initializeStreamViewer: (
+        initializeStreamViewer?: (
             videoElementId: string,
             streamId: string,
             dotNetCaller: DotNetObject
@@ -38,348 +38,538 @@ type RawIceServer = {
     Credential?: string;
 };
 
-let cachedIceServers: RTCIceServer[] | null = null;
-let iceServerFetchPromise: Promise<RTCIceServer[]> | null = null;
+const FALLBACK_ICE_SERVERS: RTCIceServer[] = [
+    {
+        urls: "turn:openrelay.metered.ca:80",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+    },
+    {
+        urls: "turn:openrelay.metered.ca:443",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+    },
+    {
+        urls: "turn:openrelay.metered.ca:443?transport=tcp",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+    },
+    {
+        urls: "turn:a.relay.metered.ca:80",
+        username: "e870da5e4a03f95e2f5bd3b7",
+        credential: "AvWnGLU7mwL+Z2YY",
+    },
+    {
+        urls: "turn:a.relay.metered.ca:80?transport=tcp",
+        username: "e870da5e4a03f95e2f5bd3b7",
+        credential: "AvWnGLU7mwL+Z2YY",
+    },
+    {
+        urls: "turn:a.relay.metered.ca:443",
+        username: "e870da5e4a03f95e2f5bd3b7",
+        credential: "AvWnGLU7mwL+Z2YY",
+    },
+    {
+        urls: "turns:a.relay.metered.ca:443?transport=tcp",
+        username: "e870da5e4a03f95e2f5bd3b7",
+        credential: "AvWnGLU7mwL+Z2YY",
+    },
+];
 
-async function getConfiguredIceServers(): Promise<RTCIceServer[]> {
-    if (cachedIceServers) {
-        return cachedIceServers;
+class IceServerProvider {
+    private static cache: RTCIceServer[] | null = null;
+    private static pending: Promise<RTCIceServer[]> | null = null;
+
+    static async getServers(): Promise<RTCIceServer[]> {
+        if (this.cache) {
+            return this.cloneServers(this.cache);
+        }
+
+        if (!this.pending) {
+            this.pending = this.fetchFromApi().catch((error) => {
+                console.warn("Falling back to default ICE servers", error);
+                return this.cloneServers(FALLBACK_ICE_SERVERS);
+            });
+        }
+
+        try {
+            const servers = await this.pending;
+            this.cache = servers;
+            return this.cloneServers(servers);
+        } finally {
+            this.pending = null;
+        }
     }
 
-    if (!iceServerFetchPromise) {
-        iceServerFetchPromise = fetchIceServersFromApi();
-    }
-
-    cachedIceServers = await iceServerFetchPromise;
-    iceServerFetchPromise = null;
-    return cachedIceServers;
-}
-
-async function fetchIceServersFromApi(): Promise<RTCIceServer[]> {
-    try {
+    private static async fetchFromApi(): Promise<RTCIceServer[]> {
         const response = await fetch(APP_SETTINGS_ENDPOINT, { credentials: "include" });
         if (!response.ok) {
-            throw new Error(`Failed to load ICE servers. Status: ${response.status}`);
+            throw new Error(`Failed to download ICE servers (${response.status})`);
         }
 
         const payload = await response.json();
-        const configured = normalizeIceServers(payload?.IceServers ?? payload?.iceServers);
-
-        if (configured.length > 0) {
-            console.log(`Loaded ${configured.length} ICE server entries from API`);
-            return configured;
+        const normalized = this.normalize(payload?.IceServers ?? payload?.iceServers);
+        if (normalized.length === 0) {
+            console.warn("API returned an empty ICE server list, using fallback values");
+            return this.cloneServers(FALLBACK_ICE_SERVERS);
         }
 
-        console.warn("AppSettings returned no ICE servers, falling back to defaults");
-    } catch (error) {
-        console.warn("Unable to download ICE server configuration, using defaults instead", error);
+        console.log(`Loaded ${normalized.length} ICE server definition(s) from API`);
+        return normalized;
     }
 
-    return getFallbackIceServers();
-}
-
-function normalizeIceServers(raw: any): RTCIceServer[] {
-    if (!Array.isArray(raw)) {
-        return [];
-    }
-
-    const normalized: RTCIceServer[] = [];
-
-    for (const entry of raw as RawIceServer[]) {
-        if (!entry) {
-            continue;
+    private static normalize(raw: RawIceServer[] | undefined): RTCIceServer[] {
+        if (!Array.isArray(raw)) {
+            return [];
         }
 
-        const urls = entry.urls ?? entry.Urls ?? entry.url ?? entry.Url;
-        if (!urls || (Array.isArray(urls) && urls.length === 0)) {
-            continue;
+        const sanitized: RTCIceServer[] = [];
+        for (const entry of raw) {
+            if (!entry) {
+                continue;
+            }
+
+            const urls = entry.urls ?? entry.Urls ?? entry.url ?? entry.Url;
+            if (!urls || (Array.isArray(urls) && urls.length === 0)) {
+                continue;
+            }
+
+            sanitized.push({
+                urls: Array.isArray(urls) ? [...urls] : urls,
+                username: entry.username ?? entry.Username ?? undefined,
+                credential: entry.credential ?? entry.Credential ?? undefined,
+            });
         }
 
-        normalized.push({
-            urls: Array.isArray(urls) ? [...urls] : urls,
-            username: entry.username ?? entry.Username ?? undefined,
-            credential: entry.credential ?? entry.Credential ?? undefined,
-        });
+        return sanitized;
     }
 
-    return normalized;
+    private static cloneServers(servers: RTCIceServer[]): RTCIceServer[] {
+        return servers.map((server) => ({
+            urls: Array.isArray(server.urls) ? [...server.urls] : server.urls,
+            username: server.username,
+            credential: server.credential,
+        }));
+    }
 }
 
-function getFallbackIceServers(): RTCIceServer[] {
-    return [
-        // Google STUN servers (primary)
-        { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:stun1.l.google.com:19302" },
-        { urls: "stun:stun2.l.google.com:19302" },
-
-        // Metered TURN servers (free tier - primary)
-        {
-            urls: "turn:openrelay.metered.ca:80",
-            username: "openrelayproject",
-            credential: "openrelayproject",
-        },
-        {
-            urls: "turn:openrelay.metered.ca:443",
-            username: "openrelayproject",
-            credential: "openrelayproject",
-        },
-        {
-            urls: "turn:openrelay.metered.ca:443?transport=tcp",
-            username: "openrelayproject",
-            credential: "openrelayproject",
-        },
-
-        // Numb STUN/TURN (free - backup)
-        { urls: "stun:stun.relay.metered.ca:80" },
-        {
-            urls: "turn:a.relay.metered.ca:80",
-            username: "e870da5e4a03f95e2f5bd3b7",
-            credential: "AvWnGLU7mwL+Z2YY",
-        },
-        {
-            urls: "turn:a.relay.metered.ca:80?transport=tcp",
-            username: "e870da5e4a03f95e2f5bd3b7",
-            credential: "AvWnGLU7mwL+Z2YY",
-        },
-        {
-            urls: "turn:a.relay.metered.ca:443",
-            username: "e870da5e4a03f95e2f5bd3b7",
-            credential: "AvWnGLU7mwL+Z2YY",
-        },
-        {
-            urls: "turns:a.relay.metered.ca:443?transport=tcp",
-            username: "e870da5e4a03f95e2f5bd3b7",
-            credential: "AvWnGLU7mwL+Z2YY",
-        },
-
-        // Additional STUN servers for fallback
-        { urls: "stun:stun.voipbuster.com" },
-        { urls: "stun:stun.ekiga.net" },
-        { urls: "stun:stun.ideasip.com" },
-    ];
-}
-
-class SignalingClient {
+class SignalClient {
     private connection: signalR.HubConnection | null = null;
-    private streamId: string | null = null;
+    private connectionPromise: Promise<void> | null = null;
+    private currentStreamId: string | null = null;
     private isHost: boolean = false;
-    private dotnetCaller: DotNetObject;
 
-    constructor(dotnetCaller: DotNetObject) {
-        this.dotnetCaller = dotnetCaller;
-    }
+    constructor(private readonly dotnetCaller: DotNetObject) {}
 
     async connect(): Promise<void> {
-        this.connection = new signalR.HubConnectionBuilder()
-            .withUrl("/streaming", {
-                accessTokenFactory: async () => {
-                    try {
-                        console.log("Requesting access token for SignalR connection...");
-                        const token = await this.dotnetCaller.invokeMethodAsync<string>("GetAccessToken");
-                        console.log("Access token received:", token ? "Token present" : "No token");
-                        return token || "";
-                    } catch (error) {
-                        console.error("Failed to get access token:", error);
-                        return "";
-                    }
-                },
-            })
-            .withAutomaticReconnect()
-            .build();
+        if (this.connection && this.connection.state !== signalR.HubConnectionState.Disconnected) {
+            return;
+        }
 
-        this.setupEventHandlers();
-        await this.connection.start();
-        console.log("SignalR connection started");
+        if (!this.connectionPromise) {
+            this.connectionPromise = this.createConnection();
+        }
+
+        try {
+            await this.connectionPromise;
+        } finally {
+            this.connectionPromise = null;
+        }
     }
 
-    private setupEventHandlers(): void {
-        if (!this.connection) return;
+    async disconnect(): Promise<void> {
+        if (!this.connection) {
+            return;
+        }
 
-        this.connection.on("StreamStarted", (streamId: string) => {
-            console.log(`Stream ${streamId} started successfully`);
-        });
-
-        this.connection.on("StreamEnded", (streamId: string) => {
-            console.log(`Stream ${streamId} ended`);
-            this.dotnetCaller.invokeMethodAsync("StreamEnded", streamId);
-        });
-
-        this.connection.on("StreamNotFound", (streamId: string) => {
-            console.log(`Stream ${streamId} not found`);
-            this.dotnetCaller.invokeMethodAsync("StreamError", `Stream ${streamId} not found`);
-        });
-
-        this.connection.on("StreamJoined", (streamId: string, hostConnectionId: string) => {
-            console.log(`Joined stream ${streamId}, host: ${hostConnectionId}`);
-            this.dotnetCaller.invokeMethodAsync("StreamJoined", streamId, hostConnectionId);
-        });
-
-        this.connection.on("ViewerJoined", (viewerConnectionId: string) => {
-            console.log(`Viewer joined: ${viewerConnectionId}`);
-            this.dotnetCaller.invokeMethodAsync("ViewerJoined", viewerConnectionId);
-        });
-
-        this.connection.on("ViewerLeft", (viewerConnectionId: string) => {
-            console.log(`Viewer left: ${viewerConnectionId}`);
-            this.dotnetCaller.invokeMethodAsync("ViewerLeft", viewerConnectionId);
-        });
-
-        this.connection.on("ReceiveOffer", (streamId: string, fromConnectionId: string, offer: string) => {
-            console.log(`Received offer from ${fromConnectionId}`);
-            this.dotnetCaller.invokeMethodAsync("ReceiveOffer", streamId, fromConnectionId, offer);
-        });
-
-        this.connection.on("ReceiveAnswer", (streamId: string, fromConnectionId: string, answer: string) => {
-            console.log(`Received answer from ${fromConnectionId}`);
-            this.dotnetCaller.invokeMethodAsync("ReceiveAnswer", fromConnectionId, answer);
-        });
-
-        this.connection.on("ReceiveIceCandidate", (streamId: string, fromConnectionId: string, candidate: string) => {
-            console.log(`Received ICE candidate from ${fromConnectionId}`);
-            this.dotnetCaller.invokeMethodAsync("ReceiveIceCandidate", streamId, fromConnectionId, candidate);
-        });
+        try {
+            await this.connection.stop();
+        } finally {
+            this.connection = null;
+            this.currentStreamId = null;
+            this.isHost = false;
+        }
     }
 
     async startStream(streamId: string): Promise<void> {
-        if (!this.connection) throw new Error("Not connected to signaling server");
-
-        this.streamId = streamId;
+        await this.connect();
+        const connection = this.ensureConnection();
+        await connection.invoke("StartStream", streamId);
+        this.currentStreamId = streamId;
         this.isHost = true;
-        await this.connection.invoke("StartStream", streamId);
-        console.log(`Stream ${streamId} started on signaling server`);
+        console.log(`SignalClient: StartStream ${streamId}`);
     }
 
     async stopStream(): Promise<void> {
-        if (!this.connection || !this.streamId) return;
+        if (!this.connection || !this.currentStreamId || !this.isHost) {
+            this.currentStreamId = null;
+            this.isHost = false;
+            return;
+        }
 
-        await this.connection.invoke("StopStream", this.streamId);
-        console.log(`Stream ${this.streamId} stopped on signaling server`);
-        this.streamId = null;
+        await this.connection.invoke("StopStream", this.currentStreamId);
+        console.log(`SignalClient: StopStream ${this.currentStreamId}`);
+        this.currentStreamId = null;
         this.isHost = false;
     }
 
     async joinStream(streamId: string): Promise<void> {
-        if (!this.connection) throw new Error("Not connected to signaling server");
-
-        this.streamId = streamId;
+        await this.connect();
+        const connection = this.ensureConnection();
+        await connection.invoke("JoinStream", streamId);
+        this.currentStreamId = streamId;
         this.isHost = false;
-        await this.connection.invoke("JoinStream", streamId);
-        console.log(`Joined stream ${streamId} on signaling server`);
+        console.log(`SignalClient: JoinStream ${streamId}`);
     }
 
     async leaveStream(): Promise<void> {
-        if (!this.connection || !this.streamId) return;
+        if (!this.connection || !this.currentStreamId) {
+            this.currentStreamId = null;
+            return;
+        }
 
-        await this.connection.invoke("LeaveStream", this.streamId);
-        console.log(`Left stream ${this.streamId}`);
-        this.streamId = null;
-        this.isHost = false;
+        await this.connection.invoke("LeaveStream", this.currentStreamId);
+        console.log(`SignalClient: LeaveStream ${this.currentStreamId}`);
+        this.currentStreamId = null;
     }
 
     async sendOffer(targetConnectionId: string, offer: RTCSessionDescriptionInit): Promise<void> {
-        if (!this.connection || !this.streamId) return;
-        await this.connection.invoke("SendOffer", this.streamId, targetConnectionId, JSON.stringify(offer));
-        console.log(`Sent offer to ${targetConnectionId}`);
+        if (!this.currentStreamId) {
+            return;
+        }
+
+        const connection = this.ensureConnection();
+        await connection.invoke("SendOffer", this.currentStreamId, targetConnectionId, JSON.stringify(offer));
     }
 
     async sendAnswer(targetConnectionId: string, answer: RTCSessionDescriptionInit): Promise<void> {
-        if (!this.connection || !this.streamId) return;
-        await this.connection.invoke("SendAnswer", this.streamId, targetConnectionId, JSON.stringify(answer));
-        console.log(`Sent answer to ${targetConnectionId}`);
+        if (!this.currentStreamId) {
+            return;
+        }
+
+        const connection = this.ensureConnection();
+        await connection.invoke("SendAnswer", this.currentStreamId, targetConnectionId, JSON.stringify(answer));
     }
 
     async sendIceCandidate(targetConnectionId: string, candidate: RTCIceCandidateInit): Promise<void> {
-        if (!this.connection || !this.streamId) return;
-        await this.connection.invoke("SendIceCandidate", this.streamId, targetConnectionId, JSON.stringify(candidate));
-        console.log(`Sent ICE candidate to ${targetConnectionId}`);
+        if (!this.currentStreamId) {
+            return;
+        }
+
+        const connection = this.ensureConnection();
+        await connection.invoke(
+            "SendIceCandidate",
+            this.currentStreamId,
+            targetConnectionId,
+            JSON.stringify(candidate)
+        );
     }
 
-    async disconnect(): Promise<void> {
-        if (this.connection) {
-            await this.connection.stop();
-            this.connection = null;
-            console.log("SignalR connection stopped");
+    private async createConnection(): Promise<void> {
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/streaming", {
+                accessTokenFactory: () => this.fetchAccessToken(),
+            })
+            .withAutomaticReconnect()
+            .build();
+
+        this.registerHandlers(connection);
+        await connection.start();
+        this.connection = connection;
+        console.log("SignalClient: connection established");
+    }
+
+    private async fetchAccessToken(): Promise<string> {
+        try {
+            const token = await this.dotnetCaller.invokeMethodAsync<string>("GetAccessToken");
+            return token ?? "";
+        } catch (error) {
+            console.warn("SignalClient: failed to fetch access token", error);
+            return "";
         }
+    }
+
+    private registerHandlers(connection: signalR.HubConnection): void {
+        const forward = (method: string, ...args: any[]): void => {
+            try {
+                void this.dotnetCaller.invokeMethodAsync(method, ...args);
+            } catch (error) {
+                console.warn(`SignalClient: failed to forward ${method}`, error);
+            }
+        };
+
+        connection.on("StreamStarted", (streamId: string) => console.log(`Stream ${streamId} started`));
+        connection.on("StreamEnded", (streamId: string) => forward("StreamEnded", streamId));
+        connection.on("StreamNotFound", (streamId: string) => forward("StreamError", `Stream ${streamId} not found`));
+        connection.on("StreamJoined", (streamId: string, hostConnectionId: string) =>
+            forward("StreamJoined", streamId, hostConnectionId)
+        );
+        connection.on("ViewerJoined", (viewerConnectionId: string) => forward("ViewerJoined", viewerConnectionId));
+        connection.on("ViewerLeft", (viewerConnectionId: string) => forward("ViewerLeft", viewerConnectionId));
+        connection.on("ReceiveOffer", (streamId: string, fromConnectionId: string, offer: string) =>
+            forward("ReceiveOffer", streamId, fromConnectionId, offer)
+        );
+        connection.on("ReceiveAnswer", (_streamId: string, fromConnectionId: string, answer: string) => {
+            try {
+                void this.dotnetCaller.invokeMethodAsync("ReceiveAnswer", fromConnectionId, answer);
+            } catch (error) {
+                console.warn("SignalClient: failed to forward ReceiveAnswer", error);
+            }
+        });
+        connection.on("ReceiveIceCandidate", (streamId: string, fromConnectionId: string, candidate: string) =>
+            forward("ReceiveIceCandidate", streamId, fromConnectionId, candidate)
+        );
+    }
+
+    private ensureConnection(): signalR.HubConnection {
+        if (!this.connection) {
+            throw new Error("SignalR connection is not ready");
+        }
+
+        return this.connection;
+    }
+}
+
+class CameraController {
+    private stream: MediaStream | null = null;
+    private deviceId: string | null = null;
+    private active: boolean = false;
+    private width: number = 1280;
+    private height: number = 720;
+    private readonly element: HTMLVideoElement;
+
+    constructor() {
+        this.element = document.createElement("video");
+        this.element.muted = true;
+        this.element.autoplay = true;
+        this.element.playsInline = true;
+        this.element.setAttribute("playsinline", "");
+        this.element.style.display = "none";
+    }
+
+    isActive(): boolean {
+        return this.active;
+    }
+
+    getElement(): HTMLVideoElement {
+        return this.element;
+    }
+
+    getDimensions(): { width: number; height: number } {
+        return { width: this.width, height: this.height };
+    }
+
+    async useDevice(deviceId: string | null | undefined): Promise<void> {
+        if (!deviceId) {
+            this.stop();
+            return;
+        }
+
+        if (this.active && deviceId === this.deviceId) {
+            return;
+        }
+
+        this.stop();
+
+        try {
+            this.stream = await navigator.mediaDevices.getUserMedia({
+                video: { deviceId },
+            });
+        } catch (error) {
+            console.error("CameraController: failed to start camera", error);
+            this.stop();
+            throw error;
+        }
+
+        const track = this.stream.getVideoTracks()[0];
+        const settings = track.getSettings();
+        this.width = settings.width ?? this.width;
+        this.height = settings.height ?? this.height;
+
+        this.element.srcObject = this.stream;
+        try {
+            await this.element.play();
+        } catch (error) {
+            console.warn("CameraController: autoplay rejected", error);
+        }
+
+        this.deviceId = deviceId;
+        this.active = true;
+    }
+
+    stop(): void {
+        this.stream?.getTracks().forEach((track) => track.stop());
+        this.stream = null;
+        this.element.srcObject = null;
+        this.deviceId = null;
+        this.active = false;
+    }
+}
+
+class MicrophoneController {
+    private stream: MediaStream | null = null;
+    private deviceId: string | null = null;
+    private active: boolean = false;
+
+    isActive(): boolean {
+        return this.active;
+    }
+
+    getStream(): MediaStream | null {
+        return this.stream;
+    }
+
+    async useDevice(deviceId: string | null | undefined): Promise<void> {
+        if (!deviceId) {
+            this.stop();
+            return;
+        }
+
+        if (this.active && deviceId === this.deviceId) {
+            return;
+        }
+
+        this.stop();
+
+        try {
+            this.stream = await navigator.mediaDevices.getUserMedia({
+                audio: { deviceId },
+            });
+        } catch (error) {
+            console.error("MicrophoneController: failed to start microphone", error);
+            this.stop();
+            throw error;
+        }
+
+        this.deviceId = deviceId;
+        this.active = true;
+    }
+
+    stop(): void {
+        this.stream?.getTracks().forEach((track) => track.stop());
+        this.stream = null;
+        this.deviceId = null;
+        this.active = false;
+    }
+}
+
+class RecordingStore {
+    private readonly chunks: Blob[] = [];
+    private output: Blob | null = null;
+
+    constructor(private readonly mimeType: string, public readonly extension: string) {}
+
+    addChunk(chunk: Blob): void {
+        this.chunks.push(chunk);
+    }
+
+    async finalize(): Promise<void> {
+        let recording = new Blob(this.chunks, { type: this.mimeType });
+        if (this.extension === "webm") {
+            try {
+                recording = await fixWebmDuration(recording);
+            } catch (error) {
+                console.warn("RecordingStore: failed to fix WebM duration", error);
+            }
+        }
+
+        this.output = recording;
+    }
+
+    getOutput(): Blob {
+        if (!this.output) {
+            throw new Error("RecordingStore: output not generated");
+        }
+
+        return this.output;
+    }
+
+    clear(): void {
+        this.output = null;
+        this.chunks.length = 0;
+    }
+
+    async save(filename?: string): Promise<void> {
+        if (!this.output) {
+            throw new Error("RecordingStore: nothing to save");
+        }
+
+        const sanitizedName = this.buildFilename(filename ?? "stream-recording");
+        const url = URL.createObjectURL(this.output);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = sanitizedName;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+    }
+
+    private buildFilename(base: string): string {
+        const cleaned = base.replace(/[^a-z0-9.-]/gi, "_");
+        return `${cleaned}.${this.extension}`;
     }
 }
 
 export class LiveStreamingManager {
-    dotnetCaller: DotNetObject;
+    private readonly signaling: SignalClient;
+    private readonly camera = new CameraController();
+    private readonly microphone = new MicrophoneController();
+    private readonly canvas: HTMLCanvasElement;
+    private readonly canvasContext: CanvasRenderingContext2D;
+    private readonly canvasStream: MediaStream;
+    private readonly audioContext = new AudioContext();
+    private readonly audioDestination = this.audioContext.createMediaStreamDestination();
+    private microphoneInput: MediaStreamAudioSourceNode | null = null;
+    private streamId: string | null = null;
+    private outputStream: MediaStream | null = null;
+    private recorder: MediaRecorder | null = null;
+    private recordingStore: RecordingStore | null = null;
+    private readonly peerConnections = new Map<string, RTCPeerConnection>();
+    private isStreaming = false;
+    private isRecording = false;
+    private animationHandle: number | null = null;
+    private readonly saveIntervalMs = 500;
 
-    webcam: Webcam;
-    microphone: Microphone;
-
-    canvas: HTMLCanvasElement;
-    canvasContext: CanvasRenderingContext2D;
-    canvasStream: MediaStream;
-
-    audioContext: AudioContext;
-    microphoneInput: MediaStreamAudioSourceNode | null = null;
-    audioOutput: MediaStreamAudioDestinationNode;
-
-    isStreaming: boolean = false;
-    streamId: string | null = null;
-    outputStream: MediaStream | null = null;
-
-    isRecording: boolean = false;
-    recorder: MediaRecorder | null = null;
-    recordingStore: StreamRecordingStore | null = null;
-
-    peerConnections: Map<string, RTCPeerConnection> = new Map();
-    signalingClient: SignalingClient;
-
-    saveInterval: number = 500;
-
-    constructor(dotnetCaller: DotNetObject) {
-        this.dotnetCaller = dotnetCaller;
-
-        this.webcam = new Webcam();
-        this.microphone = new Microphone();
-
+    constructor(private readonly dotnetCaller: DotNetObject) {
+        this.signaling = new SignalClient(dotnetCaller);
         this.canvas = document.createElement("canvas");
-        this.canvasContext = this.canvas.getContext("2d")!;
-        this.canvasStream = this.canvas.captureStream(30);
-
-        // Setup canvas for preview
+        this.canvas.width = 1280;
+        this.canvas.height = 720;
         this.canvas.style.width = "100%";
         this.canvas.style.height = "100%";
         this.canvas.style.objectFit = "contain";
         this.canvas.classList.add("preview");
 
-        this.audioContext = new AudioContext();
-        this.audioOutput = this.audioContext.createMediaStreamDestination();
-
-        this.signalingClient = new SignalingClient(dotnetCaller);
-
-        this.drawCanvasFrame = this.drawCanvasFrame.bind(this);
-        this.drawCanvasFrame();
+        const ctx = this.canvas.getContext("2d");
+        if (!ctx) {
+            throw new Error("Unable to acquire 2D canvas context");
+        }
+        this.canvasContext = ctx;
+        this.canvasStream = this.canvas.captureStream(30);
+        this.startPreviewLoop();
     }
 
     async initialize(): Promise<void> {
-        await this.signalingClient.connect();
-    }
-
-    canStream(): boolean {
-        return this.microphone.isActive();
+        await this.signaling.connect();
     }
 
     appendPreviews(parentId: string): void {
-        let videoPreviewParent = document.getElementById(parentId);
-        if (videoPreviewParent) {
-            videoPreviewParent.appendChild(this.canvas);
+        const parent = document.getElementById(parentId);
+        if (parent && !parent.contains(this.canvas)) {
+            parent.appendChild(this.canvas);
         }
     }
 
     removePreview(): void {
-        this.canvas?.remove();
+        this.canvas.remove();
     }
 
     async setWebcam(deviceId: string): Promise<void> {
-        await this.webcam.start(deviceId);
-        if (!this.webcam.isActive()) return;
-
-        this.canvas.width = this.webcam.getWidth()!;
-        this.canvas.height = this.webcam.getHeight()!;
+        await this.camera.useDevice(deviceId);
+        const { width, height } = this.camera.getDimensions();
+        this.canvas.width = width;
+        this.canvas.height = height;
     }
 
     async setMicrophone(deviceId: string): Promise<void> {
@@ -388,687 +578,467 @@ export class LiveStreamingManager {
             this.microphoneInput = null;
         }
 
-        await this.microphone.start(deviceId);
-        if (!this.microphone.isActive()) return;
+        await this.microphone.useDevice(deviceId);
+        if (!this.microphone.isActive()) {
+            return;
+        }
 
-        this.microphoneInput = this.audioContext.createMediaStreamSource(this.microphone.getStream()!);
-        this.microphoneInput.connect(this.audioOutput);
+        const stream = this.microphone.getStream();
+        if (!stream) {
+            return;
+        }
+
+        this.microphoneInput = this.audioContext.createMediaStreamSource(stream);
+        this.microphoneInput.connect(this.audioDestination);
     }
 
     async startStream(streamId: string): Promise<void> {
-        console.log("Starting stream with ID:", streamId);
-        console.log("Microphone active:", this.microphone.isActive());
-        console.log("Webcam active:", this.webcam.isActive());
+        if (this.isStreaming) {
+            console.warn("LiveStreamingManager: stream already running");
+            return;
+        }
 
-        if (!this.canStream()) {
-            console.error("Cannot start stream: No microphone selected");
-            alert("Please select a microphone.");
+        if (!this.microphone.isActive()) {
+            await this.reportError("Please select a microphone before starting the stream.");
             return;
         }
 
         this.streamId = streamId;
-        this.audioContext.resume();
-
-        const videoTracks = this.webcam.isActive() ? this.canvasStream.getVideoTracks() : [];
-        const audioTracks = this.audioOutput.stream.getAudioTracks();
-        this.outputStream = new MediaStream([...videoTracks, ...audioTracks]);
-
+        await this.audioContext.resume();
+        this.outputStream = this.buildOutputStream();
         await this.startRecording();
-        await this.signalingClient.startStream(streamId);
-
+        await this.signaling.startStream(streamId);
         this.isStreaming = true;
-        await this.dotnetCaller.invokeMethodAsync("StreamingStateChanged", true);
-
-        console.log(`Live stream started with ID: ${streamId}`);
+        await this.notifyDotNet("StreamingStateChanged", true);
+        console.log(`LiveStreamingManager: started stream ${streamId}`);
     }
 
     async stopStream(): Promise<void> {
-        console.log("Stopping stream, cleaning up peer connections...");
+        if (!this.isStreaming && !this.streamId) {
+            return;
+        }
 
-        for (const [connectionId, peerConnection] of this.peerConnections) {
-            console.log(`Closing peer connection for ${connectionId}`);
-            peerConnection.close();
+        for (const peer of this.peerConnections.values()) {
+            peer.close();
         }
         this.peerConnections.clear();
 
         await this.stopRecording();
-        await this.signalingClient.stopStream();
+        await this.signaling.stopStream();
 
-        this.isStreaming = false;
         this.streamId = null;
-
-        await this.dotnetCaller.invokeMethodAsync("StreamingStateChanged", false);
-        console.log("Live stream stopped");
+        this.outputStream = null;
+        this.isStreaming = false;
+        await this.notifyDotNet("StreamingStateChanged", false);
+        console.log("LiveStreamingManager: stream stopped");
     }
 
     async handleViewerJoined(viewerConnectionId: string): Promise<void> {
         if (!this.outputStream) {
-            console.error("Cannot handle viewer joined: no output stream");
+            console.warn("LiveStreamingManager: no output stream for viewer");
             return;
         }
 
-        console.log(`Handling viewer joined: ${viewerConnectionId}`);
-
-        const iceServers = await getConfiguredIceServers();
-
-        const peerConnection = new RTCPeerConnection({
-            iceServers,
-            iceTransportPolicy: "all", // Try all candidates (relay, srflx, host)
-            iceCandidatePoolSize: 10, // Pre-gather candidates for faster connection
-            bundlePolicy: "max-bundle", // Bundle all media on single transport
-            rtcpMuxPolicy: "require", // Multiplex RTP and RTCP
-        });
-
-        this.outputStream.getTracks().forEach((track) => {
-            console.log(`Adding track to peer connection: ${track.kind}`);
-            peerConnection.addTrack(track, this.outputStream!);
-        });
-
-        peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-                console.log("Sending ICE candidate to viewer:", event.candidate.type, event.candidate.candidate);
-                this.signalingClient.sendIceCandidate(viewerConnectionId, event.candidate);
-            } else {
-                console.log("All ICE candidates sent to viewer");
-            }
-        };
-
-        peerConnection.oniceconnectionstatechange = () => {
-            console.log(`ICE connection state for viewer ${viewerConnectionId}:`, peerConnection.iceConnectionState);
-            if (peerConnection.iceConnectionState === "failed") {
-                console.error(`ICE connection failed for viewer ${viewerConnectionId}, trying ICE restart`);
-                peerConnection.restartIce();
-            } else if (peerConnection.iceConnectionState === "disconnected") {
-                console.warn(`ICE connection disconnected for viewer ${viewerConnectionId} - may recover`);
-            }
-        };
-
-        peerConnection.onconnectionstatechange = () => {
-            console.log(`Connection state for viewer ${viewerConnectionId}:`, peerConnection.connectionState);
-            if (peerConnection.connectionState === "connected") {
-                console.log(`? Connected to viewer ${viewerConnectionId}`);
-            } else if (peerConnection.connectionState === "disconnected") {
-                console.warn(`Viewer ${viewerConnectionId} disconnected - may recover`);
-            } else if (peerConnection.connectionState === "failed") {
-                console.error(`? Viewer ${viewerConnectionId} connection permanently failed`);
-                this.peerConnections.delete(viewerConnectionId);
-                peerConnection.close();
-            }
-        };
-
-        peerConnection.onicegatheringstatechange = () => {
-            console.log(`ICE gathering state for viewer ${viewerConnectionId}:`, peerConnection.iceGatheringState);
-        };
-
-        this.peerConnections.set(viewerConnectionId, peerConnection);
-
+        const peerConnection = await this.createPeerConnection(viewerConnectionId);
         try {
-            const offer = await peerConnection.createOffer({
-                offerToReceiveAudio: false,
-                offerToReceiveVideo: false,
-            });
+            const offer = await peerConnection.createOffer({ offerToReceiveAudio: false, offerToReceiveVideo: false });
             await peerConnection.setLocalDescription(offer);
-            await this.signalingClient.sendOffer(viewerConnectionId, offer);
-            console.log(`Offer created and sent to viewer ${viewerConnectionId}`);
+            await this.signaling.sendOffer(viewerConnectionId, offer);
         } catch (error) {
-            console.error(`Failed to create/send offer to viewer ${viewerConnectionId}:`, error);
+            console.error("LiveStreamingManager: failed to send offer", error);
         }
     }
 
     async handleAnswer(viewerConnectionId: string, answer: string): Promise<void> {
-        const peerConnection = this.peerConnections.get(viewerConnectionId);
-        if (!peerConnection) {
-            console.error(`No peer connection found for viewer ${viewerConnectionId}`);
+        const peer = this.peerConnections.get(viewerConnectionId);
+        if (!peer) {
+            console.warn(`LiveStreamingManager: missing peer ${viewerConnectionId}`);
             return;
         }
 
         try {
-            await peerConnection.setRemoteDescription(JSON.parse(answer));
-            console.log(`Answer set for viewer ${viewerConnectionId}`);
+            await peer.setRemoteDescription(JSON.parse(answer));
         } catch (error) {
-            console.error(`Failed to set remote description for viewer ${viewerConnectionId}:`, error);
+            console.error("LiveStreamingManager: failed to set remote description", error);
         }
     }
 
     async handleIceCandidate(viewerConnectionId: string, candidate: string): Promise<void> {
-        const peerConnection = this.peerConnections.get(viewerConnectionId);
-        if (!peerConnection) {
-            console.error(`No peer connection found for viewer ${viewerConnectionId}`);
+        const peer = this.peerConnections.get(viewerConnectionId);
+        if (!peer) {
+            console.warn(`LiveStreamingManager: missing peer ${viewerConnectionId}`);
             return;
         }
 
         try {
-            await peerConnection.addIceCandidate(JSON.parse(candidate));
-            console.log(`ICE candidate added for viewer ${viewerConnectionId}`);
+            await peer.addIceCandidate(JSON.parse(candidate));
         } catch (error) {
-            console.error(`Failed to add ICE candidate for viewer ${viewerConnectionId}:`, error);
+            console.error("LiveStreamingManager: failed to add ICE candidate", error);
         }
-    }
-
-    async startRecording(): Promise<void> {
-        if (!this.outputStream || this.isRecording) return;
-
-        const [mimeType, extension] = this.getSupportedMimeType();
-
-        this.recordingStore = new StreamRecordingStore(mimeType, extension);
-
-        this.recorder = new MediaRecorder(this.outputStream, { mimeType });
-
-        this.recorder.ondataavailable = (event) => {
-            if (event.data.size > 0) {
-                this.recordingStore!.addChunk(event.data);
-            }
-        };
-
-        this.recorder.onstop = async () => {
-            await this.recordingStore!.generateOutputAsync();
-            const output = this.recordingStore!.getOutput();
-
-            await this.dotnetCaller.invokeMethodAsync(
-                "StreamingFinished",
-                DotNet.createJSStreamReference(output),
-                this.recordingStore!.extension
-            );
-        };
-
-        this.recorder.start(this.saveInterval);
-        this.isRecording = true;
-
-        console.log("Stream recording started");
-    }
-
-    async stopRecording(): Promise<void> {
-        if (!this.recorder || !this.isRecording) return;
-
-        this.recorder.stop();
-        this.isRecording = false;
-
-        console.log("Stream recording stopped");
     }
 
     async saveStreamLocally(filename: string): Promise<void> {
         if (!this.recordingStore) {
-            throw new Error("No recording to save");
+            throw new Error("LiveStreamingManager: recording not available");
         }
 
-        await this.recordingStore.saveOutputAsync(filename);
+        await this.recordingStore.save(filename);
     }
 
     async finalizeStreaming(): Promise<void> {
-        if (this.recordingStore) {
-            this.recordingStore.clearOutput();
-            this.recordingStore = null;
+        this.recordingStore?.clear();
+        this.recordingStore = null;
+        this.recorder = null;
+        this.isRecording = false;
+    }
+
+    async dispose(): Promise<void> {
+        await this.stopStream();
+        await this.finalizeStreaming();
+        await this.signaling.disconnect();
+        this.camera.stop();
+        this.microphone.stop();
+        this.removePreview();
+        this.stopPreviewLoop();
+    }
+
+    private buildOutputStream(): MediaStream {
+        const tracks: MediaStreamTrack[] = [];
+        if (this.camera.isActive()) {
+            tracks.push(...this.canvasStream.getVideoTracks());
+        }
+        tracks.push(...this.audioDestination.stream.getAudioTracks());
+
+        if (tracks.length === 0) {
+            throw new Error("LiveStreamingManager: no media tracks available");
         }
 
-        if (this.recorder) {
-            this.recorder = null;
+        return new MediaStream(tracks);
+    }
+
+    private async startRecording(): Promise<void> {
+        if (!this.outputStream || this.isRecording) {
+            return;
         }
 
+        const [mimeType, extension] = this.getSupportedMimeType();
+        this.recordingStore = new RecordingStore(mimeType, extension);
+        this.recorder = new MediaRecorder(this.outputStream, { mimeType });
+
+        this.recorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                this.recordingStore?.addChunk(event.data);
+            }
+        };
+
+        this.recorder.onstop = async () => {
+            if (!this.recordingStore) {
+                return;
+            }
+            await this.recordingStore.finalize();
+            const output = this.recordingStore.getOutput();
+            await this.notifyDotNet(
+                "StreamingFinished",
+                DotNet.createJSStreamReference(output),
+                this.recordingStore.extension
+            );
+        };
+
+        this.recorder.start(this.saveIntervalMs);
+        this.isRecording = true;
+    }
+
+    private async stopRecording(): Promise<void> {
+        if (!this.recorder || !this.isRecording) {
+            return;
+        }
+
+        this.recorder.stop();
         this.isRecording = false;
     }
 
     private getSupportedMimeType(): [string, string] {
-        const types = [
+        const options: Array<[string, string]> = [
             ["video/webm;codecs=vp9,opus", "webm"],
             ["video/webm;codecs=vp8,opus", "webm"],
             ["video/webm", "webm"],
             ["video/mp4", "mp4"],
         ];
 
-        for (const [mimeType, extension] of types) {
-            if (MediaRecorder.isTypeSupported(mimeType)) {
-                return [mimeType, extension];
+        for (const entry of options) {
+            if (MediaRecorder.isTypeSupported(entry[0])) {
+                return entry;
             }
         }
 
         return ["video/webm", "webm"];
     }
 
-    async dispose(): Promise<void> {
-        await this.stopStream();
-        await this.finalizeStreaming();
-        await this.signalingClient.disconnect();
-        this.webcam.stop();
-        this.microphone.stop();
-        this.removePreview();
+    private async createPeerConnection(viewerConnectionId: string): Promise<RTCPeerConnection> {
+        const iceServers = await IceServerProvider.getServers();
+        const peer = new RTCPeerConnection({
+            iceServers,
+            iceTransportPolicy: "relay",
+            bundlePolicy: "max-bundle",
+            rtcpMuxPolicy: "require",
+        });
+
+        if (this.outputStream) {
+            for (const track of this.outputStream.getTracks()) {
+                peer.addTrack(track, this.outputStream);
+            }
+        }
+
+        peer.onicecandidate = (event) => {
+            if (event.candidate) {
+                void this.signaling.sendIceCandidate(viewerConnectionId, event.candidate);
+            }
+        };
+
+        peer.oniceconnectionstatechange = () => {
+            if (peer.iceConnectionState === "failed") {
+                peer.restartIce();
+            }
+            if (peer.iceConnectionState === "disconnected" || peer.iceConnectionState === "closed") {
+                this.peerConnections.delete(viewerConnectionId);
+            }
+        };
+
+        peer.onconnectionstatechange = () => {
+            if (peer.connectionState === "failed" || peer.connectionState === "closed") {
+                peer.close();
+                this.peerConnections.delete(viewerConnectionId);
+            }
+        };
+
+        this.peerConnections.set(viewerConnectionId, peer);
+        return peer;
     }
 
-    drawCanvasFrame(): void {
-        requestAnimationFrame(this.drawCanvasFrame);
-        if (this.webcam.isActive()) {
-            this.canvasContext.drawImage(this.webcam.getVideoElement(), 0, 0, this.canvas.width, this.canvas.height);
-        } else {
-            this.canvasContext.fillStyle = "black";
-            this.canvasContext.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            this.canvasContext.fillStyle = "white";
-            this.canvasContext.font = "12px Calibri";
-            this.canvasContext.textAlign = "center";
-            this.canvasContext.fillText("No camera input", this.canvas.width / 2, this.canvas.height / 2);
+    private startPreviewLoop(): void {
+        const tick = () => {
+            this.renderFrame();
+            this.animationHandle = requestAnimationFrame(tick);
+        };
+        this.animationHandle = requestAnimationFrame(tick);
+    }
+
+    private stopPreviewLoop(): void {
+        if (this.animationHandle !== null) {
+            cancelAnimationFrame(this.animationHandle);
+            this.animationHandle = null;
         }
     }
-}
 
-class Webcam {
-    private active: boolean = false;
-    private deviceId: string | null = null;
-    private width: number | null = null;
-    private height: number | null = null;
-    private videoElement: HTMLVideoElement; // Changed from preview to videoElement for clarity
-    private stream: MediaStream | null = null;
-
-    constructor() {
-        this.videoElement = document.createElement("video");
-        this.videoElement.muted = true;
-        this.videoElement.autoplay = true;
-        this.videoElement.playsInline = true; // Critical for mobile devices, especially iOS
-        this.videoElement.setAttribute("playsinline", ""); // Additional attribute for compatibility
-        // Hide the video element - we'll render to canvas instead
-        this.videoElement.style.display = "none";
-    }
-
-    isActive(): boolean {
-        return this.active;
-    }
-    getVideoElement(): HTMLVideoElement {
-        return this.videoElement;
-    } // Changed method name
-    getStream(): MediaStream | null {
-        return this.stream;
-    }
-    getWidth(): number | null {
-        return this.width;
-    }
-    getHeight(): number | null {
-        return this.height;
-    }
-
-    async start(deviceId: string): Promise<void> {
-        if (deviceId === this.deviceId) return;
-        if (this.active) this.stop();
-        if (!deviceId || deviceId === "none") return;
-
-        this.deviceId = deviceId;
-
-        try {
-            this.stream = await navigator.mediaDevices.getUserMedia({
-                video: { deviceId: deviceId },
-            });
-        } catch (e) {
-            alert("Failed to start camera.");
-            console.log(e);
-            this.stop();
+    private renderFrame(): void {
+        const { width, height } = this.camera.getDimensions();
+        if (this.camera.isActive()) {
+            this.canvasContext.drawImage(this.camera.getElement(), 0, 0, width, height);
             return;
         }
 
-        const videoTrack = this.stream.getVideoTracks()[0];
-        const settings = videoTrack.getSettings();
-        this.width = settings.width!;
-        this.height = settings.height!;
+        this.canvasContext.fillStyle = "#000";
+        this.canvasContext.fillRect(0, 0, width, height);
+        this.canvasContext.fillStyle = "#fff";
+        this.canvasContext.font = "18px Calibri";
+        this.canvasContext.textAlign = "center";
+        this.canvasContext.fillText("Camera preview unavailable", width / 2, height / 2);
+    }
 
-        this.videoElement.srcObject = this.stream;
+    private async reportError(message: string): Promise<void> {
+        console.error(`LiveStreamingManager: ${message}`);
+        await this.notifyDotNet("StreamError", message);
+    }
 
-        // Ensure video plays on mobile
+    private async notifyDotNet(method: string, ...args: any[]): Promise<void> {
         try {
-            await this.videoElement.play();
-        } catch (e) {
-            console.warn("Failed to autoplay video, this is expected on some mobile browsers", e);
-            // Try playing with user interaction - add muted attribute
-            this.videoElement.muted = true;
-            try {
-                await this.videoElement.play();
-            } catch (retryError) {
-                console.error("Video play failed even with muted attribute:", retryError);
-            }
+            await this.dotnetCaller.invokeMethodAsync(method, ...args);
+        } catch (error) {
+            console.warn(`LiveStreamingManager: failed to invoke ${method}`, error);
         }
-
-        this.active = true;
-    }
-
-    stop(): void {
-        this.stream?.getTracks().forEach((track) => track.stop());
-        this.videoElement.srcObject = null;
-        this.deviceId = null;
-        this.width = this.height = null;
-        this.active = false;
-    }
-}
-
-class Microphone {
-    private active: boolean = false;
-    private deviceId: string | null = null;
-    private stream: MediaStream | null = null;
-
-    constructor() {}
-
-    isActive(): boolean {
-        return this.active;
-    }
-    getStream(): MediaStream | null {
-        return this.stream;
-    }
-
-    async start(deviceId: string): Promise<void> {
-        if (deviceId === this.deviceId) return;
-        if (this.active) this.stop();
-        if (!deviceId || deviceId === "none") return;
-
-        this.deviceId = deviceId;
-
-        try {
-            this.stream = await navigator.mediaDevices.getUserMedia({
-                audio: { deviceId: deviceId },
-            });
-        } catch (e) {
-            alert("Failed to start microphone.");
-            console.log(e);
-            this.stop();
-            return;
-        }
-
-        this.active = true;
-    }
-
-    stop(): void {
-        this.stream?.getTracks().forEach((track) => track.stop());
-        this.deviceId = null;
-        this.active = false;
-    }
-}
-
-class StreamRecordingStore {
-    chunks: Blob[] = [];
-    length: number = 0;
-    mimeType: string;
-    extension: string;
-    output: Blob | null = null;
-
-    constructor(mimeType: string, extension: string) {
-        this.mimeType = mimeType;
-        this.extension = extension;
-    }
-
-    addChunk(chunk: Blob): void {
-        this.chunks.push(chunk);
-        this.length += chunk.size;
-    }
-
-    async generateOutputAsync(): Promise<void> {
-        let recording = new Blob([...this.chunks], { type: this.mimeType });
-
-        if (this.extension === "webm") {
-            try {
-                recording = await fixWebmDuration(recording);
-            } catch (e) {
-                console.warn("WebM duration fix failed:", e);
-            }
-        }
-
-        this.output = recording;
-    }
-
-    getOutput(): Blob {
-        if (this.output === null) {
-            throw new Error("No output to return.");
-        }
-        return this.output;
-    }
-
-    clearOutput(): void {
-        this.output = null;
-        this.chunks = [];
-        this.length = 0;
-    }
-
-    async saveOutputAsync(filename: string | null = null): Promise<void> {
-        if (this.output === null) {
-            throw new Error("No output to save.");
-        }
-
-        let recording = this.output;
-        if (filename === null) {
-            filename = prompt("Please enter a filename", "stream-recording");
-            if (filename === null || filename === "") {
-                filename = "stream-recording";
-            }
-        }
-
-        filename = `${filename}.${this.extension}`;
-        filename = this.cleanFilename(filename);
-
-        const recordingUrl = URL.createObjectURL(recording);
-        const downloadLink = document.createElement("a");
-        downloadLink.href = recordingUrl;
-        downloadLink.download = filename;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        URL.revokeObjectURL(recordingUrl);
-        document.body.removeChild(downloadLink);
-    }
-
-    private cleanFilename(filename: string): string {
-        return filename.replace(/[^a-z0-9.-]/gi, "_");
     }
 }
 
 export class StreamViewer {
-    videoElement: HTMLVideoElement;
-    streamId: string;
-    dotnetCaller: DotNetObject;
-    peerConnection: RTCPeerConnection | null = null;
-    isConnected: boolean = false;
-    signalingClient: SignalingClient;
-    hostConnectionId: string | null = null;
-    pendingIceCandidates: Array<{ streamId: string; fromConnectionId: string; candidate: string }> = [];
+    private readonly signaling: SignalClient;
+    private peerConnection: RTCPeerConnection | null = null;
+    private hostConnectionId: string | null = null;
+    private pendingIceCandidates: Array<{ streamId: string; fromConnectionId: string; candidate: string }> = [];
+    private isConnected = false;
 
-    constructor(videoElement: HTMLVideoElement, streamId: string, dotNetCaller: DotNetObject) {
-        this.videoElement = videoElement;
-        this.streamId = streamId;
-        this.dotnetCaller = dotNetCaller;
-        this.signalingClient = new SignalingClient(dotNetCaller);
-
-        // Ensure mobile compatibility for video playback
+    constructor(
+        private readonly videoElement: HTMLVideoElement,
+        private readonly streamId: string,
+        private readonly dotnetCaller: DotNetObject
+    ) {
+        this.signaling = new SignalClient(dotnetCaller);
+        this.videoElement.autoplay = true;
+        this.videoElement.muted = true;
         this.videoElement.playsInline = true;
         this.videoElement.setAttribute("playsinline", "");
-        this.videoElement.autoplay = true;
-        this.videoElement.muted = true; // Initially muted for autoplay
-
-        console.log(`StreamViewer created for stream: ${streamId}`);
     }
 
     async connect(): Promise<void> {
         try {
-            console.log(`StreamViewer: Connecting to SignalR and joining stream: ${this.streamId}`);
-
-            // First connect to SignalR
-            await this.signalingClient.connect();
-
-            // Initialize WebRTC BEFORE joining stream so peer connection is ready for incoming offers
-            await this.initializeWebRTC();
-            console.log("StreamViewer: WebRTC initialized, peer connection ready");
-
-            // Now join the stream - offers and ICE candidates can arrive immediately after this
-            await this.signalingClient.joinStream(this.streamId);
-
-            console.log(`StreamViewer: Successfully requested to join stream ${this.streamId}`);
+            await this.signaling.connect();
+            await this.preparePeerConnection();
+            await this.signaling.joinStream(this.streamId);
         } catch (error) {
-            console.error("StreamViewer: Failed to connect to stream:", error);
-            this.dotnetCaller.invokeMethodAsync("StreamError", (error as Error).message);
+            console.error("StreamViewer: failed to connect", error);
+            await this.notifyDotNet("StreamError", (error as Error).message ?? "Connection failed");
+            throw error;
         }
     }
 
     async handleStreamJoined(streamId: string, hostConnectionId: string): Promise<void> {
-        console.log(`StreamViewer: handleStreamJoined called - Stream: ${streamId}, Host: ${hostConnectionId}`);
-        this.hostConnectionId = hostConnectionId;
-
-        // Process any ICE candidates that arrived before we knew the host ID
-        if (this.pendingIceCandidates.length > 0) {
-            console.log(`StreamViewer: Processing ${this.pendingIceCandidates.length} pending ICE candidates`);
-            const queuedCandidates = [...this.pendingIceCandidates];
-            this.pendingIceCandidates = [];
-            for (const pending of queuedCandidates) {
-                await this.handleIceCandidate(pending.streamId, pending.fromConnectionId, pending.candidate);
-            }
+        if (streamId !== this.streamId) {
+            return;
         }
 
-        console.log(`StreamViewer: Ready to receive offer from ${hostConnectionId}`);
-    }
+        this.hostConnectionId = hostConnectionId;
 
-    async initializeWebRTC(): Promise<void> {
-        console.log("StreamViewer: Initializing WebRTC for viewing...");
-
-        const iceServers = await getConfiguredIceServers();
-
-        this.peerConnection = new RTCPeerConnection({
-            iceServers,
-            iceTransportPolicy: "relay", // Try all candidates (relay, srflx, host)
-            iceCandidatePoolSize: 10, // Pre-gather candidates for faster connection
-            bundlePolicy: "max-bundle", // Bundle all media on single transport
-            rtcpMuxPolicy: "require", // Multiplex RTP and RTCP
-        });
-
-        this.peerConnection.ontrack = (event) => {
-            console.log("StreamViewer: Received stream from broadcaster", event.streams[0]);
-            this.videoElement.srcObject = event.streams[0];
-            this.videoElement.style.display = "block"; // Show video element
-
-            // Try to play the video
-            const playPromise = this.videoElement.play();
-            if (playPromise !== undefined) {
-                playPromise
-                    .then(() => {
-                        console.log("StreamViewer: Video playing successfully");
-                        // Once playing, can unmute if needed
-                        // this.videoElement.muted = false;
-                    })
-                    .catch((error) => {
-                        console.warn("StreamViewer: Autoplay prevented, user interaction may be required:", error);
-                        this.dotnetCaller.invokeMethodAsync("StreamAutoplayBlocked");
-                    });
+        if (this.pendingIceCandidates.length > 0) {
+            const queued = [...this.pendingIceCandidates];
+            this.pendingIceCandidates = [];
+            for (const candidate of queued) {
+                await this.handleIceCandidate(candidate.streamId, candidate.fromConnectionId, candidate.candidate);
             }
-
-            this.isConnected = true;
-            this.dotnetCaller.invokeMethodAsync("StreamConnected");
-        };
-
-        this.peerConnection.onicecandidate = (event) => {
-            if (event.candidate && this.hostConnectionId) {
-                console.log("StreamViewer: Sending ICE candidate to host:", event.candidate);
-                this.signalingClient.sendIceCandidate(this.hostConnectionId, event.candidate);
-            } else if (!event.candidate) {
-                console.log("StreamViewer: All ICE candidates have been sent");
-            }
-        };
-
-        this.peerConnection.oniceconnectionstatechange = () => {
-            console.log("StreamViewer: ICE connection state:", this.peerConnection?.iceConnectionState);
-            if (this.peerConnection?.iceConnectionState === "failed") {
-                console.error("StreamViewer: ICE connection failed - trying to restart ICE");
-                // Try ICE restart
-                if (this.peerConnection) {
-                    this.peerConnection.restartIce();
-                }
-            } else if (this.peerConnection?.iceConnectionState === "disconnected") {
-                console.warn("StreamViewer: ICE connection disconnected - may recover");
-            }
-        };
-
-        this.peerConnection.onconnectionstatechange = () => {
-            console.log("StreamViewer: Connection state:", this.peerConnection?.connectionState);
-            if (this.peerConnection!.connectionState === "connected") {
-                console.log("? StreamViewer: Connected to stream");
-            } else if (this.peerConnection!.connectionState === "disconnected") {
-                console.warn("StreamViewer: Connection disconnected - may recover");
-            } else if (this.peerConnection!.connectionState === "failed") {
-                console.error("StreamViewer: Connection permanently failed");
-                this.isConnected = false;
-                this.dotnetCaller.invokeMethodAsync("StreamError", "Connection lost");
-            }
-        };
-
-        this.peerConnection.onicegatheringstatechange = () => {
-            console.log("StreamViewer: ICE gathering state:", this.peerConnection?.iceGatheringState);
-        };
-
-        console.log("StreamViewer: WebRTC peer connection initialized");
+        }
     }
 
     async handleOffer(streamId: string, fromConnectionId: string, offer: string): Promise<void> {
-        console.log(`StreamViewer: Handling offer from ${fromConnectionId}`);
+        if (streamId !== this.streamId) {
+            return;
+        }
 
-        if (!this.peerConnection) {
-            console.error("StreamViewer: No peer connection available when handling offer - this should not happen!");
-            this.dotnetCaller.invokeMethodAsync("StreamError", "Failed to initialize WebRTC");
+        const peer = this.peerConnection;
+        if (!peer) {
+            await this.notifyDotNet("StreamError", "Peer connection is not ready");
             return;
         }
 
         try {
-            console.log("StreamViewer: Setting remote description...");
-            await this.peerConnection.setRemoteDescription(JSON.parse(offer));
-            console.log("StreamViewer: Remote description set successfully");
-
-            console.log("StreamViewer: Creating answer...");
-            const answer = await this.peerConnection.createAnswer();
-            console.log("StreamViewer: Answer created successfully");
-
-            console.log("StreamViewer: Setting local description...");
-            await this.peerConnection.setLocalDescription(answer);
-            console.log("StreamViewer: Local description set successfully - ICE gathering should start now");
-
-            await this.signalingClient.sendAnswer(fromConnectionId, answer);
-            console.log("StreamViewer: Answer sent to host");
+            await peer.setRemoteDescription(JSON.parse(offer));
+            const answer = await peer.createAnswer();
+            await peer.setLocalDescription(answer);
+            await this.signaling.sendAnswer(fromConnectionId, answer);
         } catch (error) {
-            console.error("StreamViewer: Failed to handle offer:", error);
-            this.dotnetCaller.invokeMethodAsync("StreamError", "Failed to establish connection");
+            console.error("StreamViewer: failed to handle offer", error);
+            await this.notifyDotNet("StreamError", "Unable to negotiate stream");
         }
     }
 
     async handleAnswer(streamId: string, fromConnectionId: string, answer: string): Promise<void> {
-        if (!this.peerConnection) {
-            console.error("StreamViewer: No peer connection available for answer");
+        if (streamId !== this.streamId || !this.peerConnection) {
             return;
         }
 
         try {
             await this.peerConnection.setRemoteDescription(JSON.parse(answer));
-            console.log("StreamViewer: Answer set from host");
         } catch (error) {
-            console.error("StreamViewer: Failed to set answer:", error);
+            console.warn("StreamViewer: failed to apply answer", error);
         }
     }
 
     async handleIceCandidate(streamId: string, fromConnectionId: string, candidate: string): Promise<void> {
-        if (!this.peerConnection) {
-            console.error("StreamViewer: No peer connection available for ICE candidate");
+        if (streamId !== this.streamId) {
+            return;
+        }
+
+        const peer = this.peerConnection;
+        if (!peer) {
+            return;
+        }
+
+        if (!peer.remoteDescription) {
+            this.pendingIceCandidates.push({ streamId, fromConnectionId, candidate });
             return;
         }
 
         try {
-            // Only add ICE candidates after we've set the remote description (received the offer)
-            if (this.peerConnection.remoteDescription) {
-                await this.peerConnection.addIceCandidate(JSON.parse(candidate));
-                console.log("StreamViewer: ICE candidate added from host");
-            } else {
-                console.log("StreamViewer: Queueing ICE candidate - waiting for remote description");
-                this.pendingIceCandidates.push({ streamId, fromConnectionId, candidate });
-            }
+            await peer.addIceCandidate(JSON.parse(candidate));
         } catch (error) {
-            console.error("StreamViewer: Failed to add ICE candidate:", error);
+            console.warn("StreamViewer: failed to add ICE candidate", error);
         }
     }
 
     async dispose(): Promise<void> {
-        console.log("StreamViewer: Disposing...");
-
         if (this.peerConnection) {
             this.peerConnection.close();
             this.peerConnection = null;
         }
 
-        await this.signalingClient.leaveStream();
-        await this.signalingClient.disconnect();
-
-        this.isConnected = false;
+        await this.signaling.leaveStream();
+        await this.signaling.disconnect();
         this.pendingIceCandidates = [];
+        this.isConnected = false;
+    }
+
+    private async preparePeerConnection(): Promise<void> {
+        const iceServers = await IceServerProvider.getServers();
+        this.peerConnection = new RTCPeerConnection({
+            iceServers,
+            iceTransportPolicy: "relay",
+            bundlePolicy: "max-bundle",
+            rtcpMuxPolicy: "require",
+        });
+
+        this.peerConnection.ontrack = (event) => {
+            const stream = event.streams[0];
+            if (!stream) {
+                return;
+            }
+
+            this.videoElement.srcObject = stream;
+            this.videoElement.style.display = "block";
+            const playPromise = this.videoElement.play();
+            if (playPromise) {
+                playPromise
+                    .then(() => this.notifyDotNet("StreamConnected"))
+                    .catch(async (error) => {
+                        console.warn("StreamViewer: autoplay blocked", error);
+                        await this.notifyDotNet("StreamAutoplayBlocked");
+                    });
+            }
+            this.isConnected = true;
+        };
+
+        this.peerConnection.onicecandidate = (event) => {
+            if (event.candidate && this.hostConnectionId) {
+                void this.signaling.sendIceCandidate(this.hostConnectionId, event.candidate);
+            }
+        };
+
+        this.peerConnection.oniceconnectionstatechange = () => {
+            if (!this.peerConnection) {
+                return;
+            }
+
+            if (this.peerConnection.iceConnectionState === "failed") {
+                this.peerConnection.restartIce();
+            } else if (this.peerConnection.iceConnectionState === "disconnected") {
+                console.warn("StreamViewer: ICE connection disconnected");
+            }
+        };
+
+        this.peerConnection.onconnectionstatechange = () => {
+            if (!this.peerConnection) {
+                return;
+            }
+
+            if (this.peerConnection.connectionState === "failed") {
+                this.notifyDotNet("StreamError", "Connection lost");
+                this.isConnected = false;
+            }
+        };
+    }
+
+    private async notifyDotNet(method: string, ...args: any[]): Promise<void> {
+        try {
+            await this.dotnetCaller.invokeMethodAsync(method, ...args);
+        } catch (error) {
+            console.warn(`StreamViewer: failed to notify ${method}`, error);
+        }
     }
 }
 
@@ -1076,19 +1046,21 @@ export async function initializeLiveStreamingManager(
     videoPreviewParentId?: string,
     dotNetCaller?: DotNetObject
 ): Promise<LiveStreamingManager> {
-    if (window.liveStreamingManager !== undefined && window.liveStreamingManager !== null) {
-        console.log("LiveStreamingManager already initialized, returning existing instance");
+    if (window.liveStreamingManager) {
         return window.liveStreamingManager;
     }
 
-    let streamingManager = new LiveStreamingManager(dotNetCaller!);
-    await streamingManager.initialize();
-
-    if (videoPreviewParentId) {
-        streamingManager.appendPreviews(videoPreviewParentId);
+    if (!dotNetCaller) {
+        throw new Error("DotNet caller reference is required");
     }
-    window.liveStreamingManager = streamingManager;
-    return streamingManager;
+
+    const manager = new LiveStreamingManager(dotNetCaller);
+    await manager.initialize();
+    if (videoPreviewParentId) {
+        manager.appendPreviews(videoPreviewParentId);
+    }
+    window.liveStreamingManager = manager;
+    return manager;
 }
 
 export async function initializeStreamViewer(
@@ -1096,22 +1068,13 @@ export async function initializeStreamViewer(
     streamId: string,
     dotNetCaller: DotNetObject
 ): Promise<StreamViewer> {
-    console.log(`Looking for video element with id: ${videoElementId}`);
-
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    const videoElement = document.getElementById(videoElementId);
-    if (!videoElement) {
-        console.error(`Video element with id '${videoElementId}' not found in DOM`);
-        console.log("Available elements with video tag:", document.querySelectorAll("video"));
-        throw new Error(`Video element with id '${videoElementId}' not found`);
+    const element = document.getElementById(videoElementId);
+    if (!element) {
+        throw new Error(`Video element '${videoElementId}' not found`);
     }
 
-    console.log(`Found video element:`, videoElement);
-
-    const viewer = new StreamViewer(videoElement as HTMLVideoElement, streamId, dotNetCaller);
+    const viewer = new StreamViewer(element as HTMLVideoElement, streamId, dotNetCaller);
     await viewer.connect();
-
     return viewer;
 }
 
@@ -1121,7 +1084,6 @@ window.initializeStreamViewer = initializeStreamViewer;
 export async function resumeStreamPlayback(videoElementId: string, unmute: boolean = false): Promise<boolean> {
     const element = document.getElementById(videoElementId) as HTMLVideoElement | null;
     if (!element) {
-        console.warn(`resumeStreamPlayback: video element ${videoElementId} not found`);
         return false;
     }
 
@@ -1131,10 +1093,9 @@ export async function resumeStreamPlayback(videoElementId: string, unmute: boole
 
     try {
         await element.play();
-        console.log("resumeStreamPlayback: playback resumed");
         return true;
     } catch (error) {
-        console.warn("resumeStreamPlayback: playback still blocked", error);
+        console.warn("resumeStreamPlayback: playback blocked", error);
         return false;
     }
 }

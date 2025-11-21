@@ -33,7 +33,7 @@ public class AppSettingsController : ControllerBase
 
 	private static IReadOnlyCollection<ClientIceServer> BuildIceServers()
 	{
-		if (!AppSettings.Turn.IsConfigured)
+		if (!AppSettings.Turn.IsConfigured || !AppSettings.Turn.HasCredentials)
 		{
 			return Array.Empty<ClientIceServer>();
 		}
@@ -42,14 +42,6 @@ public class AppSettingsController : ControllerBase
 		{
 			new ClientIceServer
 			{
-				Urls = new[] {$"stun:{AppSettings.Turn.Domain}:{AppSettings.Turn.StunPort}"}
-			}
-		};
-
-		if (AppSettings.Turn.HasCredentials)
-		{
-			servers.Add(new ClientIceServer
-			{
 				Urls = new[]
 				{
 					$"turn:{AppSettings.Turn.Domain}:{AppSettings.Turn.StunPort}?transport=udp",
@@ -57,20 +49,20 @@ public class AppSettingsController : ControllerBase
 				},
 				Username = AppSettings.Turn.Username,
 				Credential = AppSettings.Turn.Password
-			});
-
-			if (AppSettings.Turn.TlsPort > 0)
-			{
-				servers.Add(new ClientIceServer
-				{
-					Urls = new[]
-					{
-						$"turns:{AppSettings.Turn.Domain}:{AppSettings.Turn.TlsPort}"
-					},
-					Username = AppSettings.Turn.Username,
-					Credential = AppSettings.Turn.Password
-				});
 			}
+		};
+
+		if (AppSettings.Turn.TlsPort > 0)
+		{
+			servers.Add(new ClientIceServer
+			{
+				Urls = new[]
+				{
+					$"turns:{AppSettings.Turn.Domain}:{AppSettings.Turn.TlsPort}"
+				},
+				Username = AppSettings.Turn.Username,
+				Credential = AppSettings.Turn.Password
+			});
 		}
 
 		return servers;
