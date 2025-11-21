@@ -42,12 +42,27 @@
         align-items: center;
         justify-content: center;
         color: white;
+        position: relative;
     }
 
     .stream-preview video {
         width: 100%;
         height: 100%;
         object-fit: contain;
+    }
+
+    .playback-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 12px;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        text-align: center;
+        padding: 20px;
     }
 
     .status-message {
@@ -124,6 +139,15 @@
 
     <div class="stream-preview">
         <video id="streamVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: contain; display: @(IsConnected ? "block" : "none");"></video>
+        @if (RequiresPlaybackPrompt)
+        {
+            <div class="playback-overlay">
+                <MudText Typo="Typo.h6">Autoplay is blocked by your browser.</MudText>
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="ResumePlaybackAsync">
+                    Start Playback
+                </MudButton>
+            </div>
+        }
         @if (!IsConnected)
         {
             @if (IsConnecting)
@@ -144,6 +168,7 @@
     private string StreamIdInput { get; set; } = string.Empty;
     private bool IsConnecting { get; set; } = false;
     private bool IsConnected { get; set; } = false;
+    private bool RequiresPlaybackPrompt { get; set; }
     private string StatusMessage { get; set; } = string.Empty;
 
     private DotNetObjectReference<JoinStreamPage> _dotNetObjectReference = null!;
@@ -183,6 +208,7 @@
         {
             IsConnecting = true;
             StatusMessage = "Connecting to stream...";
+            RequiresPlaybackPrompt = false;
             StateHasChanged();
 
             // Initialize viewer FIRST, before connecting to SignalR
@@ -216,6 +242,7 @@
         
         IsConnected = false;
         IsConnecting = false;
+        RequiresPlaybackPrompt = false;
         StatusMessage = string.Empty;
         StateHasChanged();
     }
@@ -246,6 +273,17 @@
         IsConnecting = false;
         StatusMessage = "Successfully connected to stream!";
         StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void StreamAutoplayBlocked()
+    {
+        if (!RequiresPlaybackPrompt)
+        {
+            RequiresPlaybackPrompt = true;
+            StatusMessage = "Autoplay blocked. Click Start Playback to continue.";
+            StateHasChanged();
+        }
     }
 
     [JSInvokable]
@@ -312,6 +350,29 @@
         if (IsConnected) return "status-connected";
         if (!string.IsNullOrEmpty(StatusMessage) && StatusMessage.Contains("Failed")) return "status-error";
         return "";
+    }
+
+    private async Task ResumePlaybackAsync()
+    {
+        try
+        {
+            var resumed = await JS.InvokeAsync<bool>("resumeStreamPlayback", "streamVideo", false);
+            if (resumed)
+            {
+                RequiresPlaybackPrompt = false;
+                StatusMessage = "Playback started.";
+            }
+            else
+            {
+                StatusMessage = "Browser still blocking autoplay. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Unable to start playback: {ex.Message}";
+        }
+
+        StateHasChanged();
     }
 
     public async ValueTask DisposeAsync()

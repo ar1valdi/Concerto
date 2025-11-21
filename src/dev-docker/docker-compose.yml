@@ -123,19 +123,6 @@ services:
         networks:
             concerto:
 
-    pgadmin:
-        image: dpage/pgadmin4
-        restart: always
-        environment:
-            PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-            PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-        ports:
-            - 7100:80
-        volumes:
-            - ${CONCERTO_VOLUME_PATH}/pgadmin:/var/lib/pgadmin
-        networks:
-            - concerto
-
     coturn:
         image: coturn/coturn:4.6
         restart: unless-stopped
