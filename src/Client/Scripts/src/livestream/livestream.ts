@@ -21,6 +21,7 @@ declare global {
             streamId: string,
             dotNetCaller: DotNetObject
         ) => Promise<StreamViewer>;
+        resumeStreamPlayback?: (videoElementId: string, unmute?: boolean) => Promise<boolean>;
     }
 }
 
@@ -452,7 +453,7 @@ export class LiveStreamingManager {
 
         const peerConnection = new RTCPeerConnection({
             iceServers,
-            iceTransportPolicy: "relay", // Try all candidates (relay, srflx, host)
+            iceTransportPolicy: "all", // Try all candidates (relay, srflx, host)
             iceCandidatePoolSize: 10, // Pre-gather candidates for faster connection
             bundlePolicy: "max-bundle", // Bundle all media on single transport
             rtcpMuxPolicy: "require", // Multiplex RTP and RTCP
@@ -941,6 +942,7 @@ export class StreamViewer {
                     })
                     .catch((error) => {
                         console.warn("StreamViewer: Autoplay prevented, user interaction may be required:", error);
+                        this.dotnetCaller.invokeMethodAsync("StreamAutoplayBlocked");
                     });
             }
 
@@ -1115,3 +1117,26 @@ export async function initializeStreamViewer(
 
 window.initializeLiveStreamingManager = initializeLiveStreamingManager;
 window.initializeStreamViewer = initializeStreamViewer;
+
+export async function resumeStreamPlayback(videoElementId: string, unmute: boolean = false): Promise<boolean> {
+    const element = document.getElementById(videoElementId) as HTMLVideoElement | null;
+    if (!element) {
+        console.warn(`resumeStreamPlayback: video element ${videoElementId} not found`);
+        return false;
+    }
+
+    if (unmute) {
+        element.muted = false;
+    }
+
+    try {
+        await element.play();
+        console.log("resumeStreamPlayback: playback resumed");
+        return true;
+    } catch (error) {
+        console.warn("resumeStreamPlayback: playback still blocked", error);
+        return false;
+    }
+}
+
+window.resumeStreamPlayback = resumeStreamPlayback;
