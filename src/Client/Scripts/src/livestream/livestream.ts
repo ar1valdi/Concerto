@@ -39,6 +39,11 @@ type RawIceServer = {
 };
 
 const FALLBACK_ICE_SERVERS: RTCIceServer[] = [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "stun:stun3.l.google.com:19302" },
+    { urls: "stun:stun4.l.google.com:19302" },
     {
         urls: "turn:openrelay.metered.ca:80",
         username: "openrelayproject",
@@ -778,7 +783,7 @@ export class LiveStreamingManager {
         const iceServers = await IceServerProvider.getServers();
         const peer = new RTCPeerConnection({
             iceServers,
-            iceTransportPolicy: "relay",
+            iceTransportPolicy: "all",
             bundlePolicy: "max-bundle",
             rtcpMuxPolicy: "require",
         });
@@ -978,7 +983,7 @@ export class StreamViewer {
         const iceServers = await IceServerProvider.getServers();
         this.peerConnection = new RTCPeerConnection({
             iceServers,
-            iceTransportPolicy: "relay",
+            iceTransportPolicy: "all",
             bundlePolicy: "max-bundle",
             rtcpMuxPolicy: "require",
         });
