@@ -85,6 +85,28 @@
         background-color: #e8f5e8;
         color: #2e7d32;
     }
+
+    .viewer-controls {
+        width: 100%;
+        max-width: 1280px;
+        margin: 10px 0 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .volume-control {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+    }
+
+    .volume-control .mud-slider {
+        flex: 1;
+    }
 </style>
 
 <div class="container">
@@ -160,6 +182,27 @@
             }
         }
     </div>
+
+    @if (IsConnected)
+    {
+        <div class="viewer-controls">
+            <MudButton Color="Color.Secondary"
+                       Variant="Variant.Filled"
+                       OnClick="TogglePlaybackAsync">
+                @(IsStreamStopped ? "Resume Stream" : "Stop Stream")
+            </MudButton>
+            <div class="volume-control">
+                <MudText Typo="Typo.body1">Volume</MudText>
+                <MudSlider Value="@VolumeLevel"
+                           ValueChanged="OnVolumeChanged"
+                           Min="0"
+                           Max="100"
+                           Step="1"
+                           Immediate="true"
+                           Disabled="@IsConnecting" />
+            </div>
+        </div>
+    }
 </div>
 
 @code {
@@ -170,6 +213,8 @@
     private bool IsConnected { get; set; } = false;
     private bool RequiresPlaybackPrompt { get; set; }
     private string StatusMessage { get; set; } = string.Empty;
+    private bool IsStreamStopped { get; set; }
+    private double VolumeLevel { get; set; } = 50;
 
     private DotNetObjectReference<JoinStreamPage> _dotNetObjectReference = null!;
     private IJSObjectReference? _streamViewer;
@@ -209,6 +254,7 @@
             IsConnecting = true;
             StatusMessage = "Connecting to stream...";
             RequiresPlaybackPrompt = false;
+            IsStreamStopped = false;
             StateHasChanged();
 
             // Initialize viewer FIRST, before connecting to SignalR
@@ -243,6 +289,8 @@
         IsConnected = false;
         IsConnecting = false;
         RequiresPlaybackPrompt = false;
+        IsStreamStopped = false;
+        VolumeLevel = 100;
         StatusMessage = string.Empty;
         StateHasChanged();
     }
@@ -272,6 +320,7 @@
         IsConnected = true;
         IsConnecting = false;
         StatusMessage = "Successfully connected to stream!";
+        _ = JS.InvokeVoidAsync("setStreamVolume", "streamVideo", VolumeLevel);
         StateHasChanged();
     }
 
@@ -292,6 +341,7 @@
         IsConnected = false;
         IsConnecting = false;
         StatusMessage = $"Connection failed: {message}";
+        IsStreamStopped = false;
         StateHasChanged();
     }
 
@@ -301,6 +351,7 @@
         IsConnected = false;
         IsConnecting = false;
         StatusMessage = "Stream has ended";
+        IsStreamStopped = false;
         StateHasChanged();
     }
 
@@ -344,6 +395,58 @@
         }
     }
 
+    private async Task TogglePlaybackAsync()
+    {
+        if (!IsConnected)
+        {
+            return;
+        }
+
+        if (IsStreamStopped)
+        {
+            var resumed = await JS.InvokeAsync<bool>("resumeStreamPlayback", "streamVideo", VolumeLevel > 0);
+            if (resumed)
+            {
+                IsStreamStopped = false;
+                RequiresPlaybackPrompt = false;
+                StatusMessage = "Playback resumed.";
+            }
+            else
+            {
+                RequiresPlaybackPrompt = true;
+                StatusMessage = "Browser blocked playback. Click Start Playback to continue.";
+            }
+        }
+        else
+        {
+            var stopped = await JS.InvokeAsync<bool>("stopStreamPlayback", "streamVideo");
+            if (stopped)
+            {
+                IsStreamStopped = true;
+                StatusMessage = "Stream paused. Click Resume Stream to continue.";
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task OnVolumeChanged(double value)
+    {
+        VolumeLevel = value;
+        await JS.InvokeVoidAsync("setStreamVolume", "streamVideo", VolumeLevel);
+
+        if (VolumeLevel > 0 && IsStreamStopped)
+        {
+            var resumed = await JS.InvokeAsync<bool>("resumeStreamPlayback", "streamVideo", true);
+            if (resumed)
+            {
+                IsStreamStopped = false;
+                RequiresPlaybackPrompt = false;
+                StatusMessage = "Playback resumed.";
+            }
+        }
+    }
+
     private string GetStatusClass()
     {
         if (IsConnecting) return "status-connecting";
@@ -360,6 +463,7 @@
             if (resumed)
             {
                 RequiresPlaybackPrompt = false;
+                IsStreamStopped = false;
                 StatusMessage = "Playback started.";
             }
             else

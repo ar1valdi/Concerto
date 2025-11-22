@@ -341,7 +341,7 @@
     }
 
     [JSInvokable]
-    public async Task ReceiveIceCandidate(string viewerConnectionId, string candidate)
+    public async Task ReceiveIceCandidate(string streamId, string viewerConnectionId, string candidate)
     {
         if (_streamingManager is not null)
         {
