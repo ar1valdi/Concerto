@@ -194,7 +194,8 @@
             <div class="volume-control">
                 <MudText Typo="Typo.body1">Volume</MudText>
                 <MudSlider Value="@VolumeLevel"
-                           ValueChanged="OnVolumeChanged"
+                           ValueChanged="@ (async value => await OnVolumeChanged(value))"
+                           ValueExpression="@(() => VolumeLevel)"
                            Min="0"
                            Max="100"
                            Step="1"
