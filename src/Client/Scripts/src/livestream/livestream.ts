@@ -22,6 +22,8 @@ declare global {
             dotNetCaller: DotNetObject
         ) => Promise<StreamViewer>;
         resumeStreamPlayback?: (videoElementId: string, unmute?: boolean) => Promise<boolean>;
+        stopStreamPlayback?: (videoElementId: string) => Promise<boolean>;
+        setStreamVolume?: (videoElementId: string, volumePercent: number) => void;
     }
 }
 
@@ -790,6 +792,7 @@ export class LiveStreamingManager {
         }
 
         peer.onicecandidate = (event) => {
+            console.log("ICE candidate", event.candidate);
             if (event.candidate) {
                 void this.signaling.sendIceCandidate(viewerConnectionId, event.candidate);
             }
@@ -1101,3 +1104,37 @@ export async function resumeStreamPlayback(videoElementId: string, unmute: boole
 }
 
 window.resumeStreamPlayback = resumeStreamPlayback;
+
+export async function stopStreamPlayback(videoElementId: string): Promise<boolean> {
+    const element = document.getElementById(videoElementId) as HTMLVideoElement | null;
+    if (!element) {
+        return false;
+    }
+
+    try {
+        element.pause();
+        return true;
+    } catch (error) {
+        console.warn("stopStreamPlayback: failed to pause", error);
+        return false;
+    }
+}
+
+window.stopStreamPlayback = stopStreamPlayback;
+
+export function setStreamVolume(videoElementId: string, volumePercent: number): void {
+    const element = document.getElementById(videoElementId) as HTMLVideoElement | null;
+    if (!element) {
+        return;
+    }
+
+    const clamped = Math.max(0, Math.min(100, volumePercent));
+    element.volume = clamped / 100;
+    if (clamped === 0) {
+        element.muted = true;
+    } else if (!element.paused) {
+        element.muted = false;
+    }
+}
+
+window.setStreamVolume = setStreamVolume;
