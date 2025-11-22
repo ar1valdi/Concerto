@@ -129,7 +129,6 @@ services:
         command: >
             turnserver
             --log-file=stdout
-            --Verbose
             --realm=${TURN_DOMAIN}
             --server-name=${TURN_DOMAIN}
             --listening-port=${TURN_STUN_PORT}
