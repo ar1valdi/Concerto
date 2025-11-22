@@ -194,7 +194,7 @@
             <div class="volume-control">
                 <MudText Typo="Typo.body1">Volume</MudText>
                 <MudSlider Value="@VolumeLevel"
-                           ValueChanged="@ (async value => await OnVolumeChanged(value))"
+                           ValueChanged="@(EventCallback.Factory.Create<double>(this, OnVolumeChanged))"
                            ValueExpression="@(() => VolumeLevel)"
                            Min="0"
                            Max="100"
@@ -215,7 +215,7 @@
     private bool RequiresPlaybackPrompt { get; set; }
     private string StatusMessage { get; set; } = string.Empty;
     private bool IsStreamStopped { get; set; }
-    private double VolumeLevel { get; set; } = 50;
+    private double VolumeLevel { get; set; } = 100;
 
     private DotNetObjectReference<JoinStreamPage> _dotNetObjectReference = null!;
     private IJSObjectReference? _streamViewer;
