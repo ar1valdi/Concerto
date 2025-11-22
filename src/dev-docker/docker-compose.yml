@@ -137,6 +137,7 @@ services:
             --min-port=${TURN_UDP_MIN_PORT}
             --max-port=${TURN_UDP_MAX_PORT}
             --fingerprint
+            --no-stun
             --lt-cred-mech
             --user=${TURN_USERNAME}:${TURN_PASSWORD}
             --cert=/etc/turn/ssl/${SSL_CERTIFICATE_FILENAME}
