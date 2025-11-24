@@ -33,36 +33,35 @@ public class AppSettingsController : ControllerBase
 
 	private static IReadOnlyCollection<ClientIceServer> BuildIceServers()
 	{
-		if (!AppSettings.Turn.IsConfigured || !AppSettings.Turn.HasCredentials)
-		{
-			return Array.Empty<ClientIceServer>();
-		}
+		var servers = new List<ClientIceServer>();
 
-		var servers = new List<ClientIceServer>
+		foreach (var turnServer in AppSettings.Turn.GetAllServers())
 		{
-			new ClientIceServer
-			{
-				Urls = new[]
-				{
-					$"turn:{AppSettings.Turn.Domain}:{AppSettings.Turn.StunPort}?transport=udp",
-					$"turn:{AppSettings.Turn.Domain}:{AppSettings.Turn.StunPort}?transport=tcp"
-				},
-				Username = AppSettings.Turn.Username,
-				Credential = AppSettings.Turn.Password
-			}
-		};
-
-		if (AppSettings.Turn.TlsPort > 0)
-		{
+			// Add UDP and TCP endpoints
 			servers.Add(new ClientIceServer
 			{
 				Urls = new[]
 				{
-					$"turns:{AppSettings.Turn.Domain}:{AppSettings.Turn.TlsPort}"
+					$"turn:{turnServer.Domain}:{turnServer.StunPort}?transport=udp",
+					$"turn:{turnServer.Domain}:{turnServer.StunPort}?transport=tcp"
 				},
-				Username = AppSettings.Turn.Username,
-				Credential = AppSettings.Turn.Password
+				Username = turnServer.Username,
+				Credential = turnServer.Password
 			});
+
+			// Add TLS endpoint if configured
+			if (turnServer.TlsPort > 0)
+			{
+				servers.Add(new ClientIceServer
+				{
+					Urls = new[]
+					{
+						$"turns:{turnServer.Domain}:{turnServer.TlsPort}"
+					},
+					Username = turnServer.Username,
+					Credential = turnServer.Password
+				});
+			}
 		}
 
 		return servers;
