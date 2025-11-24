@@ -6,7 +6,7 @@ networks:
 
 services:
     concerto_server:
-        image: misphe/concerto_server:test-streaming-1.3
+        image: misphe/concerto_server:test-streaming-1.4
         restart: always
         depends_on:
             postgres:
@@ -50,7 +50,7 @@ services:
             TURN_TLS_PORT: ${TURN_TLS_PORT}
 
     proxy:
-        image: misphe/concerto_nginx:dev-1.1
+        image: misphe/concerto_nginx:dev-1.2
         restart: always
         depends_on:
             - coturn
