@@ -6,7 +6,7 @@ networks:
 
 services:
     concerto_server:
-        image: misphe/concerto_server:test-streaming-1.4
+        image: misphe/concerto_server:dev-1.2
         restart: always
         depends_on:
             postgres:
