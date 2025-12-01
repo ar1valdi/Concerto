@@ -56,16 +56,13 @@ services:
             - coturn
         volumes:
             - ${CONCERTO_VOLUME_PATH:?}/acme:/etc/nginx/acme
-            - ${CONCERTO_VOLUME_PATH:?}/ssl:/etc/nginx/ssl
         ports:
             - 80:80
-            - 443:443
         environment:
-            BASE_PATH: ${CONCERTO_BASE_PATH}
+            CONCERTO_BASE_PATH: ${CONCERTO_BASE_PATH}
+            KEYCLOAK_BASE_PATH: ${KEYCLOAK_BASE_PATH}
             CONCERTO_DOMAIN: ${CONCERTO_DOMAIN:?}
-            KEYCLOAK_DOMAIN: ${KEYCLOAK_DOMAIN:?}
-            SSL_CERTIFICATE_FILENAME: ${SSL_CERTIFICATE_FILENAME:?}
-            SSL_CERTIFICATE_KEY_FILENAME: ${SSL_CERTIFICATE_KEY_FILENAME:?}
+            CONCERTO_UPSTREAM: concerto_server:80
         networks:
             concerto:
 
@@ -143,14 +140,10 @@ services:
                 --no-stun \
                 --lt-cred-mech \
                 --user=${TURN_USERNAME}:${TURN_PASSWORD} \
-                --cert=/etc/turn/ssl/${SSL_CERTIFICATE_FILENAME} \
-                --pkey=/etc/turn/ssl/${SSL_CERTIFICATE_KEY_FILENAME} \
                 --no-cli \
                 --listening-ip=0.0.0.0 \
                 --relay-ip=$$RELAY_IP \
                 --external-ip=${SERVER_IP}/$$RELAY_IP
-        volumes:
-            - ${CONCERTO_VOLUME_PATH:?}/ssl:/etc/turn/ssl:ro
         ports:
             - "3478:3478"
             - "3478:3478/udp"
