@@ -126,25 +126,29 @@ services:
     coturn:
         image: coturn/coturn:4.6
         restart: unless-stopped
-        command: >
-            turnserver
-            --log-file=stdout
-            --realm=${TURN_DOMAIN}
-            --server-name=${TURN_DOMAIN}
-            --listening-port=${TURN_STUN_PORT}
-            --tls-listening-port=${TURN_TLS_PORT}
-            --min-port=${TURN_UDP_MIN_PORT}
-            --max-port=${TURN_UDP_MAX_PORT}
-            --fingerprint
-            --no-stun
-            --lt-cred-mech
-            --user=${TURN_USERNAME}:${TURN_PASSWORD}
-            --cert=/etc/turn/ssl/${SSL_CERTIFICATE_FILENAME}
-            --pkey=/etc/turn/ssl/${SSL_CERTIFICATE_KEY_FILENAME}
-            --no-cli
-            --listening-ip=0.0.0.0
-            --relay-ip=${RELAY_IP}
-            --external-ip=${SERVER_IP}/${RELAY_IP}
+        entrypoint: /bin/sh
+        command:
+            - -c
+            - |
+                export RELAY_IP=$$(hostname -i)
+                exec turnserver \
+                --log-file=stdout \
+                --realm=${TURN_DOMAIN} \
+                --server-name=${TURN_DOMAIN} \
+                --listening-port=${TURN_STUN_PORT} \
+                --tls-listening-port=${TURN_TLS_PORT} \
+                --min-port=${TURN_UDP_MIN_PORT} \
+                --max-port=${TURN_UDP_MAX_PORT} \
+                --fingerprint \
+                --no-stun \
+                --lt-cred-mech \
+                --user=${TURN_USERNAME}:${TURN_PASSWORD} \
+                --cert=/etc/turn/ssl/${SSL_CERTIFICATE_FILENAME} \
+                --pkey=/etc/turn/ssl/${SSL_CERTIFICATE_KEY_FILENAME} \
+                --no-cli \
+                --listening-ip=0.0.0.0 \
+                --relay-ip=$$RELAY_IP \
+                --external-ip=${SERVER_IP}/$$RELAY_IP
         volumes:
             - ${CONCERTO_VOLUME_PATH:?}/ssl:/etc/turn/ssl:ro
         ports:
@@ -155,4 +159,3 @@ services:
             - "${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}:${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}/udp"
         networks:
             concerto:
-                ipv4_address: 172.18.0.4
