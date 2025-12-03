@@ -210,8 +210,12 @@ public class TranslationSyncService
             existingTranslation.Value = value;
             existingTranslation.LastUpdated = timestamp;
             
-            _logger.LogDebug("Updated translation: {Language}_{View}_{Key}", language, view, key);
+            _logger.LogInformation("Updated translation: {Language}_{View}_{Key}", language, view, key);
             return true;
+        }
+        else
+        {
+            _logger.LogInformation("Skipped updating translation: {Language}_{View}_{Key}", language, view, key);
         }
 
         return false; // No changes made
