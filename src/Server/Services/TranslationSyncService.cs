@@ -210,8 +210,12 @@ public class TranslationSyncService
             existingTranslation.Value = value;
             existingTranslation.LastUpdated = timestamp;
             
-            _logger.LogDebug("Updated translation: {Language}_{View}_{Key}", language, view, key);
+            _logger.LogInformation("Updated translation: {Language}_{View}_{Key}", language, view, key);
             return true;
+        }
+        else
+        {
+            _logger.LogInformation("Skipped updating translation: {Language}_{View}_{Key}", language, view, key);
         }
 
         return false; // No changes made
@@ -225,7 +229,7 @@ public class TranslationSyncService
         var path = _options.TranslationFilesPath;
         var hierarchicalFilePattern = _options.HierarchicalFilePattern;
         var filename = string.Format(hierarchicalFilePattern, language);
-        return Path.Combine(_environment.ContentRootPath, path, filename);
+        return Path.Combine(path, filename);
     }
 
     /// <summary>
