@@ -229,7 +229,7 @@ public class TranslationSyncService
         var path = _options.TranslationFilesPath;
         var hierarchicalFilePattern = _options.HierarchicalFilePattern;
         var filename = string.Format(hierarchicalFilePattern, language);
-        return Path.Combine(path, filename);
+        return Path.Combine(_environment.ContentRootPath, path, filename);
     }
 
     /// <summary>
