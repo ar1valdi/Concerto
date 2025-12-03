@@ -7,9 +7,10 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 @inject IAccessTokenProvider _accessTokenProvider
+@inject ITranslationsService t
 @implements IAsyncDisposable
 
-<PageTitle>Join Stream</PageTitle>
+<PageTitle>@t.T("joinStream", "pageTitle")</PageTitle>
 
 <style>
     .container {
@@ -23,10 +24,10 @@
     }
 
     .join-form {
-        background: #f5f5f5;
+        background: var(--mud-palette-background-grey);
         padding: 30px;
         border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        box-shadow: var(--mud-elevation-4);
         max-width: 500px;
         width: 100%;
     }
@@ -72,18 +73,18 @@
     }
 
     .status-connecting {
-        background-color: #e3f2fd;
-        color: #1976d2;
+        background-color: var(--mud-palette-info-lighten);
+        color: var(--mud-palette-info-darken);
     }
 
     .status-error {
-        background-color: #ffebee;
-        color: #c62828;
+        background-color: var(--mud-palette-error-lighten);
+        color: var(--mud-palette-error-darken);
     }
 
     .status-connected {
-        background-color: #e8f5e8;
-        color: #2e7d32;
+        background-color: var(--mud-palette-success-lighten);
+        color: var(--mud-palette-success-darken);
     }
 
     .viewer-controls {
@@ -113,11 +114,11 @@
     @if (!IsConnected)
     {
         <div class="join-form">
-            <MudText Typo="Typo.h4" Class="mb-4">Join Live Stream</MudText>
+            <MudText Typo="Typo.h4" Class="mb-4">@t.T("joinStream", "joinLiveStream")</MudText>
             
             <MudTextField @bind-Value="StreamIdInput" 
-                         Label="Stream ID" 
-                         Placeholder="Enter the stream ID shared by the host"
+                         Label="@t.T(\"joinStream\", \"streamIdLabel\")" 
+                         Placeholder="@t.T(\"joinStream\", \"streamIdPlaceholder\")"
                          Variant="Variant.Filled"
                          Class="mb-4"
                          Disabled="@IsConnecting" />
@@ -130,11 +131,11 @@
                 @if (IsConnecting)
                 {
                     <MudProgressCircular Size="Size.Small" Class="mr-2" />
-                    <span>Connecting...</span>
+                    <span>@t.T("joinStream", "connecting")</span>
                 }
                 else
                 {
-                    <span>Join Stream</span>
+                    <span>@t.T("joinStream", "joinStream")</span>
                 }
             </MudButton>
 
@@ -149,12 +150,12 @@
     else
     {
         <div style="width: 100%; text-align: center; margin-bottom: 20px;">
-            <MudText Typo="Typo.h5" Style="color: #2e7d32;">✅ Connected to Stream: @StreamIdInput</MudText>
+            <MudText Typo="Typo.h5" Style="color: var(--mud-palette-success);">@t.T("joinStream", "connectedToStream", StreamIdInput)</MudText>
             <MudButton Color="Color.Error" 
                       Variant="Variant.Filled" 
                       OnClick="LeaveStream"
                       Class="mt-2">
-                Leave Stream
+                @t.T("joinStream", "leaveStream")
             </MudButton>
         </div>
     }
@@ -164,9 +165,9 @@
         @if (RequiresPlaybackPrompt)
         {
             <div class="playback-overlay">
-                <MudText Typo="Typo.h6">Autoplay is blocked by your browser.</MudText>
+                <MudText Typo="Typo.h6">@t.T("joinStream", "autoplayBlocked")</MudText>
                 <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="ResumePlaybackAsync">
-                    Start Playback
+                    @t.T("joinStream", "startPlayback")
                 </MudButton>
             </div>
         }
@@ -174,11 +175,11 @@
         {
             @if (IsConnecting)
             {
-                <MudText Typo="Typo.h6" Style="color: white;">Connecting to stream...</MudText>
+                <MudText Typo="Typo.h6" Style="color: white;">@t.T("joinStream", "connectingToStream")</MudText>
             }
             else
             {
-                <MudText Typo="Typo.h6" Style="color: white;">Enter a stream ID above to join</MudText>
+                <MudText Typo="Typo.h6" Style="color: white;">@t.T("joinStream", "enterStreamId")</MudText>
             }
         }
     </div>
@@ -189,10 +190,10 @@
             <MudButton Color="Color.Secondary"
                        Variant="Variant.Filled"
                        OnClick="TogglePlaybackAsync">
-                @(IsStreamStopped ? "Resume Stream" : "Stop Stream")
+                @(IsStreamStopped ? t.T("joinStream", "resumeStream") : t.T("joinStream", "stopStream"))
             </MudButton>
             <div class="volume-control">
-                <MudText Typo="Typo.body1">Volume</MudText>
+                <MudText Typo="Typo.body1">@t.T("joinStream", "volume")</MudText>
                 <MudSlider Value="@VolumeLevel"
                            ValueChanged="@(EventCallback.Factory.Create<double>(this, OnVolumeChanged))"
                            ValueExpression="@(() => VolumeLevel)"
@@ -253,7 +254,7 @@
         try
         {
             IsConnecting = true;
-            StatusMessage = "Connecting to stream...";
+            StatusMessage = t.T("joinStream", "connectingToStreamStatus");
             RequiresPlaybackPrompt = false;
             IsStreamStopped = false;
             StateHasChanged();
@@ -272,7 +273,7 @@
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Failed to connect: {ex.Message}";
+            StatusMessage = t.T("joinStream", "connectionFailed", ex.Message);
             IsConnecting = false;
             StateHasChanged();
         }
@@ -320,7 +321,7 @@
         Console.WriteLine("JoinStreamPage: Stream successfully connected!");
         IsConnected = true;
         IsConnecting = false;
-        StatusMessage = "Successfully connected to stream!";
+        StatusMessage = t.T("joinStream", "successfullyConnected");
         _ = JS.InvokeVoidAsync("setStreamVolume", "streamVideo", VolumeLevel);
         StateHasChanged();
     }
@@ -331,7 +332,7 @@
         if (!RequiresPlaybackPrompt)
         {
             RequiresPlaybackPrompt = true;
-            StatusMessage = "Autoplay blocked. Click Start Playback to continue.";
+            StatusMessage = t.T("joinStream", "autoplayBlockedStatus");
             StateHasChanged();
         }
     }
@@ -341,7 +342,7 @@
     {
         IsConnected = false;
         IsConnecting = false;
-        StatusMessage = $"Connection failed: {message}";
+        StatusMessage = t.T("joinStream", "connectionFailed", message);
         IsStreamStopped = false;
         StateHasChanged();
     }
@@ -351,7 +352,7 @@
     {
         IsConnected = false;
         IsConnecting = false;
-        StatusMessage = "Stream has ended";
+        StatusMessage = t.T("joinStream", "streamEnded");
         IsStreamStopped = false;
         StateHasChanged();
     }
@@ -410,12 +411,12 @@
             {
                 IsStreamStopped = false;
                 RequiresPlaybackPrompt = false;
-                StatusMessage = "Playback resumed.";
+                StatusMessage = t.T("joinStream", "playbackResumed");
             }
             else
             {
                 RequiresPlaybackPrompt = true;
-                StatusMessage = "Browser blocked playback. Click Start Playback to continue.";
+                StatusMessage = t.T("joinStream", "browserBlockedPlayback");
             }
         }
         else
@@ -424,7 +425,7 @@
             if (stopped)
             {
                 IsStreamStopped = true;
-                StatusMessage = "Stream paused. Click Resume Stream to continue.";
+                StatusMessage = t.T("joinStream", "streamPaused");
             }
         }
 
@@ -443,7 +444,7 @@
             {
                 IsStreamStopped = false;
                 RequiresPlaybackPrompt = false;
-                StatusMessage = "Playback resumed.";
+                StatusMessage = t.T("joinStream", "playbackResumed");
             }
         }
     }
@@ -465,16 +466,16 @@
             {
                 RequiresPlaybackPrompt = false;
                 IsStreamStopped = false;
-                StatusMessage = "Playback started.";
+                StatusMessage = t.T("joinStream", "playbackStarted");
             }
             else
             {
-                StatusMessage = "Browser still blocking autoplay. Please try again.";
+                StatusMessage = t.T("joinStream", "browserStillBlocking");
             }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Unable to start playback: {ex.Message}";
+            StatusMessage = t.T("joinStream", "unableToStartPlayback", ex.Message);
         }
 
         StateHasChanged();
