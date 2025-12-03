@@ -20,9 +20,17 @@ border-box *, border-box *:before, border-box *:after { box-sizing: inherit; }
 }
 
 .mud-select-input {
-    color: var(--mud-palette-text-primary) !important;
+    color: var(--mud-palette-text-primary);
 }
 
 .mud-select-input .mud-icon-root {
-    color: var(--mud-palette-text-primary) !important;
+    color: var(--mud-palette-text-primary);
+}
+
+.language-picker .mud-select-input {
+    color: var(--mud-palette-appbar-primary);
+}
+
+.language-picker .mud-select-input .mud-icon-root {
+    color: var(--mud-palette-appbar-primary);
 }
