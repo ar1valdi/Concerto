@@ -40,44 +40,6 @@ type RawIceServer = {
     Credential?: string;
 };
 
-const FALLBACK_ICE_SERVERS: RTCIceServer[] = [
-    {
-        urls: "turn:openrelay.metered.ca:80",
-        username: "openrelayproject",
-        credential: "openrelayproject",
-    },
-    {
-        urls: "turn:openrelay.metered.ca:443",
-        username: "openrelayproject",
-        credential: "openrelayproject",
-    },
-    {
-        urls: "turn:openrelay.metered.ca:443?transport=tcp",
-        username: "openrelayproject",
-        credential: "openrelayproject",
-    },
-    {
-        urls: "turn:a.relay.metered.ca:80",
-        username: "e870da5e4a03f95e2f5bd3b7",
-        credential: "AvWnGLU7mwL+Z2YY",
-    },
-    {
-        urls: "turn:a.relay.metered.ca:80?transport=tcp",
-        username: "e870da5e4a03f95e2f5bd3b7",
-        credential: "AvWnGLU7mwL+Z2YY",
-    },
-    {
-        urls: "turn:a.relay.metered.ca:443",
-        username: "e870da5e4a03f95e2f5bd3b7",
-        credential: "AvWnGLU7mwL+Z2YY",
-    },
-    {
-        urls: "turns:a.relay.metered.ca:443?transport=tcp",
-        username: "e870da5e4a03f95e2f5bd3b7",
-        credential: "AvWnGLU7mwL+Z2YY",
-    },
-];
-
 class IceServerProvider {
     private static cache: RTCIceServer[] | null = null;
     private static pending: Promise<RTCIceServer[]> | null = null;
@@ -89,15 +51,15 @@ class IceServerProvider {
 
         if (!this.pending) {
             this.pending = this.fetchFromApi().catch((error) => {
-                console.warn("Falling back to default ICE servers", error);
-                return this.cloneServers(FALLBACK_ICE_SERVERS);
+                this.pending = null;
+                throw error;
             });
         }
 
         try {
             const servers = await this.pending;
-            this.cache = servers;
-            return this.cloneServers(servers);
+            this.cache = servers ?? [];
+            return this.cloneServers(this.cache);
         } finally {
             this.pending = null;
         }
@@ -112,8 +74,8 @@ class IceServerProvider {
         const payload = await response.json();
         const normalized = this.normalize(payload?.IceServers ?? payload?.iceServers);
         if (normalized.length === 0) {
-            console.warn("API returned an empty ICE server list, using fallback values");
-            return this.cloneServers(FALLBACK_ICE_SERVERS);
+            console.warn("API returned an empty ICE server list");
+            return [];
         }
 
         console.log(`Loaded ${normalized.length} ICE server definition(s) from API`);
@@ -146,12 +108,42 @@ class IceServerProvider {
         return sanitized;
     }
 
-    private static cloneServers(servers: RTCIceServer[]): RTCIceServer[] {
+    private static cloneServers(servers: RTCIceServer[] = []): RTCIceServer[] {
         return servers.map((server) => ({
             urls: Array.isArray(server.urls) ? [...server.urls] : server.urls,
             username: server.username,
             credential: server.credential,
         }));
+    }
+}
+
+// Safari expects H.264 to be offered first, so reorder codecs before SDP is created.
+function prioritizeH264(peer: RTCPeerConnection): void {
+    const capabilities = RTCRtpSender.getCapabilities?.("video");
+    const codecs = capabilities?.codecs;
+    if (!codecs || codecs.length === 0) {
+        return;
+    }
+
+    const lower = (codec: { mimeType: string }) => codec.mimeType.toLowerCase();
+    const h264Codecs = codecs.filter((codec) => lower(codec) === "video/h264");
+    if (h264Codecs.length === 0) {
+        return;
+    }
+    const otherCodecs = codecs.filter((codec) => lower(codec) !== "video/h264");
+    const prioritized = [...h264Codecs, ...otherCodecs];
+
+    for (const transceiver of peer.getTransceivers()) {
+        const trackKind = transceiver.sender?.track?.kind ?? transceiver.receiver?.track?.kind;
+        if (trackKind !== "video" || typeof transceiver.setCodecPreferences !== "function") {
+            continue;
+        }
+
+        try {
+            transceiver.setCodecPreferences(prioritized);
+        } catch (error) {
+            console.warn("Failed to set codec preferences", error);
+        }
     }
 }
 
@@ -333,7 +325,9 @@ class SignalClient {
 }
 
 class CameraController {
+    private static readonly streamCache = new Map<string, { stream: MediaStream; refCount: number }>();
     private stream: MediaStream | null = null;
+    private releaseCachedStream: (() => void) | null = null;
     private deviceId: string | null = null;
     private active: boolean = false;
     private width: number = 1280;
@@ -374,9 +368,9 @@ class CameraController {
         this.stop();
 
         try {
-            this.stream = await navigator.mediaDevices.getUserMedia({
-                video: { deviceId },
-            });
+            const { stream, release } = await CameraController.acquireDeviceStream(deviceId);
+            this.stream = stream;
+            this.releaseCachedStream = release;
         } catch (error) {
             console.error("CameraController: failed to start camera", error);
             this.stop();
@@ -403,8 +397,39 @@ class CameraController {
         this.stream?.getTracks().forEach((track) => track.stop());
         this.stream = null;
         this.element.srcObject = null;
+        if (this.releaseCachedStream) {
+            this.releaseCachedStream();
+            this.releaseCachedStream = null;
+        }
         this.deviceId = null;
         this.active = false;
+    }
+
+    private static async acquireDeviceStream(deviceId: string): Promise<{ stream: MediaStream; release: () => void }> {
+        let cacheEntry = this.streamCache.get(deviceId);
+        if (!cacheEntry) {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId } });
+            cacheEntry = { stream, refCount: 0 };
+            this.streamCache.set(deviceId, cacheEntry);
+        }
+
+        cacheEntry.refCount += 1;
+        const clone = cacheEntry.stream.clone();
+
+        const release = () => {
+            const current = this.streamCache.get(deviceId);
+            if (!current || current !== cacheEntry) {
+                return;
+            }
+
+            current.refCount -= 1;
+            if (current.refCount <= 0) {
+                current.stream.getTracks().forEach((track) => track.stop());
+                this.streamCache.delete(deviceId);
+            }
+        };
+
+        return { stream: clone, release };
     }
 }
 
@@ -791,6 +816,8 @@ export class LiveStreamingManager {
             }
         }
 
+        prioritizeH264(peer);
+
         peer.onicecandidate = (event) => {
             console.log("ICE candidate", event.candidate);
             if (event.candidate) {
@@ -922,6 +949,7 @@ export class StreamViewer {
 
         try {
             await peer.setRemoteDescription(JSON.parse(offer));
+            prioritizeH264(peer);
             const answer = await peer.createAnswer();
             await peer.setLocalDescription(answer);
             await this.signaling.sendAnswer(fromConnectionId, answer);
