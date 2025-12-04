@@ -237,17 +237,9 @@
     {
         if (firstRender)
         {
-            if (_streamingManager is null)
-            {
-                _streamingManager = await JS.InvokeAsync<IJSObjectReference>("initializeLiveStreamingManager", "streamPreview",
+            _streamingManager = await JS.InvokeAsync<IJSObjectReference>("initializeLiveStreamingManager", "streamPreview",
                 _dotNetObjectReference);
-                await FetchMediaInputs();
-            }
-            else
-            {
-                // Re-append preview canvas when returning to the page
-                await _streamingManager.InvokeVoidAsync("appendPreviews", "streamPreview");
-            }
+            await FetchMediaInputs();
         }
     }
 
