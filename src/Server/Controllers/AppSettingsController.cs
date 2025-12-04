@@ -37,7 +37,17 @@ public class AppSettingsController : ControllerBase
 
 		foreach (var turnServer in AppSettings.Turn.GetAllServers())
 		{
-			// Add UDP and TCP endpoints
+			if (turnServer.StunPort > 0)
+			{
+				servers.Add(new ClientIceServer
+				{
+					Urls = new[]
+					{
+						$"stun:{turnServer.Domain}:{turnServer.StunPort}"
+					}
+				});
+			}
+
 			servers.Add(new ClientIceServer
 			{
 				Urls = new[]
@@ -49,13 +59,13 @@ public class AppSettingsController : ControllerBase
 				Credential = turnServer.Password
 			});
 
-			// Add TLS endpoint if configured
 			if (turnServer.TlsPort > 0)
 			{
 				servers.Add(new ClientIceServer
 				{
 					Urls = new[]
 					{
+						$"stuns:{turnServer.Domain}:{turnServer.TlsPort}",
 						$"turns:{turnServer.Domain}:{turnServer.TlsPort}"
 					},
 					Username = turnServer.Username,
