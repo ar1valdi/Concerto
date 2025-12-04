@@ -9,9 +9,10 @@
 @inject IDialogService DialogService
 @inject NavigationManager Navigation
 @inject IAccessTokenProvider _accessTokenProvider
+@inject ITranslationsService t
 @implements IAsyncDisposable
 
-<PageTitle>Live Stream</PageTitle>
+<PageTitle>@t.T("liveStream", "pageTitle")</PageTitle>
 
 <style>
     .container {
@@ -23,7 +24,7 @@
         grid-area: buttons;
     }
 
-    .buttons > * {
+    .buttons>* {
         margin-right: 8px;
     }
 
@@ -40,7 +41,7 @@
     }
 
     .stream-info {
-        background: #f5f5f5;
+        background: var(--mud-palette-background-grey);
         padding: 10px;
         border-radius: 4px;
         margin-bottom: 10px;
@@ -50,52 +51,49 @@
         font-family: monospace;
         font-size: 18px;
         font-weight: bold;
-        color: #1976d2;
+        color: var(--mud-palette-primary);
     }
 </style>
 
 <div class="container pa-1">
     <div class="buttons d-flex py-1">
-        <MudText Typo="Typo.caption" Style="align-self: center; margin-right: 8px; color: #666;">
-            Live Streaming
+        <MudText Typo="Typo.caption" Style="align-self: center; margin-right: 8px; color: var(--mud-palette-text-secondary);">
+            @t.T("liveStream", "liveStreaming")
         </MudText>
 
         @if (!IsStreaming)
         {
-            <MudButton StartIcon="@Icons.Material.Filled.Videocam" IconColor="Color.Primary" Color="Color.Info" Variant="Variant.Filled" DisableElevation="true" OnClick="StartStream">
-                Start Stream
+            <MudButton StartIcon="@Icons.Material.Filled.Videocam" IconColor="Color.Primary" Color="Color.Info"
+                Variant="Variant.Filled" DisableElevation="true" OnClick="StartStream">
+                @t.T("liveStream", "startStream")
             </MudButton>
         }
         else
         {
-            <MudButton StartIcon="@Icons.Material.Filled.Stop" IconColor="Color.Default" Color="Color.Error" Variant="Variant.Filled" DisableElevation="true" OnClick="StopStream">
-                Stop Stream
+            <MudButton StartIcon="@Icons.Material.Filled.Stop" IconColor="Color.Default" Color="Color.Error"
+                Variant="Variant.Filled" DisableElevation="true" OnClick="StopStream">
+                @t.T("liveStream", "stopStream")
             </MudButton>
         }
 
         @if (!string.IsNullOrEmpty(StreamId))
         {
             <div class="stream-info">
-                <MudText Typo="Typo.subtitle2">Stream ID:</MudText>
+                <MudText Typo="Typo.subtitle2">@t.T("liveStream", "streamId")</MudText>
                 <div class="stream-id">@StreamId</div>
-                <MudText Typo="Typo.caption">Share this ID with others to let them join your stream</MudText>
-                
+                <MudText Typo="Typo.caption">@t.T("liveStream", "shareIdMessage")</MudText>
+
                 <div class="mt-3">
-                    <MudText Typo="Typo.caption">Or share this link:</MudText>
-                    <MudTextField Value="@StreamUrl" 
-                                 ReadOnly="true" 
-                                 Variant="Variant.Outlined" 
-                                 Size="Size.Small"
-                                 Class="mt-1"
-                                 Adornment="Adornment.End"
-                                 AdornmentIcon="@Icons.Material.Filled.ContentCopy"
-                                 OnAdornmentClick="CopyStreamUrl" />
+                    <MudText Typo="Typo.caption">@t.T("liveStream", "orShareLink")</MudText>
+                    <MudTextField Value="@StreamUrl" ReadOnly="true" Variant="Variant.Outlined" Size="Size.Small"
+                        Class="mt-1" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.ContentCopy"
+                        OnAdornmentClick="CopyStreamUrl" />
                 </div>
-                
+
                 @if (ViewerCount > 0)
                 {
                     <div class="mt-2">
-                        <MudText Typo="Typo.caption">👁 Viewers: @ViewerCount</MudText>
+                        <MudText Typo="Typo.caption">@t.T("liveStream", "viewers", ViewerCount)</MudText>
                     </div>
                 }
             </div>
@@ -108,22 +106,24 @@
         {
             <div class="d-flex px-2">
                 <MudIcon Style="align-self: center; margin-right: 2px;" Icon="@Icons.Material.Filled.Mic" />
-                <select style="align-self: stretch; flex-shrink: 1; max-width: 150px;" onclick="@(() => FetchMediaInputs())" @bind="SelectedAudioInputId">
+                <select style="align-self: stretch; flex-shrink: 1; max-width: 150px;" onclick="@(() => FetchMediaInputs())"
+                    @bind="SelectedAudioInputId">
                     @foreach (var input in audioInputs)
                     {
                         <option value="@input.Id">@input.Name</option>
                     }
                     @if (!audioInputs.Any())
                     {
-                        <option value="@string.Empty">None</option>
+                        <option value="@string.Empty">@t.T("liveStream", "noneOption")</option>
                     }
                 </select>
             </div>
 
             <div class="d-flex">
                 <MudIcon Style="align-self: center; margin-right: 2px;" Icon="@Icons.Material.Filled.CameraAlt" />
-                <select style="align-self: stretch; flex-shrink: 1; max-width: 150px;" onclick="@(() => FetchMediaInputs())" @bind="SelectedVideoInputId">
-                    <option value="@string.Empty">None (Audio only)</option>
+                <select style="align-self: stretch; flex-shrink: 1; max-width: 150px;" onclick="@(() => FetchMediaInputs())"
+                    @bind="SelectedVideoInputId">
+                    <option value="@string.Empty">@t.T("liveStream", "noneAudioOnly")</option>
                     @foreach (var input in videoInputs)
                     {
                         <option value="@input.Id">@input.Name</option>
@@ -134,17 +134,21 @@
     }
     else
     {
-        <MudButton StartIcon="@Icons.Material.Filled.CloudUpload" Color="Color.Success" Variant="Variant.Filled" DisableElevation="true" OnClick="SaveStream" Disabled="@string.IsNullOrWhiteSpace(StreamName)">
-            Save in workspace
+        <MudButton StartIcon="@Icons.Material.Filled.CloudUpload" Color="Color.Success" Variant="Variant.Filled"
+            DisableElevation="true" OnClick="SaveStream" Disabled="@string.IsNullOrWhiteSpace(StreamName)">
+            @t.T("liveStream", "saveInWorkspace")
         </MudButton>
-        <MudButton StartIcon="@Icons.Material.Filled.Save" Color="Color.Success" Variant="Variant.Filled" DisableElevation="true" OnClick="SaveStreamLocally" Disabled="@string.IsNullOrWhiteSpace(StreamName)">
-            Save on computer
+        <MudButton StartIcon="@Icons.Material.Filled.Save" Color="Color.Success" Variant="Variant.Filled"
+            DisableElevation="true" OnClick="SaveStreamLocally" Disabled="@string.IsNullOrWhiteSpace(StreamName)">
+            @t.T("liveStream", "saveOnComputer")
         </MudButton>
-        <MudButton StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" Variant="Variant.Filled" DisableElevation="true" OnClick="DiscardStream">
-            Discard
+        <MudButton StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" Variant="Variant.Filled"
+            DisableElevation="true" OnClick="DiscardStream">
+            @t.T("liveStream", "discard")
         </MudButton>
 
-        <MudInput @bind-Value="StreamName" Placeholder="Stream name" Immediate="true" Label="Stream name" Variant="Variant.Filled" Margin="Margin.None" Class="pa-0" />
+        <MudInput @bind-Value="StreamName" Placeholder="@t.T("liveStream", "streamNamePlaceholder")" Immediate="true" Label="@t.T("liveStream", "streamName")"
+            Variant="Variant.Filled" Margin="Margin.None" Class="pa-0" />
     }
 
     <div id="streamPreview" class="preview">
@@ -231,9 +235,10 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && _streamingManager is null)
+        if (firstRender)
         {
-            _streamingManager = await JS.InvokeAsync<IJSObjectReference>("initializeLiveStreamingManager", "streamPreview", _dotNetObjectReference);
+            _streamingManager = await JS.InvokeAsync<IJSObjectReference>("initializeLiveStreamingManager", "streamPreview",
+                _dotNetObjectReference);
             await FetchMediaInputs();
         }
     }
@@ -258,7 +263,7 @@
     public async Task StartStream()
     {
         if (_streamingManager is null) return;
-        
+
         try
         {
             StreamId = Guid.NewGuid().ToString("N")[..8].ToUpper();
@@ -317,7 +322,7 @@
     {
         ViewerCount++;
         StateHasChanged();
-        
+
         if (_streamingManager is not null)
         {
             await _streamingManager.InvokeVoidAsync("handleViewerJoined", viewerConnectionId);
@@ -373,7 +378,7 @@
 
     public async Task SaveStream()
     {
-        var destinationFolder = await DialogService.ShowSelectFolderDialog("Select folder for stream recording", "Save here");
+        var destinationFolder = await DialogService.ShowSelectFolderDialog(t.T("liveStream", "selectFolderDialogTitle"), t.T("liveStream", "selectFolderDialogConfirm"));
         if (destinationFolder is null) return;
         if (_streamRecording is null) return;
         if (string.IsNullOrWhiteSpace(StreamName)) return;

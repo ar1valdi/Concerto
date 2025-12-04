@@ -1078,6 +1078,10 @@ export async function initializeLiveStreamingManager(
     dotNetCaller?: DotNetObject
 ): Promise<LiveStreamingManager> {
     if (window.liveStreamingManager) {
+        // Re-append preview when returning to the page
+        if (videoPreviewParentId) {
+            window.liveStreamingManager.appendPreviews(videoPreviewParentId);
+        }
         return window.liveStreamingManager;
     }
 
