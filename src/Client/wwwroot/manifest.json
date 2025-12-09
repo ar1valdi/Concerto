@@ -1,0 +1,30 @@
+{
+  "name": "Concerto",
+  "description": "Collaborative music",
+  "short_name": "Concerto",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#03173d",
+  "prefer_related_applications": false,
+  "scope": "/",
+  "orientation": "any",
+  "permissions": [
+    "audioCapture",
+    "videoCapture",
+    "camera",
+    "microphone"
+  ],
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ]
+}
