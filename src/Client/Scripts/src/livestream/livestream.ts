@@ -1,5 +1,11 @@
 import fixWebmDuration from "webm-duration-fix";
 import * as signalR from "@microsoft/signalr";
+import { checkPWACapabilities, logPWADiagnostics } from "./pwa-diagnostics";
+
+const PeerConnectionImpl = 
+    window.RTCPeerConnection || 
+    (window as any).webkitRTCPeerConnection || 
+    (window as any).mozRTCPeerConnection;
 
 declare const DotNet: typeof import("@microsoft/dotnet-js-interop").DotNet;
 
@@ -39,6 +45,11 @@ type RawIceServer = {
     credential?: string;
     Credential?: string;
 };
+
+function isSafariBrowser(): boolean {
+    const ua = navigator.userAgent.toLowerCase();
+    return ua.includes("safari") && !ua.includes("chrome") && !ua.includes("chromium");
+}
 
 class IceServerProvider {
     private static cache: RTCIceServer[] | null = null;
@@ -87,19 +98,31 @@ class IceServerProvider {
             return [];
         }
 
+        const isSafari = isSafariBrowser();
         const sanitized: RTCIceServer[] = [];
         for (const entry of raw) {
             if (!entry) {
                 continue;
             }
 
-            const urls = entry.urls ?? entry.Urls ?? entry.url ?? entry.Url;
-            if (!urls || (Array.isArray(urls) && urls.length === 0)) {
+            const rawUrls = entry.urls ?? entry.Urls ?? entry.url ?? entry.Url;
+            if (!rawUrls) {
                 continue;
             }
 
+            let urls = Array.isArray(rawUrls) ? [...rawUrls] : [rawUrls];
+
+            if (isSafari) {
+                const originalLength = urls.length;
+                urls = urls.filter(url => !url.toLowerCase().includes("transport=tcp"));
+                
+                if (urls.length < originalLength) {
+                    console.log("IceServerProvider: Filtered out TCP candidates for Safari compatibility");
+                }
+            }
+
             sanitized.push({
-                urls: Array.isArray(urls) ? [...urls] : urls,
+                urls: urls,
                 username: entry.username ?? entry.Username ?? undefined,
                 credential: entry.credential ?? entry.Credential ?? undefined,
             });
@@ -263,14 +286,46 @@ class SignalClient {
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/streaming", {
                 accessTokenFactory: () => this.fetchAccessToken(),
+                // Better support for PWA and unreliable connections
+                skipNegotiation: false,
+                transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling,
             })
-            .withAutomaticReconnect()
+            .withAutomaticReconnect({
+                nextRetryDelayInMilliseconds: (retryContext: signalR.RetryContext) => {
+                    // Exponential backoff for PWA reliability
+                    if (retryContext.elapsedMilliseconds < 60000) {
+                        return Math.min(1000 * Math.pow(2, retryContext.previousRetryCount), 10000);
+                    } else {
+                        return null; // Stop retrying after 1 minute
+                    }
+                }
+            })
+            .configureLogging(signalR.LogLevel.Information)
             .build();
 
         this.registerHandlers(connection);
-        await connection.start();
-        this.connection = connection;
-        console.log("SignalClient: connection established");
+        
+        // Add connection state handlers for PWA
+        connection.onreconnecting((error?: Error) => {
+            console.warn("SignalClient: Reconnecting...", error);
+        });
+        
+        connection.onreconnected((connectionId?: string) => {
+            console.log("SignalClient: Reconnected", connectionId);
+        });
+        
+        connection.onclose((error?: Error) => {
+            console.error("SignalClient: Connection closed", error);
+        });
+        
+        try {
+            await connection.start();
+            this.connection = connection;
+            console.log("SignalClient: connection established");
+        } catch (error) {
+            console.error("SignalClient: Failed to establish connection", error);
+            throw new Error(`SignalR connection failed: ${(error as Error).message}`);
+        }
     }
 
     private async fetchAccessToken(): Promise<string> {
@@ -341,6 +396,29 @@ class CameraController {
         this.element.playsInline = true;
         this.element.setAttribute("playsinline", "");
         this.element.style.display = "none";
+    }
+
+    static async checkPermissions(): Promise<boolean> {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.error("CameraController: getUserMedia not supported");
+            return false;
+        }
+
+        // Check if running in secure context
+        if (!window.isSecureContext) {
+            console.error("CameraController: Not in secure context (HTTPS required)");
+            return false;
+        }
+
+        // Request permissions explicitly for PWA
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream.getTracks().forEach(track => track.stop());
+            return true;
+        } catch (error) {
+            console.error("CameraController: Permission denied or device unavailable", error);
+            return false;
+        }
     }
 
     isActive(): boolean {
@@ -437,6 +515,29 @@ class MicrophoneController {
     private stream: MediaStream | null = null;
     private deviceId: string | null = null;
     private active: boolean = false;
+
+    static async checkPermissions(): Promise<boolean> {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.error("MicrophoneController: getUserMedia not supported");
+            return false;
+        }
+
+        // Check if running in secure context
+        if (!window.isSecureContext) {
+            console.error("MicrophoneController: Not in secure context (HTTPS required)");
+            return false;
+        }
+
+        // Request permissions explicitly for PWA
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(track => track.stop());
+            return true;
+        } catch (error) {
+            console.error("MicrophoneController: Permission denied or device unavailable", error);
+            return false;
+        }
+    }
 
     isActive(): boolean {
         return this.active;
@@ -578,6 +679,33 @@ export class LiveStreamingManager {
     }
 
     async initialize(): Promise<void> {
+        // Check if running in PWA standalone mode
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                      (window.navigator as any).standalone === true;
+        
+        if (isPWA) {
+            console.log("LiveStreamingManager: Running in PWA standalone mode");
+            
+            // Run diagnostics
+            const diagnostics = await checkPWACapabilities();
+            logPWADiagnostics(diagnostics);
+            
+            if (diagnostics.errors.length > 0) {
+                const errorMessage = `PWA compatibility issues:\n${diagnostics.errors.join('\n')}`;
+                await this.reportError(errorMessage);
+                throw new Error(errorMessage);
+            }
+            
+            // Check media permissions
+            const cameraPermission = await CameraController.checkPermissions();
+            const micPermission = await MicrophoneController.checkPermissions();
+            
+            if (!cameraPermission || !micPermission) {
+                await this.reportError("Camera or microphone permissions not granted. Please enable them in browser settings.");
+                throw new Error("Media permissions required for streaming");
+            }
+        }
+        
         await this.signaling.connect();
     }
 
@@ -895,6 +1023,10 @@ export class StreamViewer {
     private hostConnectionId: string | null = null;
     private pendingIceCandidates: Array<{ streamId: string; fromConnectionId: string; candidate: string }> = [];
     private isConnected = false;
+    
+    private forceRelay: boolean = false;
+    private monitoringInterval: number | null = null;
+    private connectionTimeout: number | null = null;
 
     constructor(
         private readonly videoElement: HTMLVideoElement,
@@ -943,7 +1075,6 @@ export class StreamViewer {
 
         const peer = this.peerConnection;
         if (!peer) {
-            await this.notifyDotNet("StreamError", "Peer connection is not ready");
             return;
         }
 
@@ -994,6 +1125,12 @@ export class StreamViewer {
     }
 
     async dispose(): Promise<void> {
+        this.stopMonitoring();
+        if (this.connectionTimeout) {
+            clearTimeout(this.connectionTimeout);
+            this.connectionTimeout = null;
+        }
+
         if (this.peerConnection) {
             this.peerConnection.close();
             this.peerConnection = null;
@@ -1003,13 +1140,19 @@ export class StreamViewer {
         await this.signaling.disconnect();
         this.pendingIceCandidates = [];
         this.isConnected = false;
+        this.forceRelay = false;
     }
 
     private async preparePeerConnection(): Promise<void> {
         const iceServers = await IceServerProvider.getServers();
-        this.peerConnection = new RTCPeerConnection({
+        
+        // decyzja czy wymusić relay
+        const transportPolicy: RTCIceTransportPolicy = this.forceRelay ? "relay" : "all";
+        console.log(`StreamViewer: Creating connection with policy: ${transportPolicy}`);
+
+        this.peerConnection = new PeerConnectionImpl({
             iceServers,
-            iceTransportPolicy: "all",
+            iceTransportPolicy: transportPolicy,
             bundlePolicy: "max-bundle",
             rtcpMuxPolicy: "require",
         });
@@ -1020,8 +1163,12 @@ export class StreamViewer {
                 return;
             }
 
+            console.log("StreamViewer: Track received via " + (this.forceRelay ? "RELAY" : "P2P/Mix"));
+
             this.videoElement.srcObject = stream;
             this.videoElement.style.display = "block";
+            
+            // Start odtwarzania
             const playPromise = this.videoElement.play();
             if (playPromise) {
                 playPromise
@@ -1032,6 +1179,8 @@ export class StreamViewer {
                     });
             }
             this.isConnected = true;
+
+            this.startMonitoringQuality();
         };
 
         this.peerConnection.onicecandidate = (event) => {
@@ -1044,24 +1193,111 @@ export class StreamViewer {
             if (!this.peerConnection) {
                 return;
             }
+            console.log(`StreamViewer ICE state: ${this.peerConnection.iceConnectionState}`);
 
             if (this.peerConnection.iceConnectionState === "failed") {
-                this.peerConnection.restartIce();
+                if (!this.forceRelay) {
+                    console.warn("StreamViewer: ICE Failed on P2P, switching to RELAY...");
+                    this.switchToRelay();
+                } else {
+                    this.peerConnection.restartIce();
+                }
             } else if (this.peerConnection.iceConnectionState === "disconnected") {
-                console.warn("StreamViewer: ICE connection disconnected");
+                 console.warn("StreamViewer: ICE connection disconnected");
             }
         };
 
         this.peerConnection.onconnectionstatechange = () => {
-            if (!this.peerConnection) {
-                return;
-            }
-
+            if (!this.peerConnection) return;
             if (this.peerConnection.connectionState === "failed") {
                 this.notifyDotNet("StreamError", "Connection lost");
                 this.isConnected = false;
             }
         };
+    }
+
+    private startMonitoringQuality() {
+        this.stopMonitoring();
+
+        let zeroFramesCount = 0;
+        let lastDecodedFrames = 0;
+
+        this.connectionTimeout = window.setTimeout(() => {
+            console.log("StreamViewer: Starting video quality monitoring...");
+            
+            this.monitoringInterval = window.setInterval(async () => {
+                if (!this.peerConnection || this.peerConnection.connectionState === 'closed') {
+                    this.stopMonitoring();
+                    return;
+                }
+
+                try {
+                    const stats = await this.peerConnection.getStats();
+                    let framesDecoded = 0;
+                    let bytesReceived = 0;
+
+                    stats.forEach(report => {
+                        if (report.type === 'inbound-rtp' && report.kind === 'video') {
+                            framesDecoded = report.framesDecoded || 0;
+                            bytesReceived = report.bytesReceived || 0;
+                        }
+                    });
+
+                    if (framesDecoded === lastDecodedFrames) {
+                        zeroFramesCount++;
+                        console.log(`StreamViewer Monitor: No new frames decoded. Strike ${zeroFramesCount}/3. Bytes: ${bytesReceived}`);
+                    } else {
+                        zeroFramesCount = 0;
+                        lastDecodedFrames = framesDecoded;
+                    }
+
+                    if (zeroFramesCount >= 3) {
+                        console.warn("StreamViewer: BLACK SCREEN DETECTED. Frames are stuck.");
+                        this.stopMonitoring();
+                        
+                        if (!this.forceRelay) {
+                            await this.switchToRelay();
+                        } else {
+                            console.error("StreamViewer: Relay is actively failing too. Network issue likely.");
+                            await this.notifyDotNet("StreamError", "Connection unstable even via Relay.");
+                        }
+                    }
+
+                } catch (e) {
+                    console.warn("StreamViewer: Error reading stats", e);
+                }
+            }, 2000); // Sprawdzaj co 2 sekundy
+
+        }, 3000); // Start po 3s od połączenia
+    }
+
+    private stopMonitoring() {
+        if (this.monitoringInterval) {
+            clearInterval(this.monitoringInterval);
+            this.monitoringInterval = null;
+        }
+        if (this.connectionTimeout) {
+            clearTimeout(this.connectionTimeout);
+            this.connectionTimeout = null;
+        }
+    }
+
+    private async switchToRelay(): Promise<void> {
+        console.log("StreamViewer: Switching to TURN RELAY mode...");
+        
+        this.forceRelay = true;
+        this.isConnected = false;
+
+        if (this.peerConnection) {
+            this.peerConnection.close();
+            this.peerConnection = null;
+        }
+        
+        await this.signaling.leaveStream();
+        await this.preparePeerConnection();
+        await this.signaling.joinStream(this.streamId);
+        
+        console.log("StreamViewer: Rejoined with Relay enforcement.");
     }
 
     private async notifyDotNet(method: string, ...args: any[]): Promise<void> {
