@@ -2251,7 +2251,7 @@ b9781f4d-1f73-4b9c-9386-d4e1c1703a1d	d796e532-8099-447b-b687-c4ea9889a1e4
 
 COPY public.credential (id, salt, type, user_id, created_date, user_label, secret_data, credential_data, priority) FROM stdin;
 e702b638-ed22-4ede-a466-ef4063eed743	\N	password	655242f8-bc15-4119-87c6-b9d242495178	1744140267152	\N	{"value":"gefwvzqKTjyLe5JR+hjyxYArbGbuMMpn/+5nIOFIoBA=","salt":"Phc2J5I2obR7eKMoF80JbQ==","additionalParameters":{}}	{"hashIterations":27500,"algorithm":"pbkdf2-sha256","additionalParameters":{}}	10
-30f6b431-e17c-40b4-a300-00009724bae0	\N	password	1b47e0c0-668d-4020-959c-412c241fdd05	1744142033900	My password	{"value":"F/f9gBc8djGjbO92nNvTDrqvjtxa9N7aKfl5CTE95N4=","salt":"7XAziUhIavD2oCf45QwHvw==","additionalParameters":{}}	{"hashIterations":27500,"algorithm":"pbkdf2-sha256","additionalParameters":{}}	10
+30f6b431-e17c-40b4-a300-00009724bae0	\N	password	1b47e0c0-668d-4020-959c-412c241fdd05	1765407143277	\N	{"value":"ak/UrEtdo6FVsCfy75bGo7b9S9Gf2sJcvXsOp/qZHJ0=","salt":"endDTcSBIG33+oTvza4/dQ==","additionalParameters":{}}	{"hashIterations":27500,"algorithm":"pbkdf2-sha256","additionalParameters":{}}	10
 \.
 
 
@@ -3499,9 +3499,9 @@ COPY public.user_consent_client_scope (user_consent_id, scope_id) FROM stdin;
 --
 
 COPY public.user_entity (id, email, email_constraint, email_verified, enabled, federation_link, first_name, last_name, realm_id, username, created_timestamp, service_account_client_link, not_before) FROM stdin;
-1b47e0c0-668d-4020-959c-412c241fdd05	admin@admin.com	admin@admin.com	t	t	\N	admin123	admin	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	admin	1744141694037	\N	0
 655242f8-bc15-4119-87c6-b9d242495178	\N	f8fc7a4c-da5c-4e73-9ac2-46b5db11b213	t	t	\N	admin123	admin	f751882b-adae-4e57-96a2-61fcd0497761	admin	1744140266968	\N	0
 4ee930b1-8b92-4b65-ab45-c069b2122c87	\N	7d70788e-2b0c-4d81-9d75-5e4826e6a7dd	f	t	\N	\N	\N	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	service-account-concerto-server	1746561452249	9cbf04e8-c1d5-41cd-b02c-444c87f1a78d	0
+1b47e0c0-668d-4020-959c-412c241fdd05	admin@admin.com	admin@admin.com	t	t	\N	admin	admin	6c0e74d5-b41b-4b05-88b8-8ec92691d7dc	admin	1744141694037	\N	0
 \.
 
 
