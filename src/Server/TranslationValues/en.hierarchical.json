@@ -77,45 +77,6 @@
     "logOut": "Log out",
     "signIn": "Sign in"
   },
-  "forum": {
-    "createPost": "Create post",
-    "editPost": "Edit post",
-    "cancel": "Cancel",
-    "titleLabel": "Title",
-    "files": "Files:",
-    "addRemoveFiles": "Add/remove files",
-    "postContentLabel": "Post content",
-    "noPostsRelatedToFile": "No posts related to file",
-    "actions": "Actions",
-    "edit": "Edit",
-    "delete": "Delete",
-    "addComment": "Add comment",
-    "sendComment": "Send comment",
-    "commentLabel": "Comment",
-    "showMoreComments": "Show more comments",
-    "showMorePosts": "Show more posts",
-    "failedAddComment": "Failed to add comment",
-    "failedEditPost": "Failed to edit post",
-    "failedEditComment": "Failed to edit comment",
-    "postDeleted": "Post deleted.",
-    "failedDeletePost": "Failed to delete post",
-    "failedCreatePost": "Failed to create post",
-    "commentDeleted": "Comment deleted.",
-    "failedDeleteComment": "Failed to delete comment.",
-    "deletePostConfirmTitle": "Delete post",
-    "deleteCommentConfirmTitle": "Delete comment",
-    "editedSuffix": "(Edited)"
-  },
-  "meeting": {
-    "downloadJitsiApp": "Download Jitsi Meet app",
-    "openInApp": "Open meeting in Jitsi Meet app (needs to be installed)"
-  },
-  "daw": {
-    "unnamedTrack": "Unnamed track",
-    "mute": "Mute",
-    "solo": "Solo",
-    "addTrack": "Add Track"
-  },
   "common": {
     "refresh": "Refresh",
     "actions": "Actions",
