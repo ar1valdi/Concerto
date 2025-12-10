@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger("Concerto.Server Builder");
@@ -36,6 +37,13 @@ builder.Services.AddScoped<StorageService>();
 builder.Services.AddScoped<IdentityManagerService>();
 builder.Services.AddScoped<ITranslationsService, TranslationsService>();
 builder.Services.AddScoped<ILanguageManagementService, LanguageManagementService>();
+
+var forwardedHeaderOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
+};
+forwardedHeaderOptions.KnownNetworks.Clear();
+forwardedHeaderOptions.KnownProxies.Clear();
 
 builder.Services.AddAuthentication(options =>
         {
@@ -127,6 +135,7 @@ if (builder.Environment.IsDevelopment())
 
 var app = builder.Build();
 
+app.UseForwardedHeaders(forwardedHeaderOptions);
 app.UsePathBase($"/{AppSettings.Web.BasePath.Trim('/')}");
 
 if (builder.Environment.IsDevelopment())
