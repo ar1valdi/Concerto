@@ -112,46 +112,6 @@
     "logOut": "Wyloguj",
     "signIn": "Zaloguj się"
   },
-  "forum": {
-    "createPost": "Utwórz post",
-    "editPost": "Edytuj post",
-    "cancel": "Anuluj",
-    "titleLabel": "Tytuł",
-    "files": "Pliki:",
-    "addRemoveFiles": "Dodaj/usuń pliki",
-    "postContentLabel": "Treść posta",
-    "noPostsRelatedToFile": "Brak postów powiązanych z plikiem",
-    "actions": "Akcje",
-    "edit": "Edytuj",
-    "delete": "Usuń",
-    "addComment": "Dodaj komentarz",
-    "sendComment": "Wyślij komentarz",
-    "commentLabel": "Komentarz",
-    "showMoreComments": "Pokaż więcej komentarzy",
-    "showMorePosts": "Pokaż więcej postów",
-    "failedAddComment": "Nie udało się dodać komentarza",
-    "failedEditPost": "Nie udało się edytować posta",
-    "failedEditComment": "Nie udało się edytować komentarza",
-    "postDeleted": "Post usunięty.",
-    "failedDeletePost": "Nie udało się usunąć posta",
-    "failedCreatePost": "Nie udało się utworzyć posta",
-    "commentDeleted": "Komentarz usunięty.",
-    "failedDeleteComment": "Nie udało się usunąć komentarza.",
-    "deletePostConfirmTitle": "Usuń post",
-    "deleteCommentConfirmTitle": "Usuń komentarz",
-    "editedSuffix": "(Edytowano)"
-  },
-  "meeting": {
-    "downloadJitsiApp": "Pobierz aplikację Jitsi Meet",
-    "openInApp": "Otwórz spotkanie w aplikacji Jitsi Meet (musi być zainstalowana)"
-  },
-  "daw": {
-    "unnamedTrack": "Ścieżka bez nazwy",
-    "mute": "Wycisz",
-    "solo": "Solo",
-    "addTrack": "Dodaj ścieżkę"
-  }
-  ,
   "common": {
     "refresh": "Odśwież",
     "actions": "Akcje",
@@ -225,8 +185,7 @@
     "errorCodePrefix": "Kod błędu:",
     "errorPrefix": "Błąd:",
     "clear": "Wyczyść"
-  }
-  ,
+  },
   "translationsSavePreviewDialog": {
     "title": "Przegląd zmian",
     "tableView": "Widok",
