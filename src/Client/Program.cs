@@ -85,7 +85,7 @@ builder.Services.AddScoped<HubConnection>(sp =>
     var navigation = sp.GetRequiredService<NavigationManager>();
     var accessTokenProvider = sp.GetRequiredService<IAccessTokenProvider>();
     var hubConnection = new HubConnectionBuilder()
-        .WithUrl(navigation.ToAbsoluteUri("/notifications"), options =>
+        .WithUrl(navigation.ToAbsoluteUri("notifications"), options =>
         {
             options.AccessTokenProvider = async () =>
             {
@@ -101,7 +101,7 @@ builder.Services.AddScoped<HubConnection>(sp =>
 });
 
 
-builder.Services.AddMudServices(config => 
+builder.Services.AddMudServices(config =>
     {
         config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
         config.SnackbarConfiguration.HideTransitionDuration = 100;
@@ -119,7 +119,7 @@ builder.Services.AddOidcAuthentication(options =>
         options.ProviderOptions.PostLogoutRedirectUri = appSettings.PostLogoutUrl;
         options.ProviderOptions.DefaultScopes.Add("roles");
         options.AuthenticationPaths.RemoteRegisterPath = $"{appSettings.AuthorityUrl}/login-actions/registration";
-        options.UserOptions.RoleClaim = "role";  
+        options.UserOptions.RoleClaim = "role";
     })
     .AddAccountClaimsPrincipalFactory<RemoteAuthenticationState, RemoteUserAccount, CustomAccountFactory>();
 

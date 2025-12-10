@@ -43,6 +43,9 @@
 		<a class="dismiss">🗙</a>
 	</div>
 
+	<!-- MudBlazor JS must be loaded BEFORE blazor.webassembly.js -->
+	<script src="_content/MudBlazor/MudBlazor.min.js"></script>
+
 	<script src="_framework/blazor.webassembly.js"></script>
 	<script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
 
@@ -50,19 +53,21 @@
 	<script src="js/node/bundle.js"></script>
 	<script src="js/utilities.js"></script>
 	<script src="js/meetings.js"></script>
-
-	<script src="_content/MudBlazor/MudBlazor.min.js"></script>
 	<script src="https://meet.jit.si/external_api.js"></script>
 
 	<script>
-		localStorage.setItem('isMobile', isMobile())
-		localStorage.setItem('isIos', isIos())
+		window.addEventListener('load', function () {
+				if (typeof isMobile === 'function') {
+					localStorage.setItem('isMobile', isMobile());
+					localStorage.setItem('isIos', isIos());
+				}
+			});
 	</script>
 
 	<script>
 		if (!location.hostname.includes('local')) {
-			navigator.serviceWorker.register('service-worker.js');
-		}
+				navigator.serviceWorker.register('./service-worker.js');
+			}
 	</script>
 </body>
 

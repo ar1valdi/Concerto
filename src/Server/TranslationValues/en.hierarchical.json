@@ -4,7 +4,9 @@
         "home": "Home",
         "adminPanel": "Admin Panel",
         "videoRecorder": "Video Recorder",
-        "storage": "Storage"
+        "storage": "Storage",
+        "liveStream": "Live Stream",
+        "joinStream": "Join Stream"
     },
     "home": {
         "title": "Home",

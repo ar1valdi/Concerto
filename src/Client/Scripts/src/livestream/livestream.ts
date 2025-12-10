@@ -2,10 +2,8 @@ import fixWebmDuration from "webm-duration-fix";
 import * as signalR from "@microsoft/signalr";
 import { checkPWACapabilities, logPWADiagnostics } from "./pwa-diagnostics";
 
-const PeerConnectionImpl = 
-    window.RTCPeerConnection || 
-    (window as any).webkitRTCPeerConnection || 
-    (window as any).mozRTCPeerConnection;
+const PeerConnectionImpl =
+    window.RTCPeerConnection || (window as any).webkitRTCPeerConnection || (window as any).mozRTCPeerConnection;
 
 declare const DotNet: typeof import("@microsoft/dotnet-js-interop").DotNet;
 
@@ -114,8 +112,8 @@ class IceServerProvider {
 
             if (isSafari) {
                 const originalLength = urls.length;
-                urls = urls.filter(url => !url.toLowerCase().includes("transport=tcp"));
-                
+                urls = urls.filter((url) => !url.toLowerCase().includes("transport=tcp"));
+
                 if (urls.length < originalLength) {
                     console.log("IceServerProvider: Filtered out TCP candidates for Safari compatibility");
                 }
@@ -283,8 +281,15 @@ class SignalClient {
     }
 
     private async createConnection(): Promise<void> {
+        // Get base URL from <base> tag to support path-based deployments
+        const baseElement = document.querySelector("base");
+        const baseHref = baseElement ? baseElement.getAttribute("href") || "/" : "/";
+        const streamingUrl = baseHref.endsWith("/") ? `${baseHref}streaming` : `${baseHref}/streaming`;
+
+        console.log(`SignalR connecting to: ${streamingUrl}`);
+
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/streaming", {
+            .withUrl(streamingUrl, {
                 accessTokenFactory: () => this.fetchAccessToken(),
                 // Better support for PWA and unreliable connections
                 skipNegotiation: false,
@@ -298,26 +303,26 @@ class SignalClient {
                     } else {
                         return null; // Stop retrying after 1 minute
                     }
-                }
+                },
             })
             .configureLogging(signalR.LogLevel.Information)
             .build();
 
         this.registerHandlers(connection);
-        
+
         // Add connection state handlers for PWA
         connection.onreconnecting((error?: Error) => {
             console.warn("SignalClient: Reconnecting...", error);
         });
-        
+
         connection.onreconnected((connectionId?: string) => {
             console.log("SignalClient: Reconnected", connectionId);
         });
-        
+
         connection.onclose((error?: Error) => {
             console.error("SignalClient: Connection closed", error);
         });
-        
+
         try {
             await connection.start();
             this.connection = connection;
@@ -413,7 +418,7 @@ class CameraController {
         // Request permissions explicitly for PWA
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            stream.getTracks().forEach(track => track.stop());
+            stream.getTracks().forEach((track) => track.stop());
             return true;
         } catch (error) {
             console.error("CameraController: Permission denied or device unavailable", error);
@@ -531,7 +536,7 @@ class MicrophoneController {
         // Request permissions explicitly for PWA
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            stream.getTracks().forEach(track => track.stop());
+            stream.getTracks().forEach((track) => track.stop());
             return true;
         } catch (error) {
             console.error("MicrophoneController: Permission denied or device unavailable", error);
@@ -680,32 +685,34 @@ export class LiveStreamingManager {
 
     async initialize(): Promise<void> {
         // Check if running in PWA standalone mode
-        const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                      (window.navigator as any).standalone === true;
-        
+        const isPWA =
+            window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true;
+
         if (isPWA) {
             console.log("LiveStreamingManager: Running in PWA standalone mode");
-            
+
             // Run diagnostics
             const diagnostics = await checkPWACapabilities();
             logPWADiagnostics(diagnostics);
-            
+
             if (diagnostics.errors.length > 0) {
-                const errorMessage = `PWA compatibility issues:\n${diagnostics.errors.join('\n')}`;
+                const errorMessage = `PWA compatibility issues:\n${diagnostics.errors.join("\n")}`;
                 await this.reportError(errorMessage);
                 throw new Error(errorMessage);
             }
-            
+
             // Check media permissions
             const cameraPermission = await CameraController.checkPermissions();
             const micPermission = await MicrophoneController.checkPermissions();
-            
+
             if (!cameraPermission || !micPermission) {
-                await this.reportError("Camera or microphone permissions not granted. Please enable them in browser settings.");
+                await this.reportError(
+                    "Camera or microphone permissions not granted. Please enable them in browser settings."
+                );
                 throw new Error("Media permissions required for streaming");
             }
         }
-        
+
         await this.signaling.connect();
     }
 
@@ -1023,7 +1030,7 @@ export class StreamViewer {
     private hostConnectionId: string | null = null;
     private pendingIceCandidates: Array<{ streamId: string; fromConnectionId: string; candidate: string }> = [];
     private isConnected = false;
-    
+
     private forceRelay: boolean = false;
     private monitoringInterval: number | null = null;
     private connectionTimeout: number | null = null;
@@ -1145,7 +1152,7 @@ export class StreamViewer {
 
     private async preparePeerConnection(): Promise<void> {
         const iceServers = await IceServerProvider.getServers();
-        
+
         // decyzja czy wymusić relay
         const transportPolicy: RTCIceTransportPolicy = this.forceRelay ? "relay" : "all";
         console.log(`StreamViewer: Creating connection with policy: ${transportPolicy}`);
@@ -1167,7 +1174,7 @@ export class StreamViewer {
 
             this.videoElement.srcObject = stream;
             this.videoElement.style.display = "block";
-            
+
             // Start odtwarzania
             const playPromise = this.videoElement.play();
             if (playPromise) {
@@ -1203,7 +1210,7 @@ export class StreamViewer {
                     this.peerConnection.restartIce();
                 }
             } else if (this.peerConnection.iceConnectionState === "disconnected") {
-                 console.warn("StreamViewer: ICE connection disconnected");
+                console.warn("StreamViewer: ICE connection disconnected");
             }
         };
 
@@ -1224,9 +1231,9 @@ export class StreamViewer {
 
         this.connectionTimeout = window.setTimeout(() => {
             console.log("StreamViewer: Starting video quality monitoring...");
-            
+
             this.monitoringInterval = window.setInterval(async () => {
-                if (!this.peerConnection || this.peerConnection.connectionState === 'closed') {
+                if (!this.peerConnection || this.peerConnection.connectionState === "closed") {
                     this.stopMonitoring();
                     return;
                 }
@@ -1236,8 +1243,8 @@ export class StreamViewer {
                     let framesDecoded = 0;
                     let bytesReceived = 0;
 
-                    stats.forEach(report => {
-                        if (report.type === 'inbound-rtp' && report.kind === 'video') {
+                    stats.forEach((report) => {
+                        if (report.type === "inbound-rtp" && report.kind === "video") {
                             framesDecoded = report.framesDecoded || 0;
                             bytesReceived = report.bytesReceived || 0;
                         }
@@ -1245,7 +1252,9 @@ export class StreamViewer {
 
                     if (framesDecoded === lastDecodedFrames) {
                         zeroFramesCount++;
-                        console.log(`StreamViewer Monitor: No new frames decoded. Strike ${zeroFramesCount}/3. Bytes: ${bytesReceived}`);
+                        console.log(
+                            `StreamViewer Monitor: No new frames decoded. Strike ${zeroFramesCount}/3. Bytes: ${bytesReceived}`
+                        );
                     } else {
                         zeroFramesCount = 0;
                         lastDecodedFrames = framesDecoded;
@@ -1254,7 +1263,7 @@ export class StreamViewer {
                     if (zeroFramesCount >= 3) {
                         console.warn("StreamViewer: BLACK SCREEN DETECTED. Frames are stuck.");
                         this.stopMonitoring();
-                        
+
                         if (!this.forceRelay) {
                             await this.switchToRelay();
                         } else {
@@ -1262,12 +1271,10 @@ export class StreamViewer {
                             await this.notifyDotNet("StreamError", "Connection unstable even via Relay.");
                         }
                     }
-
                 } catch (e) {
                     console.warn("StreamViewer: Error reading stats", e);
                 }
             }, 2000); // Sprawdzaj co 2 sekundy
-
         }, 3000); // Start po 3s od połączenia
     }
 
@@ -1284,7 +1291,7 @@ export class StreamViewer {
 
     private async switchToRelay(): Promise<void> {
         console.log("StreamViewer: Switching to TURN RELAY mode...");
-        
+
         this.forceRelay = true;
         this.isConnected = false;
 
@@ -1292,11 +1299,11 @@ export class StreamViewer {
             this.peerConnection.close();
             this.peerConnection = null;
         }
-        
+
         await this.signaling.leaveStream();
         await this.preparePeerConnection();
         await this.signaling.joinStream(this.streamId);
-        
+
         console.log("StreamViewer: Rejoined with Relay enforcement.");
     }
 

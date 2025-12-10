@@ -173,37 +173,8 @@ app.MapHub<StreamingHub>("/streaming");
 
 app.MapFallbackToFile("index.html");
 
-app.MapGet("manifest.json", async (HttpContext context) =>
-{
-    context.Response.ContentType = "application/json";
-    await context.Response.WriteAsync(
-    $@"
-		{{
-		  ""name"": ""Concerto"",
-		  ""description"": ""Collaborative music"",
-		  ""short_name"": ""Concerto"",
-		  ""start_url"": ""{AppSettings.Web.AppUrl}"",
-		  ""display"": ""standalone"",
-		  ""background_color"": ""#ffffff"",
-		  ""theme_color"": ""#03173d"",
-		  ""prefer_related_applications"": false,
-		  ""icons"": [
-			{{
-			  ""src"": ""icon-512.png"",
-			  ""type"": ""image/png"",
-			  ""sizes"": ""512x512""
-			}},
-			{{
-			  ""src"": ""icon-192.png"",
-			  ""type"": ""image/png"",
-			  ""sizes"": ""192x192""
-			}}
-		  ]
-		}}
-	"
-    );
-});
-
+// manifest.json is served as a static file from wwwroot (for SRI integrity)
+// Dynamic generation was causing SRI hash mismatches
 
 await using var scope = app.Services.CreateAsyncScope();
 await using (var db = scope.ServiceProvider.GetService<ConcertoDbContext>())

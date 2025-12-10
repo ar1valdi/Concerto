@@ -4,16 +4,22 @@
 
 <MudNavMenu>
 	<MudText Class="px-4" Typo="Typo.h6">@t.T("navigation", "menu")</MudText>
-	<MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">@t.T("navigation", "home")</MudNavLink>
+	<MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">@t.T("navigation", "home")
+	</MudNavLink>
 	<AuthorizeView Policy="@AuthorizationPolicies.IsAdmin.Name">
-		<MudNavLink Href="admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AdminPanelSettings">@t.T("navigation", "adminPanel")</MudNavLink>
+		<MudNavLink Href="admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AdminPanelSettings">
+			@t.T("navigation", "adminPanel")</MudNavLink>
 	</AuthorizeView>
-	<AuthorizeView >
-		<MudNavLink Href="recorder" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Camera">@t.T("navigation", "videoRecorder")</MudNavLink>
-		<MudNavLink Href="livestream" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Videocam">Live Stream</MudNavLink>
-		<MudNavLink Href="joinstream" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PlayArrow">Join Stream</MudNavLink>
-		<MudNavLink Href="storage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Storage">@t.T("navigation", "storage")</MudNavLink>
-		<StorageNavTree/>
+	<AuthorizeView>
+		<MudNavLink Href="recorder" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Camera">@t.T("navigation",
+						"videoRecorder")</MudNavLink>
+		<MudNavLink Href="livestream" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Videocam">
+			@t.T("navigation", "liveStream")</MudNavLink>
+		<MudNavLink Href="joinstream" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PlayArrow">
+			@t.T("navigation", "joinStream")</MudNavLink>
+		<MudNavLink Href="storage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Storage">@t.T("navigation",
+						"storage")</MudNavLink>
+		<StorageNavTree />
 	</AuthorizeView>
 </MudNavMenu>
 

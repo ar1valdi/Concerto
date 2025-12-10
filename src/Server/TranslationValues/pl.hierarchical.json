@@ -4,6 +4,8 @@
         "home": "Strona główna",
         "adminPanel": "Panel administracyjny",
         "videoRecorder": "Rejestrator wideo",
+        "liveStream": "Transmisja na żywo",
+        "joinStream": "Dołącz do transmisji",
         "storage": "Zasoby"
     },
     "home": {

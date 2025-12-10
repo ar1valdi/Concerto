@@ -2,37 +2,74 @@
 @inject ISyncLocalStorageService LocalStorage
 @inject IJSRuntime JS
 
-<link href="/fontawesome/css/all.min.css" rel="stylesheet">
+<link href="fontawesome/css/all.min.css" rel="stylesheet">
 
 <style>
-
 	.row-colored {
 		border-color: rgba(0, 0, 0, 0.9) !important;
 	}
-	.row-colored > td {background: inherit;}
 
-	.row-colored.row-modified { background-color: @Blue; }
+	.row-colored>td {
+		background: inherit;
+	}
+
+	.row-colored.row-modified {
+		background-color:
+			@Blue
+		;
+	}
 
 
-	.row-colored.row-modified:hover { background-color: @BlueAccent !important; }
+	.row-colored.row-modified:hover {
+		background-color:
+			@BlueAccent
+			!important;
+	}
 
-	.row-colored.row-new { background-color: @Green; }
+	.row-colored.row-new {
+		background-color:
+			@Green
+		;
+	}
 
-	.row-colored.row-new:hover { background-color: @GreenAccent !important; }
+	.row-colored.row-new:hover {
+		background-color:
+			@GreenAccent
+			!important;
+	}
 
-	.row-colored.row-deleted { background-color: @Red; }
+	.row-colored.row-deleted {
+		background-color:
+			@Red
+		;
+	}
 
-	.row-colored.row-deleted:hover { background-color: @RedAccent !important; }
+	.row-colored.row-deleted:hover {
+		background-color:
+			@RedAccent
+			!important;
+	}
 
-	.row-colored.row-edited { background-color: @Purple; }
+	.row-colored.row-edited {
+		background-color:
+			@Purple
+		;
+	}
 
-	.row-colored.row-edited:hover { background-color: @PurpleAccent !important; }
+	.row-colored.row-edited:hover {
+		background-color:
+			@PurpleAccent
+			!important;
+	}
 
-	.mud-nav-group.hidden > .mud-expanded { display: none; }
+	.mud-nav-group.hidden>.mud-expanded {
+		display: none;
+	}
 
-	.color-folder-yellow
-	{
-		color: @FolderYellow !important;
+	.color-folder-yellow {
+		color:
+			@FolderYellow
+			!important;
 	}
 
 	.text-line-through {
@@ -62,11 +99,9 @@
 		display: inline !important;
 	}
 
-	.fa-force-size
-	{
-        font-size: 24px !important;
+	.fa-force-size {
+		font-size: 24px !important;
 	}
-
 </style>
 
 @code {

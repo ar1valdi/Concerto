@@ -27,6 +27,7 @@ services:
             CONCERTO_BASE_URL: ${CONCERTO_BASE_URL}
             CONCERTO_BASE_PATH: ${CONCERTO_BASE_PATH}
             CONCERTO_API_URL: ${CONCERTO_API_URL}
+            Web__BasePath: /concerto
 
             DB_STRING: ${DB_STRING}
             ConnectionStrings__DefaultConnection: ${DB_STRING}
@@ -112,7 +113,8 @@ services:
     coturn:
         image: coturn/coturn:4.6
         restart: unless-stopped
-        network_mode: "host"
+        networks:
+            concerto:
         environment:
             SERVER_IP: ${SERVER_IP}
             RELAY_IP: ${RELAY_IP}
@@ -139,10 +141,10 @@ services:
         volumes:
             - ${CONCERTO_VOLUME_PATH:?}/ssl:/etc/turn/ssl:ro
         ports:
-            - "3478:3478"
-            - "3478:3478/udp"
-            - "5349:5349"
-            - "5349:5349/udp"
+            - "${TURN_STUN_PORT}:${TURN_STUN_PORT}/tcp"
+            - "${TURN_STUN_PORT}:${TURN_STUN_PORT}/udp"
+            - "${TURN_TLS_PORT}:${TURN_TLS_PORT}/tcp"
+            - "${TURN_TLS_PORT}:${TURN_TLS_PORT}/udp"
             - "${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}:${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}/udp"
 # on server
 # services:
