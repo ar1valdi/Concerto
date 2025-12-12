@@ -10,11 +10,14 @@ services:
     concerto_server:
         image: misphe/concerto_server:preprod-1.0
         restart: always
-        depends_on:
-            postgres:
-                condition: service_healthy
         ports:
             - "5000:80"
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 3
         volumes:
             - ${CONCERTO_VOLUME_PATH:?}/storage:/srv/concerto/storage
             - ${CONCERTO_VOLUME_PATH:?}/recordings:/srv/concerto/recordings
@@ -57,11 +60,14 @@ services:
     keycloak:
         image: quay.io/keycloak/keycloak:20.0.0
         restart: unless-stopped
-        depends_on:
-            postgres:
-                condition: service_healthy
         ports:
             - "8080:8080"
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 3
         volumes:
             - ${CONCERTO_VOLUME_PATH}/keycloak:/var/lib/keycloak/data
             - ./keycloak-init/themes/concerto:/opt/keycloak/themes/concerto:ro
@@ -91,6 +97,12 @@ services:
     postgres:
         image: postgres:15.0
         restart: always
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 3
         healthcheck:
             test: ["CMD-SHELL", "pg_isready -U admin -d ConcertoDb"]
             interval: 5s
@@ -113,39 +125,48 @@ services:
     coturn:
         image: coturn/coturn:4.6
         restart: unless-stopped
+        ports:
+            - "${TURN_STUN_PORT}:${TURN_STUN_PORT}"
+            - "${TURN_STUN_PORT}:${TURN_STUN_PORT}/udp"
+            - "${TURN_TLS_PORT}:${TURN_TLS_PORT}"
+            - "${TURN_TLS_PORT}:${TURN_TLS_PORT}/udp"
+            - "${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}:${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}/udp"
+
         networks:
             concerto:
+        deploy:
+            mode: global
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 3
         environment:
             SERVER_IP: ${SERVER_IP}
             RELAY_IP: ${RELAY_IP}
         command:
-            - -c
-            - |
-                exec turnserver \
-                --log-file=stdout \
-                --realm=${TURN_DOMAIN} \
-                --server-name=${TURN_DOMAIN} \
-                --listening-port=${TURN_STUN_PORT} \
-                --tls-listening-port=${TURN_TLS_PORT} \
-                --min-port=${TURN_UDP_MIN_PORT} \
-                --max-port=${TURN_UDP_MAX_PORT} \
-                --fingerprint \
-                --lt-cred-mech \
-                --user=${TURN_USERNAME}:${TURN_PASSWORD} \
-                --cert=/etc/turn/ssl/${SSL_CERTIFICATE_FILENAME} \
-                --pkey=/etc/turn/ssl/${SSL_CERTIFICATE_KEY_FILENAME} \
-                --no-cli \
-                --listening-ip=0.0.0.0 \
-                --relay-ip=$${RELAY_IP} \
-                --external-ip=$${SERVER_IP}
+            - --log-file=stdout
+            - --realm=${TURN_DOMAIN}
+            - --server-name=${TURN_DOMAIN}
+            - --listening-port=${TURN_STUN_PORT}
+            - --tls-listening-port=${TURN_TLS_PORT}
+            - --min-port=${TURN_UDP_MIN_PORT}
+            - --max-port=${TURN_UDP_MAX_PORT}
+            - --fingerprint
+            - --lt-cred-mech
+            - --user=${TURN_USERNAME}:${TURN_PASSWORD}
+            - --cert=/etc/turn/ssl/${SSL_CERTIFICATE_FILENAME}
+            - --pkey=/etc/turn/ssl/${SSL_CERTIFICATE_KEY_FILENAME}
+            - --no-cli
+            - --max-bps=0
+            - --stale-nonce=600
+            - --verbose
+            - --channel-lifetime=1800
+            - --permission-lifetime=1800
+            - --listening-ip=0.0.0.0
+            - --relay-ip=0.0.0.0
+            - --external-ip=${SERVER_IP}
         volumes:
             - ${CONCERTO_VOLUME_PATH:?}/ssl:/etc/turn/ssl:ro
-        ports:
-            - "${TURN_STUN_PORT}:${TURN_STUN_PORT}/tcp"
-            - "${TURN_STUN_PORT}:${TURN_STUN_PORT}/udp"
-            - "${TURN_TLS_PORT}:${TURN_TLS_PORT}/tcp"
-            - "${TURN_TLS_PORT}:${TURN_TLS_PORT}/udp"
-            - "${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}:${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}/udp"
 # on server
 # services:
 #   nginx-proxy:

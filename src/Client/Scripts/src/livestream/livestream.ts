@@ -1153,7 +1153,6 @@ export class StreamViewer {
     private async preparePeerConnection(): Promise<void> {
         const iceServers = await IceServerProvider.getServers();
 
-        // decyzja czy wymusić relay
         const transportPolicy: RTCIceTransportPolicy = this.forceRelay ? "relay" : "all";
         console.log(`StreamViewer: Creating connection with policy: ${transportPolicy}`);
 
@@ -1175,7 +1174,6 @@ export class StreamViewer {
             this.videoElement.srcObject = stream;
             this.videoElement.style.display = "block";
 
-            // Start odtwarzania
             const playPromise = this.videoElement.play();
             if (playPromise) {
                 playPromise
@@ -1203,14 +1201,22 @@ export class StreamViewer {
             console.log(`StreamViewer ICE state: ${this.peerConnection.iceConnectionState}`);
 
             if (this.peerConnection.iceConnectionState === "failed") {
-                if (!this.forceRelay) {
-                    console.warn("StreamViewer: ICE Failed on P2P, switching to RELAY...");
-                    this.switchToRelay();
-                } else {
-                    this.peerConnection.restartIce();
-                }
+                console.warn("StreamViewer: ICE Failed, attempting ICE restart...");
+                this.peerConnection.restartIce();
             } else if (this.peerConnection.iceConnectionState === "disconnected") {
-                console.warn("StreamViewer: ICE connection disconnected");
+                console.warn("StreamViewer: ICE connection temporarily disconnected, will auto-retry...");
+
+                setTimeout(() => {
+                    if (this.peerConnection && this.peerConnection.iceConnectionState === "disconnected") {
+                        console.warn("StreamViewer: Still disconnected after 10s, restarting ICE...");
+                        this.peerConnection.restartIce();
+                    }
+                }, 10000);
+            } else if (
+                this.peerConnection.iceConnectionState === "connected" ||
+                this.peerConnection.iceConnectionState === "completed"
+            ) {
+                console.log("StreamViewer: ICE connection (re)established successfully");
             }
         };
 
@@ -1228,6 +1234,7 @@ export class StreamViewer {
 
         let zeroFramesCount = 0;
         let lastDecodedFrames = 0;
+        let everReceivedData = false;
 
         this.connectionTimeout = window.setTimeout(() => {
             console.log("StreamViewer: Starting video quality monitoring...");
@@ -1250,32 +1257,50 @@ export class StreamViewer {
                         }
                     });
 
+                    if (bytesReceived > 0) {
+                        everReceivedData = true;
+                    }
+
+                    if (!everReceivedData) {
+                        console.log(`StreamViewer Monitor: Waiting for initial data... (${bytesReceived} bytes)`);
+                        return;
+                    }
+
                     if (framesDecoded === lastDecodedFrames) {
                         zeroFramesCount++;
                         console.log(
-                            `StreamViewer Monitor: No new frames decoded. Strike ${zeroFramesCount}/3. Bytes: ${bytesReceived}`
+                            `StreamViewer Monitor: No new frames decoded. Strike ${zeroFramesCount}/5. Bytes: ${bytesReceived}`
                         );
                     } else {
                         zeroFramesCount = 0;
                         lastDecodedFrames = framesDecoded;
                     }
 
-                    if (zeroFramesCount >= 3) {
-                        console.warn("StreamViewer: BLACK SCREEN DETECTED. Frames are stuck.");
-                        this.stopMonitoring();
+                    if (zeroFramesCount >= 5) {
+                        console.warn(
+                            "StreamViewer: BLACK SCREEN DETECTED. Frames stuck for 15 seconds, attempting ICE restart..."
+                        );
 
-                        if (!this.forceRelay) {
-                            await this.switchToRelay();
-                        } else {
-                            console.error("StreamViewer: Relay is actively failing too. Network issue likely.");
-                            await this.notifyDotNet("StreamError", "Connection unstable even via Relay.");
+                        if (this.peerConnection && this.peerConnection.iceConnectionState !== "closed") {
+                            console.log("StreamViewer: Restarting ICE to recover connection...");
+                            this.peerConnection.restartIce();
+                            zeroFramesCount = 0;
                         }
+                    }
+
+                    if (zeroFramesCount >= 10) {
+                        console.error("StreamViewer: Connection cannot be recovered after 30 seconds.");
+                        this.stopMonitoring();
+                        await this.notifyDotNet(
+                            "StreamError",
+                            "Unable to receive video stream. Please try refreshing the page."
+                        );
                     }
                 } catch (e) {
                     console.warn("StreamViewer: Error reading stats", e);
                 }
-            }, 2000); // Sprawdzaj co 2 sekundy
-        }, 3000); // Start po 3s od połączenia
+            }, 3000);
+        }, 5000);
     }
 
     private stopMonitoring() {
@@ -1287,24 +1312,6 @@ export class StreamViewer {
             clearTimeout(this.connectionTimeout);
             this.connectionTimeout = null;
         }
-    }
-
-    private async switchToRelay(): Promise<void> {
-        console.log("StreamViewer: Switching to TURN RELAY mode...");
-
-        this.forceRelay = true;
-        this.isConnected = false;
-
-        if (this.peerConnection) {
-            this.peerConnection.close();
-            this.peerConnection = null;
-        }
-
-        await this.signaling.leaveStream();
-        await this.preparePeerConnection();
-        await this.signaling.joinStream(this.streamId);
-
-        console.log("StreamViewer: Rejoined with Relay enforcement.");
     }
 
     private async notifyDotNet(method: string, ...args: any[]): Promise<void> {

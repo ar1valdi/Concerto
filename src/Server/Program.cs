@@ -18,13 +18,21 @@ var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger("C
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
     serverOptions.Limits.MaxRequestBodySize = 1_000_000_000;
+    serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(10);
+    serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5);
 });
 
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddRazorPages();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+{
+    options.KeepAliveInterval = TimeSpan.FromSeconds(10);
+    options.ClientTimeoutInterval = TimeSpan.FromMinutes(5);
+    options.HandshakeTimeout = TimeSpan.FromSeconds(30);
+    options.MaximumReceiveMessageSize = 1024 * 1024; // 1MB
+});
 builder.Services.AddHttpClient();
 
 builder.Services.AddHostedService<ScheduledTasksService>();
