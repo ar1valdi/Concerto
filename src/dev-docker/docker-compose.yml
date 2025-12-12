@@ -1,8 +1,9 @@
 networks:
     concerto:
-        ipam:
-            config:
-                - subnet: 172.18.0.0/16
+        driver: overlay
+        attachable: true
+        driver_opts:
+            com.docker.network.driver.mtu: "1200"
 
 version: "3.8"
 
@@ -124,16 +125,118 @@ services:
 
     coturn:
         image: coturn/coturn:4.6
-        restart: unless-stopped
+        # ports:
+        #     - "${TURN_STUN_PORT}:${TURN_STUN_PORT}"
+        #     - "${TURN_STUN_PORT}:${TURN_STUN_PORT}/udp"
+        #     - "${TURN_TLS_PORT}:${TURN_TLS_PORT}"
+        #     - "${TURN_TLS_PORT}:${TURN_TLS_PORT}/udp"
+        #     - "${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}:${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}/udp"
         ports:
-            - "${TURN_STUN_PORT}:${TURN_STUN_PORT}"
-            - "${TURN_STUN_PORT}:${TURN_STUN_PORT}/udp"
-            - "${TURN_TLS_PORT}:${TURN_TLS_PORT}"
-            - "${TURN_TLS_PORT}:${TURN_TLS_PORT}/udp"
-            - "${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}:${TURN_UDP_MIN_PORT}-${TURN_UDP_MAX_PORT}/udp"
+            - target: 3478
+              published: 3478
+              protocol: udp
+              mode: host
+            # STUN/TURN TCP
+            - target: 3478
+              published: 3478
+              protocol: tcp
+              mode: host
+            # TLS
+            - target: 5349
+              published: 5349
+              protocol: udp
+              mode: host
+            - target: 5349
+              published: 5349
+              protocol: tcp
+              mode: host
 
+            - target: 10000
+              published: 10000
+              protocol: udp
+              mode: host
+            - target: 10001
+              published: 10001
+              protocol: udp
+              mode: host
+            - target: 10002
+              published: 10002
+              protocol: udp
+              mode: host
+            - target: 10003
+              published: 10003
+              protocol: udp
+              mode: host
+            - target: 10004
+              published: 10004
+              protocol: udp
+              mode: host
+            - target: 10005
+              published: 10005
+              protocol: udp
+              mode: host
+            - target: 10006
+              published: 10006
+              protocol: udp
+              mode: host
+            - target: 10007
+              published: 10007
+              protocol: udp
+              mode: host
+            - target: 10008
+              published: 10008
+              protocol: udp
+              mode: host
+            - target: 10009
+              published: 10009
+              protocol: udp
+              mode: host
+            - target: 10010
+              published: 10010
+              protocol: udp
+              mode: host
+            - target: 10011
+              published: 10011
+              protocol: udp
+              mode: host
+            - target: 10012
+              published: 10012
+              protocol: udp
+              mode: host
+            - target: 10013
+              published: 10013
+              protocol: udp
+              mode: host
+            - target: 10014
+              published: 10014
+              protocol: udp
+              mode: host
+            - target: 10015
+              published: 10015
+              protocol: udp
+              mode: host
+            - target: 10016
+              published: 10016
+              protocol: udp
+              mode: host
+            - target: 10017
+              published: 10017
+              protocol: udp
+              mode: host
+            - target: 10018
+              published: 10018
+              protocol: udp
+              mode: host
+            - target: 10019
+              published: 10019
+              protocol: udp
+              mode: host
+            - target: 10020
+              published: 10020
+              protocol: udp
+              mode: host
         networks:
-            concerto:
+            - concerto
         deploy:
             mode: global
             restart_policy:
@@ -157,6 +260,7 @@ services:
             - --cert=/etc/turn/ssl/${SSL_CERTIFICATE_FILENAME}
             - --pkey=/etc/turn/ssl/${SSL_CERTIFICATE_KEY_FILENAME}
             - --no-cli
+            - --allow-loopback-peers
             - --max-bps=0
             - --stale-nonce=600
             - --verbose

@@ -951,7 +951,7 @@ export class LiveStreamingManager {
             }
         }
 
-        prioritizeH264(peer);
+        //prioritizeH264(peer);
 
         peer.onicecandidate = (event) => {
             console.log("ICE candidate", event.candidate);
@@ -1087,7 +1087,7 @@ export class StreamViewer {
 
         try {
             await peer.setRemoteDescription(JSON.parse(offer));
-            prioritizeH264(peer);
+            //prioritizeH264(peer);
             const answer = await peer.createAnswer();
             await peer.setLocalDescription(answer);
             await this.signaling.sendAnswer(fromConnectionId, answer);
