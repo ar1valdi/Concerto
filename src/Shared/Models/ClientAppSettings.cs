@@ -1,4 +1,7 @@
-﻿namespace Concerto.Shared.Models.Dto;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Concerto.Shared.Models.Dto;
 
 public class ClientAppSettings
 {
@@ -7,13 +10,15 @@ public class ClientAppSettings
 	public string AdminConsoleUrl { get; set; } = string.Empty;
 	public string PostLogoutUrl { get; set; } = string.Empty;
 
-	public Uri JitsiUrl { get; set; } = null!;
-	public string JitsiHost => JitsiUrl.Host;
+	public Uri? JitsiUrl { get; set; } = null;
+	public string? JitsiHost => JitsiUrl?.Host;
 
 	public string JitsiAppDownloadUrl { get; set; } = string.Empty;
 
 	public long FileSizeLimit { get; set; }
 	public int MaxAllowedFiles { get; set; }
+
+	public IReadOnlyCollection<ClientIceServer> IceServers { get; set; } = Array.Empty<ClientIceServer>();
 }
 
 

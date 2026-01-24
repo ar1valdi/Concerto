@@ -118,7 +118,8 @@ namespace Concerto.Client.Services
             await FetchTranslationsFromLastUpdatedAsync(lang);
             currentLanguage = lang;
             await localStorage.SetItemAsync(CurrentLanguageKey, lang);
-            translations = await localStorage.GetItemAsync<Dictionary<string, string>>($"{TranslationsKeyPrefix}{lang}");
+            translations = await localStorage.GetItemAsync<Dictionary<string, string>>($"{TranslationsKeyPrefix}{lang}") 
+                ?? new Dictionary<string, string>();
             LanguageChanged?.Invoke();
         }
 

@@ -54,7 +54,7 @@ public static class DialogServiceExtensions
         {
 			["ExcludedIds"] = excludedIds,
 			["ExcludedWithChildrenIds"] = excludedWithChildrenIds,
-            ["InitialWorkspaceId"] = null,
+            ["InitialWorkspaceId"] = initialWorkspaceId,
 			["SelectButtonText"] = selectButtonText,
 		};
 		var result = await dialogService.Show<SelectFolderDialog>(title, parameters).Result;

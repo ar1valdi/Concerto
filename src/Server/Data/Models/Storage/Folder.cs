@@ -40,6 +40,19 @@ public class Folder : Entity
 
 		return rootFolder;
 	}
+
+	public static Folder NewSessionsFolder(long workspaceId)
+	{
+		// Create workspace sessions folder, with default read permissions for workspace members
+		var sessionsFolder = new Folder
+		{
+			WorkspacePermission = new FolderPermission { Inherited = false, Type = FolderPermissionType.Read },
+			WorkspaceId = workspaceId,
+			Name = "Sessions",
+			Type = FolderType.Sessions
+		};
+		return sessionsFolder;
+	}
 }
 
 public enum FolderType

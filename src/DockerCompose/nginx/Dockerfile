@@ -15,5 +15,4 @@ CMD set -a \
 	&& envsubst '$${BASE_PATH} $${CONCERTO_DOMAIN} $${JITSI_DOMAIN} $${KEYCLOAK_DOMAIN} $${SSL_CERTIFICATE_FILENAME} $${SSL_CERTIFICATE_KEY_FILENAME} $${CONCERTO_UPSTREAM}' < /etc/nginx/nginx.template.conf > /etc/nginx/nginx.conf \
 	&& /wait-for-it.sh ${CONCERTO_UPSTREAM} -t 0 \
 	&& /wait-for-it.sh keycloak:8080 -t 0 \
-	&& /wait-for-it.sh jitsi_web:80 -t 0 \
 	&& nginx -g 'daemon off;'

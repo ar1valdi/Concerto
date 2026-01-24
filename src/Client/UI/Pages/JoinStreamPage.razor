@@ -1,0 +1,493 @@
+﻿@page "/joinstream"
+@using Concerto.Client.Services;
+@using Concerto.Shared.Extensions;
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+@using Microsoft.AspNetCore.Authorization;
+@attribute [Authorize(Policy = AuthorizationPolicies.IsAuthenticated.Name)]
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@inject IAccessTokenProvider _accessTokenProvider
+@inject ITranslationsService t
+@implements IAsyncDisposable
+
+<PageTitle>@t.T("joinStream", "pageTitle")</PageTitle>
+
+<style>
+    .container {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .join-form {
+        background: var(--mud-palette-background-grey);
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: var(--mud-elevation-4);
+        max-width: 500px;
+        width: 100%;
+    }
+
+    .stream-preview {
+        width: 100%;
+        max-width: 1280px;
+        height: 720px;
+        background-color: black;
+        border-radius: 8px;
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        position: relative;
+    }
+
+    .stream-preview video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .playback-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 12px;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .status-message {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 4px;
+    }
+
+    .status-connecting {
+        background-color: var(--mud-palette-info-lighten);
+        color: var(--mud-palette-info-darken);
+    }
+
+    .status-error {
+        background-color: var(--mud-palette-error-lighten);
+        color: var(--mud-palette-error-darken);
+    }
+
+    .status-connected {
+        background-color: var(--mud-palette-success-lighten);
+        color: var(--mud-palette-success-darken);
+    }
+
+    .viewer-controls {
+        width: 100%;
+        max-width: 1280px;
+        margin: 10px 0 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .volume-control {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+    }
+
+    .volume-control .mud-slider {
+        flex: 1;
+    }
+</style>
+
+<div class="container">
+    @if (!IsConnected)
+    {
+        <div class="join-form">
+            <MudText Typo="Typo.h4" Class="mb-4">@t.T("joinStream", "joinLiveStream")</MudText>
+            
+            <MudTextField @bind-Value="StreamIdInput" 
+                         Label="@t.T("joinStream", "streamIdLabel")" 
+                         Placeholder="@t.T("joinStream", "streamIdPlaceholder")"
+                         Variant="Variant.Filled"
+                         Class="mb-4"
+                         Disabled="@IsConnecting" />
+            
+            <MudButton Color="Color.Primary" 
+                      Variant="Variant.Filled" 
+                      FullWidth="true"
+                      OnClick="JoinStreamAsync"
+                      Disabled="@(string.IsNullOrWhiteSpace(StreamIdInput) || IsConnecting)">
+                @if (IsConnecting)
+                {
+                    <MudProgressCircular Size="Size.Small" Class="mr-2" />
+                    <span>@t.T("joinStream", "connecting")</span>
+                }
+                else
+                {
+                    <span>@t.T("joinStream", "joinStream")</span>
+                }
+            </MudButton>
+
+            @if (!string.IsNullOrEmpty(StatusMessage))
+            {
+                <div class="status-message @GetStatusClass()">
+                    @StatusMessage
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div style="width: 100%; text-align: center; margin-bottom: 20px;">
+            <MudText Typo="Typo.h5" Style="color: var(--mud-palette-success);">@t.T("joinStream", "connectedToStream", StreamIdInput)</MudText>
+            <MudButton Color="Color.Error" 
+                      Variant="Variant.Filled" 
+                      OnClick="LeaveStream"
+                      Class="mt-2">
+                @t.T("joinStream", "leaveStream")
+            </MudButton>
+        </div>
+    }
+
+    <div class="stream-preview">
+        <video id="streamVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: contain; display: @(IsConnected ? "block" : "none");"></video>
+        @if (RequiresPlaybackPrompt)
+        {
+            <div class="playback-overlay">
+                <MudText Typo="Typo.h6">@t.T("joinStream", "autoplayBlocked")</MudText>
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="ResumePlaybackAsync">
+                    @t.T("joinStream", "startPlayback")
+                </MudButton>
+            </div>
+        }
+        @if (!IsConnected)
+        {
+            @if (IsConnecting)
+            {
+                <MudText Typo="Typo.h6" Style="color: white;">@t.T("joinStream", "connectingToStream")</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.h6" Style="color: white;">@t.T("joinStream", "enterStreamId")</MudText>
+            }
+        }
+    </div>
+
+    @if (IsConnected)
+    {
+        <div class="viewer-controls">
+            <MudButton Color="Color.Secondary"
+                       Variant="Variant.Filled"
+                       OnClick="TogglePlaybackAsync">
+                @(IsStreamStopped ? t.T("joinStream", "resumeStream") : t.T("joinStream", "stopStream"))
+            </MudButton>
+            <div class="volume-control">
+                <MudText Typo="Typo.body1">@t.T("joinStream", "volume")</MudText>
+                <MudSlider Value="@VolumeLevel"
+                           ValueChanged="@(EventCallback.Factory.Create<double>(this, OnVolumeChanged))"
+                           ValueExpression="@(() => VolumeLevel)"
+                           Min="0"
+                           Max="100"
+                           Step="1"
+                           Immediate="true"
+                           Disabled="@IsConnecting" />
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [CascadingParameter] LayoutState LayoutState { get; set; } = LayoutState.Default;
+
+    private string StreamIdInput { get; set; } = string.Empty;
+    private bool IsConnecting { get; set; } = false;
+    private bool IsConnected { get; set; } = false;
+    private bool RequiresPlaybackPrompt { get; set; }
+    private string StatusMessage { get; set; } = string.Empty;
+    private bool IsStreamStopped { get; set; }
+    private double VolumeLevel { get; set; } = 100;
+
+    private DotNetObjectReference<JoinStreamPage> _dotNetObjectReference = null!;
+    private IJSObjectReference? _streamViewer;
+    private (string streamId, string hostConnectionId)? _pendingStreamJoined;
+
+    protected override void OnInitialized()
+    {
+        _dotNetObjectReference = DotNetObjectReference.Create(this);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var uri = new Uri(Navigation.Uri);
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            var streamIdFromUrl = query["id"];
+            
+            if (!string.IsNullOrEmpty(streamIdFromUrl))
+            {
+                StreamIdInput = streamIdFromUrl;
+                StateHasChanged();
+                
+                // Auto-join if stream ID provided in URL
+                await Task.Delay(500);
+                await JoinStreamAsync();
+            }
+        }
+    }
+
+    private async Task JoinStreamAsync()
+    {
+        if (string.IsNullOrWhiteSpace(StreamIdInput) || IsConnecting) return;
+
+        try
+        {
+            IsConnecting = true;
+            StatusMessage = t.T("joinStream", "connectingToStreamStatus");
+            RequiresPlaybackPrompt = false;
+            IsStreamStopped = false;
+            StateHasChanged();
+
+            // Initialize viewer FIRST, before connecting to SignalR
+            _streamViewer = await JS.InvokeAsync<IJSObjectReference>("initializeStreamViewer", "streamVideo", StreamIdInput, _dotNetObjectReference);
+
+            if (_pendingStreamJoined is not null)
+            {
+                var pending = _pendingStreamJoined.Value;
+                _pendingStreamJoined = null;
+                await _streamViewer.InvokeVoidAsync("handleStreamJoined", pending.streamId, pending.hostConnectionId);
+            }
+            
+            Console.WriteLine("Stream viewer initialized and connected to SignalR");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = t.T("joinStream", "connectionFailed", ex.Message);
+            IsConnecting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LeaveStream()
+    {
+        if (_streamViewer is not null)
+        {
+            await _streamViewer.InvokeVoidAsync("dispose");
+            _streamViewer = null;
+        }
+        _pendingStreamJoined = null;
+        
+        IsConnected = false;
+        IsConnecting = false;
+        RequiresPlaybackPrompt = false;
+        IsStreamStopped = false;
+        VolumeLevel = 100;
+        StatusMessage = string.Empty;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task<string> GetAccessToken()
+    {
+        try
+        {
+            Console.WriteLine("JoinStreamPage: Requesting access token...");
+            var tokenResult = await _accessTokenProvider.RequestAccessToken();
+            var hasToken = tokenResult.TryGetToken(out var token);
+            Console.WriteLine($"JoinStreamPage: Token result - HasToken: {hasToken}, TokenValue: {(hasToken ? "Present" : "None")}");
+            return hasToken ? token.Value : string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"JoinStreamPage: Error getting access token: {ex.Message}");
+            return string.Empty;
+        }
+    }
+
+    [JSInvokable]
+    public void StreamConnected()
+    {
+        Console.WriteLine("JoinStreamPage: Stream successfully connected!");
+        IsConnected = true;
+        IsConnecting = false;
+        StatusMessage = t.T("joinStream", "successfullyConnected");
+        _ = JS.InvokeVoidAsync("setStreamVolume", "streamVideo", VolumeLevel);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void StreamAutoplayBlocked()
+    {
+        if (!RequiresPlaybackPrompt)
+        {
+            RequiresPlaybackPrompt = true;
+            StatusMessage = t.T("joinStream", "autoplayBlockedStatus");
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void StreamError(string message)
+    {
+        IsConnected = false;
+        IsConnecting = false;
+        StatusMessage = t.T("joinStream", "connectionFailed", message);
+        IsStreamStopped = false;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void StreamEnded(string streamId)
+    {
+        IsConnected = false;
+        IsConnecting = false;
+        StatusMessage = t.T("joinStream", "streamEnded");
+        IsStreamStopped = false;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task StreamJoined(string streamId, string hostConnectionId)
+    {
+        if (_streamViewer is not null)
+        {
+            await _streamViewer.InvokeVoidAsync("handleStreamJoined", streamId, hostConnectionId);
+        }
+        else
+        {
+            _pendingStreamJoined = (streamId, hostConnectionId);
+        }
+    }
+
+    [JSInvokable]
+    public async Task ReceiveOffer(string streamId, string fromConnectionId, string offer)
+    {
+        if (_streamViewer is not null)
+        {
+            await _streamViewer.InvokeVoidAsync("handleOffer", streamId, fromConnectionId, offer);
+        }
+    }
+
+    [JSInvokable]
+    public async Task ReceiveAnswer(string streamId, string fromConnectionId, string answer)
+    {
+        if (_streamViewer is not null)
+        {
+            await _streamViewer.InvokeVoidAsync("handleAnswer", streamId, fromConnectionId, answer);
+        }
+    }
+
+    [JSInvokable]
+    public async Task ReceiveIceCandidate(string streamId, string fromConnectionId, string candidate)
+    {
+        if (_streamViewer is not null)
+        {
+            await _streamViewer.InvokeVoidAsync("handleIceCandidate", streamId, fromConnectionId, candidate);
+        }
+    }
+
+    private async Task TogglePlaybackAsync()
+    {
+        if (!IsConnected)
+        {
+            return;
+        }
+
+        if (IsStreamStopped)
+        {
+            var resumed = await JS.InvokeAsync<bool>("resumeStreamPlayback", "streamVideo", VolumeLevel > 0);
+            if (resumed)
+            {
+                IsStreamStopped = false;
+                RequiresPlaybackPrompt = false;
+                StatusMessage = t.T("joinStream", "playbackResumed");
+            }
+            else
+            {
+                RequiresPlaybackPrompt = true;
+                StatusMessage = t.T("joinStream", "browserBlockedPlayback");
+            }
+        }
+        else
+        {
+            var stopped = await JS.InvokeAsync<bool>("stopStreamPlayback", "streamVideo");
+            if (stopped)
+            {
+                IsStreamStopped = true;
+                StatusMessage = t.T("joinStream", "streamPaused");
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task OnVolumeChanged(double value)
+    {
+        VolumeLevel = value;
+        await JS.InvokeVoidAsync("setStreamVolume", "streamVideo", VolumeLevel);
+
+        if (VolumeLevel > 0 && IsStreamStopped)
+        {
+            var resumed = await JS.InvokeAsync<bool>("resumeStreamPlayback", "streamVideo", true);
+            if (resumed)
+            {
+                IsStreamStopped = false;
+                RequiresPlaybackPrompt = false;
+                StatusMessage = t.T("joinStream", "playbackResumed");
+            }
+        }
+    }
+
+    private string GetStatusClass()
+    {
+        if (IsConnecting) return "status-connecting";
+        if (IsConnected) return "status-connected";
+        if (!string.IsNullOrEmpty(StatusMessage) && StatusMessage.Contains("Failed")) return "status-error";
+        return "";
+    }
+
+    private async Task ResumePlaybackAsync()
+    {
+        try
+        {
+            var resumed = await JS.InvokeAsync<bool>("resumeStreamPlayback", "streamVideo", false);
+            if (resumed)
+            {
+                RequiresPlaybackPrompt = false;
+                IsStreamStopped = false;
+                StatusMessage = t.T("joinStream", "playbackStarted");
+            }
+            else
+            {
+                StatusMessage = t.T("joinStream", "browserStillBlocking");
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = t.T("joinStream", "unableToStartPlayback", ex.Message);
+        }
+
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_streamViewer is not null)
+        {
+            await _streamViewer.InvokeVoidAsync("dispose");
+        }
+        _pendingStreamJoined = null;
+        _dotNetObjectReference?.Dispose();
+    }
+}

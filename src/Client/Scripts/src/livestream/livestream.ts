@@ -1,0 +1,1408 @@
+import fixWebmDuration from "webm-duration-fix";
+import * as signalR from "@microsoft/signalr";
+import { checkPWACapabilities, logPWADiagnostics } from "./pwa-diagnostics";
+
+const PeerConnectionImpl = 
+    window.RTCPeerConnection || 
+    (window as any).webkitRTCPeerConnection || 
+    (window as any).mozRTCPeerConnection;
+
+declare const DotNet: typeof import("@microsoft/dotnet-js-interop").DotNet;
+
+interface DotNetObject {
+    invokeMethod<T>(methodIdentifier: string, ...args: any[]): T;
+    invokeMethodAsync<T>(methodIdentifier: string, ...args: any[]): Promise<T>;
+    dispose(): void;
+}
+
+declare global {
+    interface Window {
+        liveStreamingManager?: LiveStreamingManager | null;
+        initializeLiveStreamingManager?: (
+            videoPreviewParentId: string,
+            dotNetCaller: DotNetObject
+        ) => Promise<LiveStreamingManager>;
+        initializeStreamViewer?: (
+            videoElementId: string,
+            streamId: string,
+            dotNetCaller: DotNetObject
+        ) => Promise<StreamViewer>;
+        resumeStreamPlayback?: (videoElementId: string, unmute?: boolean) => Promise<boolean>;
+        stopStreamPlayback?: (videoElementId: string) => Promise<boolean>;
+        setStreamVolume?: (videoElementId: string, volumePercent: number) => void;
+    }
+}
+
+const APP_SETTINGS_ENDPOINT = new URL("AppSettings/GetClientAppSettings", document.baseURI).toString();
+
+type RawIceServer = {
+    urls?: string | string[];
+    Urls?: string | string[];
+    url?: string;
+    Url?: string;
+    username?: string;
+    Username?: string;
+    credential?: string;
+    Credential?: string;
+};
+
+function isSafariBrowser(): boolean {
+    const ua = navigator.userAgent.toLowerCase();
+    return ua.includes("safari") && !ua.includes("chrome") && !ua.includes("chromium");
+}
+
+class IceServerProvider {
+    private static cache: RTCIceServer[] | null = null;
+    private static pending: Promise<RTCIceServer[]> | null = null;
+
+    static async getServers(): Promise<RTCIceServer[]> {
+        if (this.cache) {
+            return this.cloneServers(this.cache);
+        }
+
+        if (!this.pending) {
+            this.pending = this.fetchFromApi().catch((error) => {
+                this.pending = null;
+                throw error;
+            });
+        }
+
+        try {
+            const servers = await this.pending;
+            this.cache = servers ?? [];
+            return this.cloneServers(this.cache);
+        } finally {
+            this.pending = null;
+        }
+    }
+
+    private static async fetchFromApi(): Promise<RTCIceServer[]> {
+        const response = await fetch(APP_SETTINGS_ENDPOINT, { credentials: "include" });
+        if (!response.ok) {
+            throw new Error(`Failed to download ICE servers (${response.status})`);
+        }
+
+        const payload = await response.json();
+        const normalized = this.normalize(payload?.IceServers ?? payload?.iceServers);
+        if (normalized.length === 0) {
+            console.warn("API returned an empty ICE server list");
+            return [];
+        }
+
+        console.log(`Loaded ${normalized.length} ICE server definition(s) from API`);
+        return normalized;
+    }
+
+    private static normalize(raw: RawIceServer[] | undefined): RTCIceServer[] {
+        if (!Array.isArray(raw)) {
+            return [];
+        }
+
+        const isSafari = isSafariBrowser();
+        const sanitized: RTCIceServer[] = [];
+        for (const entry of raw) {
+            if (!entry) {
+                continue;
+            }
+
+            const rawUrls = entry.urls ?? entry.Urls ?? entry.url ?? entry.Url;
+            if (!rawUrls) {
+                continue;
+            }
+
+            let urls = Array.isArray(rawUrls) ? [...rawUrls] : [rawUrls];
+
+            if (isSafari) {
+                const originalLength = urls.length;
+                urls = urls.filter(url => !url.toLowerCase().includes("transport=tcp"));
+                
+                if (urls.length < originalLength) {
+                    console.log("IceServerProvider: Filtered out TCP candidates for Safari compatibility");
+                }
+            }
+
+            sanitized.push({
+                urls: urls,
+                username: entry.username ?? entry.Username ?? undefined,
+                credential: entry.credential ?? entry.Credential ?? undefined,
+            });
+        }
+
+        return sanitized;
+    }
+
+    private static cloneServers(servers: RTCIceServer[] = []): RTCIceServer[] {
+        return servers.map((server) => ({
+            urls: Array.isArray(server.urls) ? [...server.urls] : server.urls,
+            username: server.username,
+            credential: server.credential,
+        }));
+    }
+}
+
+// Safari expects H.264 to be offered first, so reorder codecs before SDP is created.
+function prioritizeH264(peer: RTCPeerConnection): void {
+    const capabilities = RTCRtpSender.getCapabilities?.("video");
+    const codecs = capabilities?.codecs;
+    if (!codecs || codecs.length === 0) {
+        return;
+    }
+
+    const lower = (codec: { mimeType: string }) => codec.mimeType.toLowerCase();
+    const h264Codecs = codecs.filter((codec) => lower(codec) === "video/h264");
+    if (h264Codecs.length === 0) {
+        return;
+    }
+    const otherCodecs = codecs.filter((codec) => lower(codec) !== "video/h264");
+    const prioritized = [...h264Codecs, ...otherCodecs];
+
+    for (const transceiver of peer.getTransceivers()) {
+        const trackKind = transceiver.sender?.track?.kind ?? transceiver.receiver?.track?.kind;
+        if (trackKind !== "video" || typeof transceiver.setCodecPreferences !== "function") {
+            continue;
+        }
+
+        try {
+            transceiver.setCodecPreferences(prioritized);
+        } catch (error) {
+            console.warn("Failed to set codec preferences", error);
+        }
+    }
+}
+
+class SignalClient {
+    private connection: signalR.HubConnection | null = null;
+    private connectionPromise: Promise<void> | null = null;
+    private currentStreamId: string | null = null;
+    private isHost: boolean = false;
+
+    constructor(private readonly dotnetCaller: DotNetObject) {}
+
+    async connect(): Promise<void> {
+        if (this.connection && this.connection.state !== signalR.HubConnectionState.Disconnected) {
+            return;
+        }
+
+        if (!this.connectionPromise) {
+            this.connectionPromise = this.createConnection();
+        }
+
+        try {
+            await this.connectionPromise;
+        } finally {
+            this.connectionPromise = null;
+        }
+    }
+
+    async disconnect(): Promise<void> {
+        if (!this.connection) {
+            return;
+        }
+
+        try {
+            await this.connection.stop();
+        } finally {
+            this.connection = null;
+            this.currentStreamId = null;
+            this.isHost = false;
+        }
+    }
+
+    async startStream(streamId: string): Promise<void> {
+        await this.connect();
+        const connection = this.ensureConnection();
+        await connection.invoke("StartStream", streamId);
+        this.currentStreamId = streamId;
+        this.isHost = true;
+        console.log(`SignalClient: StartStream ${streamId}`);
+    }
+
+    async stopStream(): Promise<void> {
+        if (!this.connection || !this.currentStreamId || !this.isHost) {
+            this.currentStreamId = null;
+            this.isHost = false;
+            return;
+        }
+
+        await this.connection.invoke("StopStream", this.currentStreamId);
+        console.log(`SignalClient: StopStream ${this.currentStreamId}`);
+        this.currentStreamId = null;
+        this.isHost = false;
+    }
+
+    async joinStream(streamId: string): Promise<void> {
+        await this.connect();
+        const connection = this.ensureConnection();
+        await connection.invoke("JoinStream", streamId);
+        this.currentStreamId = streamId;
+        this.isHost = false;
+        console.log(`SignalClient: JoinStream ${streamId}`);
+    }
+
+    async leaveStream(): Promise<void> {
+        if (!this.connection || !this.currentStreamId) {
+            this.currentStreamId = null;
+            return;
+        }
+
+        await this.connection.invoke("LeaveStream", this.currentStreamId);
+        console.log(`SignalClient: LeaveStream ${this.currentStreamId}`);
+        this.currentStreamId = null;
+    }
+
+    async sendOffer(targetConnectionId: string, offer: RTCSessionDescriptionInit): Promise<void> {
+        if (!this.currentStreamId) {
+            return;
+        }
+
+        const connection = this.ensureConnection();
+        await connection.invoke("SendOffer", this.currentStreamId, targetConnectionId, JSON.stringify(offer));
+    }
+
+    async sendAnswer(targetConnectionId: string, answer: RTCSessionDescriptionInit): Promise<void> {
+        if (!this.currentStreamId) {
+            return;
+        }
+
+        const connection = this.ensureConnection();
+        await connection.invoke("SendAnswer", this.currentStreamId, targetConnectionId, JSON.stringify(answer));
+    }
+
+    async sendIceCandidate(targetConnectionId: string, candidate: RTCIceCandidateInit): Promise<void> {
+        if (!this.currentStreamId) {
+            return;
+        }
+
+        const connection = this.ensureConnection();
+        await connection.invoke(
+            "SendIceCandidate",
+            this.currentStreamId,
+            targetConnectionId,
+            JSON.stringify(candidate)
+        );
+    }
+
+    private async createConnection(): Promise<void> {
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/streaming", {
+                accessTokenFactory: () => this.fetchAccessToken(),
+                // Better support for PWA and unreliable connections
+                skipNegotiation: false,
+                transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling,
+            })
+            .withAutomaticReconnect({
+                nextRetryDelayInMilliseconds: (retryContext: signalR.RetryContext) => {
+                    // Exponential backoff for PWA reliability
+                    if (retryContext.elapsedMilliseconds < 60000) {
+                        return Math.min(1000 * Math.pow(2, retryContext.previousRetryCount), 10000);
+                    } else {
+                        return null; // Stop retrying after 1 minute
+                    }
+                }
+            })
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        this.registerHandlers(connection);
+        
+        // Add connection state handlers for PWA
+        connection.onreconnecting((error?: Error) => {
+            console.warn("SignalClient: Reconnecting...", error);
+        });
+        
+        connection.onreconnected((connectionId?: string) => {
+            console.log("SignalClient: Reconnected", connectionId);
+        });
+        
+        connection.onclose((error?: Error) => {
+            console.error("SignalClient: Connection closed", error);
+        });
+        
+        try {
+            await connection.start();
+            this.connection = connection;
+            console.log("SignalClient: connection established");
+        } catch (error) {
+            console.error("SignalClient: Failed to establish connection", error);
+            throw new Error(`SignalR connection failed: ${(error as Error).message}`);
+        }
+    }
+
+    private async fetchAccessToken(): Promise<string> {
+        try {
+            const token = await this.dotnetCaller.invokeMethodAsync<string>("GetAccessToken");
+            return token ?? "";
+        } catch (error) {
+            console.warn("SignalClient: failed to fetch access token", error);
+            return "";
+        }
+    }
+
+    private registerHandlers(connection: signalR.HubConnection): void {
+        const forward = (method: string, ...args: any[]): void => {
+            try {
+                void this.dotnetCaller.invokeMethodAsync(method, ...args);
+            } catch (error) {
+                console.warn(`SignalClient: failed to forward ${method}`, error);
+            }
+        };
+
+        connection.on("StreamStarted", (streamId: string) => console.log(`Stream ${streamId} started`));
+        connection.on("StreamEnded", (streamId: string) => forward("StreamEnded", streamId));
+        connection.on("StreamNotFound", (streamId: string) => forward("StreamError", `Stream ${streamId} not found`));
+        connection.on("StreamJoined", (streamId: string, hostConnectionId: string) =>
+            forward("StreamJoined", streamId, hostConnectionId)
+        );
+        connection.on("ViewerJoined", (viewerConnectionId: string) => forward("ViewerJoined", viewerConnectionId));
+        connection.on("ViewerLeft", (viewerConnectionId: string) => forward("ViewerLeft", viewerConnectionId));
+        connection.on("ReceiveOffer", (streamId: string, fromConnectionId: string, offer: string) =>
+            forward("ReceiveOffer", streamId, fromConnectionId, offer)
+        );
+        connection.on("ReceiveAnswer", (_streamId: string, fromConnectionId: string, answer: string) => {
+            try {
+                void this.dotnetCaller.invokeMethodAsync("ReceiveAnswer", fromConnectionId, answer);
+            } catch (error) {
+                console.warn("SignalClient: failed to forward ReceiveAnswer", error);
+            }
+        });
+        connection.on("ReceiveIceCandidate", (streamId: string, fromConnectionId: string, candidate: string) =>
+            forward("ReceiveIceCandidate", streamId, fromConnectionId, candidate)
+        );
+    }
+
+    private ensureConnection(): signalR.HubConnection {
+        if (!this.connection) {
+            throw new Error("SignalR connection is not ready");
+        }
+
+        return this.connection;
+    }
+}
+
+class CameraController {
+    private static readonly streamCache = new Map<string, { stream: MediaStream; refCount: number }>();
+    private stream: MediaStream | null = null;
+    private releaseCachedStream: (() => void) | null = null;
+    private deviceId: string | null = null;
+    private active: boolean = false;
+    private width: number = 1280;
+    private height: number = 720;
+    private readonly element: HTMLVideoElement;
+
+    constructor() {
+        this.element = document.createElement("video");
+        this.element.muted = true;
+        this.element.autoplay = true;
+        this.element.playsInline = true;
+        this.element.setAttribute("playsinline", "");
+        this.element.style.display = "none";
+    }
+
+    static async checkPermissions(): Promise<boolean> {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.error("CameraController: getUserMedia not supported");
+            return false;
+        }
+
+        // Check if running in secure context
+        if (!window.isSecureContext) {
+            console.error("CameraController: Not in secure context (HTTPS required)");
+            return false;
+        }
+
+        // Request permissions explicitly for PWA
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream.getTracks().forEach(track => track.stop());
+            return true;
+        } catch (error) {
+            console.error("CameraController: Permission denied or device unavailable", error);
+            return false;
+        }
+    }
+
+    isActive(): boolean {
+        return this.active;
+    }
+
+    getElement(): HTMLVideoElement {
+        return this.element;
+    }
+
+    getDimensions(): { width: number; height: number } {
+        return { width: this.width, height: this.height };
+    }
+
+    async useDevice(deviceId: string | null | undefined): Promise<void> {
+        if (!deviceId) {
+            this.stop();
+            return;
+        }
+
+        if (this.active && deviceId === this.deviceId) {
+            return;
+        }
+
+        this.stop();
+
+        try {
+            const { stream, release } = await CameraController.acquireDeviceStream(deviceId);
+            this.stream = stream;
+            this.releaseCachedStream = release;
+        } catch (error) {
+            console.error("CameraController: failed to start camera", error);
+            this.stop();
+            throw error;
+        }
+
+        const track = this.stream.getVideoTracks()[0];
+        const settings = track.getSettings();
+        this.width = settings.width ?? this.width;
+        this.height = settings.height ?? this.height;
+
+        this.element.srcObject = this.stream;
+        try {
+            await this.element.play();
+        } catch (error) {
+            console.warn("CameraController: autoplay rejected", error);
+        }
+
+        this.deviceId = deviceId;
+        this.active = true;
+    }
+
+    stop(): void {
+        this.stream?.getTracks().forEach((track) => track.stop());
+        this.stream = null;
+        this.element.srcObject = null;
+        if (this.releaseCachedStream) {
+            this.releaseCachedStream();
+            this.releaseCachedStream = null;
+        }
+        this.deviceId = null;
+        this.active = false;
+    }
+
+    private static async acquireDeviceStream(deviceId: string): Promise<{ stream: MediaStream; release: () => void }> {
+        let cacheEntry = this.streamCache.get(deviceId);
+        if (!cacheEntry) {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId } });
+            cacheEntry = { stream, refCount: 0 };
+            this.streamCache.set(deviceId, cacheEntry);
+        }
+
+        cacheEntry.refCount += 1;
+        const clone = cacheEntry.stream.clone();
+
+        const release = () => {
+            const current = this.streamCache.get(deviceId);
+            if (!current || current !== cacheEntry) {
+                return;
+            }
+
+            current.refCount -= 1;
+            if (current.refCount <= 0) {
+                current.stream.getTracks().forEach((track) => track.stop());
+                this.streamCache.delete(deviceId);
+            }
+        };
+
+        return { stream: clone, release };
+    }
+}
+
+class MicrophoneController {
+    private stream: MediaStream | null = null;
+    private deviceId: string | null = null;
+    private active: boolean = false;
+
+    static async checkPermissions(): Promise<boolean> {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.error("MicrophoneController: getUserMedia not supported");
+            return false;
+        }
+
+        // Check if running in secure context
+        if (!window.isSecureContext) {
+            console.error("MicrophoneController: Not in secure context (HTTPS required)");
+            return false;
+        }
+
+        // Request permissions explicitly for PWA
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(track => track.stop());
+            return true;
+        } catch (error) {
+            console.error("MicrophoneController: Permission denied or device unavailable", error);
+            return false;
+        }
+    }
+
+    isActive(): boolean {
+        return this.active;
+    }
+
+    getStream(): MediaStream | null {
+        return this.stream;
+    }
+
+    async useDevice(deviceId: string | null | undefined): Promise<void> {
+        if (!deviceId) {
+            this.stop();
+            return;
+        }
+
+        if (this.active && deviceId === this.deviceId) {
+            return;
+        }
+
+        this.stop();
+
+        try {
+            this.stream = await navigator.mediaDevices.getUserMedia({
+                audio: { deviceId },
+            });
+        } catch (error) {
+            console.error("MicrophoneController: failed to start microphone", error);
+            this.stop();
+            throw error;
+        }
+
+        this.deviceId = deviceId;
+        this.active = true;
+    }
+
+    stop(): void {
+        this.stream?.getTracks().forEach((track) => track.stop());
+        this.stream = null;
+        this.deviceId = null;
+        this.active = false;
+    }
+}
+
+class RecordingStore {
+    private readonly chunks: Blob[] = [];
+    private output: Blob | null = null;
+
+    constructor(private readonly mimeType: string, public readonly extension: string) {}
+
+    addChunk(chunk: Blob): void {
+        this.chunks.push(chunk);
+    }
+
+    async finalize(): Promise<void> {
+        let recording = new Blob(this.chunks, { type: this.mimeType });
+        if (this.extension === "webm") {
+            try {
+                recording = await fixWebmDuration(recording);
+            } catch (error) {
+                console.warn("RecordingStore: failed to fix WebM duration", error);
+            }
+        }
+
+        this.output = recording;
+    }
+
+    getOutput(): Blob {
+        if (!this.output) {
+            throw new Error("RecordingStore: output not generated");
+        }
+
+        return this.output;
+    }
+
+    clear(): void {
+        this.output = null;
+        this.chunks.length = 0;
+    }
+
+    async save(filename?: string): Promise<void> {
+        if (!this.output) {
+            throw new Error("RecordingStore: nothing to save");
+        }
+
+        const sanitizedName = this.buildFilename(filename ?? "stream-recording");
+        const url = URL.createObjectURL(this.output);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = sanitizedName;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+    }
+
+    private buildFilename(base: string): string {
+        const cleaned = base.replace(/[^a-z0-9.-]/gi, "_");
+        return `${cleaned}.${this.extension}`;
+    }
+}
+
+export class LiveStreamingManager {
+    private readonly signaling: SignalClient;
+    private readonly camera = new CameraController();
+    private readonly microphone = new MicrophoneController();
+    private readonly canvas: HTMLCanvasElement;
+    private readonly canvasContext: CanvasRenderingContext2D;
+    private readonly canvasStream: MediaStream;
+    private readonly audioContext = new AudioContext();
+    private readonly audioDestination = this.audioContext.createMediaStreamDestination();
+    private microphoneInput: MediaStreamAudioSourceNode | null = null;
+    private streamId: string | null = null;
+    private outputStream: MediaStream | null = null;
+    private recorder: MediaRecorder | null = null;
+    private recordingStore: RecordingStore | null = null;
+    private readonly peerConnections = new Map<string, RTCPeerConnection>();
+    private isStreaming = false;
+    private isRecording = false;
+    private animationHandle: number | null = null;
+    private readonly saveIntervalMs = 500;
+
+    constructor(private readonly dotnetCaller: DotNetObject) {
+        this.signaling = new SignalClient(dotnetCaller);
+        this.canvas = document.createElement("canvas");
+        this.canvas.width = 1280;
+        this.canvas.height = 720;
+        this.canvas.style.width = "100%";
+        this.canvas.style.height = "100%";
+        this.canvas.style.objectFit = "contain";
+        this.canvas.classList.add("preview");
+
+        const ctx = this.canvas.getContext("2d");
+        if (!ctx) {
+            throw new Error("Unable to acquire 2D canvas context");
+        }
+        this.canvasContext = ctx;
+        this.canvasStream = this.canvas.captureStream(30);
+        this.startPreviewLoop();
+    }
+
+    async initialize(): Promise<void> {
+        // Check if running in PWA standalone mode
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                      (window.navigator as any).standalone === true;
+        
+        if (isPWA) {
+            console.log("LiveStreamingManager: Running in PWA standalone mode");
+            
+            // Run diagnostics
+            const diagnostics = await checkPWACapabilities();
+            logPWADiagnostics(diagnostics);
+            
+            if (diagnostics.errors.length > 0) {
+                const errorMessage = `PWA compatibility issues:\n${diagnostics.errors.join('\n')}`;
+                await this.reportError(errorMessage);
+                throw new Error(errorMessage);
+            }
+            
+            // Check media permissions
+            const cameraPermission = await CameraController.checkPermissions();
+            const micPermission = await MicrophoneController.checkPermissions();
+            
+            if (!cameraPermission || !micPermission) {
+                await this.reportError("Camera or microphone permissions not granted. Please enable them in browser settings.");
+                throw new Error("Media permissions required for streaming");
+            }
+        }
+        
+        await this.signaling.connect();
+    }
+
+    appendPreviews(parentId: string): void {
+        const parent = document.getElementById(parentId);
+        if (parent && !parent.contains(this.canvas)) {
+            parent.appendChild(this.canvas);
+        }
+    }
+
+    removePreview(): void {
+        this.canvas.remove();
+    }
+
+    async setWebcam(deviceId: string): Promise<void> {
+        await this.camera.useDevice(deviceId);
+        const { width, height } = this.camera.getDimensions();
+        this.canvas.width = width;
+        this.canvas.height = height;
+    }
+
+    async setMicrophone(deviceId: string): Promise<void> {
+        if (this.microphoneInput) {
+            this.microphoneInput.disconnect();
+            this.microphoneInput = null;
+        }
+
+        await this.microphone.useDevice(deviceId);
+        if (!this.microphone.isActive()) {
+            return;
+        }
+
+        const stream = this.microphone.getStream();
+        if (!stream) {
+            return;
+        }
+
+        this.microphoneInput = this.audioContext.createMediaStreamSource(stream);
+        this.microphoneInput.connect(this.audioDestination);
+    }
+
+    async startStream(streamId: string): Promise<void> {
+        if (this.isStreaming) {
+            console.warn("LiveStreamingManager: stream already running");
+            return;
+        }
+
+        if (!this.microphone.isActive()) {
+            await this.reportError("Please select a microphone before starting the stream.");
+            return;
+        }
+
+        this.streamId = streamId;
+        await this.audioContext.resume();
+        this.outputStream = this.buildOutputStream();
+        await this.startRecording();
+        await this.signaling.startStream(streamId);
+        this.isStreaming = true;
+        await this.notifyDotNet("StreamingStateChanged", true);
+        console.log(`LiveStreamingManager: started stream ${streamId}`);
+    }
+
+    async stopStream(): Promise<void> {
+        if (!this.isStreaming && !this.streamId) {
+            return;
+        }
+
+        for (const peer of this.peerConnections.values()) {
+            peer.close();
+        }
+        this.peerConnections.clear();
+
+        await this.stopRecording();
+        await this.signaling.stopStream();
+
+        this.streamId = null;
+        this.outputStream = null;
+        this.isStreaming = false;
+        await this.notifyDotNet("StreamingStateChanged", false);
+        console.log("LiveStreamingManager: stream stopped");
+    }
+
+    async handleViewerJoined(viewerConnectionId: string): Promise<void> {
+        if (!this.outputStream) {
+            console.warn("LiveStreamingManager: no output stream for viewer");
+            return;
+        }
+
+        const peerConnection = await this.createPeerConnection(viewerConnectionId);
+        try {
+            const offer = await peerConnection.createOffer({ offerToReceiveAudio: false, offerToReceiveVideo: false });
+            await peerConnection.setLocalDescription(offer);
+            await this.signaling.sendOffer(viewerConnectionId, offer);
+        } catch (error) {
+            console.error("LiveStreamingManager: failed to send offer", error);
+        }
+    }
+
+    async handleAnswer(viewerConnectionId: string, answer: string): Promise<void> {
+        const peer = this.peerConnections.get(viewerConnectionId);
+        if (!peer) {
+            console.warn(`LiveStreamingManager: missing peer ${viewerConnectionId}`);
+            return;
+        }
+
+        try {
+            await peer.setRemoteDescription(JSON.parse(answer));
+        } catch (error) {
+            console.error("LiveStreamingManager: failed to set remote description", error);
+        }
+    }
+
+    async handleIceCandidate(viewerConnectionId: string, candidate: string): Promise<void> {
+        const peer = this.peerConnections.get(viewerConnectionId);
+        if (!peer) {
+            console.warn(`LiveStreamingManager: missing peer ${viewerConnectionId}`);
+            return;
+        }
+
+        try {
+            await peer.addIceCandidate(JSON.parse(candidate));
+        } catch (error) {
+            console.error("LiveStreamingManager: failed to add ICE candidate", error);
+        }
+    }
+
+    async saveStreamLocally(filename: string): Promise<void> {
+        if (!this.recordingStore) {
+            throw new Error("LiveStreamingManager: recording not available");
+        }
+
+        await this.recordingStore.save(filename);
+    }
+
+    async finalizeStreaming(): Promise<void> {
+        this.recordingStore?.clear();
+        this.recordingStore = null;
+        this.recorder = null;
+        this.isRecording = false;
+    }
+
+    async dispose(): Promise<void> {
+        await this.stopStream();
+        await this.finalizeStreaming();
+        await this.signaling.disconnect();
+        this.camera.stop();
+        this.microphone.stop();
+        this.removePreview();
+        this.stopPreviewLoop();
+    }
+
+    private buildOutputStream(): MediaStream {
+        const tracks: MediaStreamTrack[] = [];
+        if (this.camera.isActive()) {
+            tracks.push(...this.canvasStream.getVideoTracks());
+        }
+        tracks.push(...this.audioDestination.stream.getAudioTracks());
+
+        if (tracks.length === 0) {
+            throw new Error("LiveStreamingManager: no media tracks available");
+        }
+
+        return new MediaStream(tracks);
+    }
+
+    private async startRecording(): Promise<void> {
+        if (!this.outputStream || this.isRecording) {
+            return;
+        }
+
+        const [mimeType, extension] = this.getSupportedMimeType();
+        this.recordingStore = new RecordingStore(mimeType, extension);
+        this.recorder = new MediaRecorder(this.outputStream, { mimeType });
+
+        this.recorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                this.recordingStore?.addChunk(event.data);
+            }
+        };
+
+        this.recorder.onstop = async () => {
+            if (!this.recordingStore) {
+                return;
+            }
+            await this.recordingStore.finalize();
+            const output = this.recordingStore.getOutput();
+            await this.notifyDotNet(
+                "StreamingFinished",
+                DotNet.createJSStreamReference(output),
+                this.recordingStore.extension
+            );
+        };
+
+        this.recorder.start(this.saveIntervalMs);
+        this.isRecording = true;
+    }
+
+    private async stopRecording(): Promise<void> {
+        if (!this.recorder || !this.isRecording) {
+            return;
+        }
+
+        this.recorder.stop();
+        this.isRecording = false;
+    }
+
+    private getSupportedMimeType(): [string, string] {
+        const options: Array<[string, string]> = [
+            ["video/webm;codecs=vp9,opus", "webm"],
+            ["video/webm;codecs=vp8,opus", "webm"],
+            ["video/webm", "webm"],
+            ["video/mp4", "mp4"],
+        ];
+
+        for (const entry of options) {
+            if (MediaRecorder.isTypeSupported(entry[0])) {
+                return entry;
+            }
+        }
+
+        return ["video/webm", "webm"];
+    }
+
+    private async createPeerConnection(viewerConnectionId: string): Promise<RTCPeerConnection> {
+        const iceServers = await IceServerProvider.getServers();
+        const peer = new RTCPeerConnection({
+            iceServers,
+            iceTransportPolicy: "all",
+            bundlePolicy: "max-bundle",
+            rtcpMuxPolicy: "require",
+        });
+
+        if (this.outputStream) {
+            for (const track of this.outputStream.getTracks()) {
+                peer.addTrack(track, this.outputStream);
+            }
+        }
+
+        prioritizeH264(peer);
+
+        peer.onicecandidate = (event) => {
+            console.log("ICE candidate", event.candidate);
+            if (event.candidate) {
+                void this.signaling.sendIceCandidate(viewerConnectionId, event.candidate);
+            }
+        };
+
+        peer.oniceconnectionstatechange = () => {
+            if (peer.iceConnectionState === "failed") {
+                peer.restartIce();
+            }
+            if (peer.iceConnectionState === "disconnected" || peer.iceConnectionState === "closed") {
+                this.peerConnections.delete(viewerConnectionId);
+            }
+        };
+
+        peer.onconnectionstatechange = () => {
+            if (peer.connectionState === "failed" || peer.connectionState === "closed") {
+                peer.close();
+                this.peerConnections.delete(viewerConnectionId);
+            }
+        };
+
+        this.peerConnections.set(viewerConnectionId, peer);
+        return peer;
+    }
+
+    private startPreviewLoop(): void {
+        const tick = () => {
+            this.renderFrame();
+            this.animationHandle = requestAnimationFrame(tick);
+        };
+        this.animationHandle = requestAnimationFrame(tick);
+    }
+
+    private stopPreviewLoop(): void {
+        if (this.animationHandle !== null) {
+            cancelAnimationFrame(this.animationHandle);
+            this.animationHandle = null;
+        }
+    }
+
+    private renderFrame(): void {
+        const { width, height } = this.camera.getDimensions();
+        if (this.camera.isActive()) {
+            this.canvasContext.drawImage(this.camera.getElement(), 0, 0, width, height);
+            return;
+        }
+
+        this.canvasContext.fillStyle = "#000";
+        this.canvasContext.fillRect(0, 0, width, height);
+        this.canvasContext.fillStyle = "#fff";
+        this.canvasContext.font = "18px Calibri";
+        this.canvasContext.textAlign = "center";
+        this.canvasContext.fillText("Camera preview unavailable", width / 2, height / 2);
+    }
+
+    private async reportError(message: string): Promise<void> {
+        console.error(`LiveStreamingManager: ${message}`);
+        await this.notifyDotNet("StreamError", message);
+    }
+
+    private async notifyDotNet(method: string, ...args: any[]): Promise<void> {
+        try {
+            await this.dotnetCaller.invokeMethodAsync(method, ...args);
+        } catch (error) {
+            console.warn(`LiveStreamingManager: failed to invoke ${method}`, error);
+        }
+    }
+}
+
+export class StreamViewer {
+    private readonly signaling: SignalClient;
+    private peerConnection: RTCPeerConnection | null = null;
+    private hostConnectionId: string | null = null;
+    private pendingIceCandidates: Array<{ streamId: string; fromConnectionId: string; candidate: string }> = [];
+    private isConnected = false;
+    
+    private forceRelay: boolean = false;
+    private monitoringInterval: number | null = null;
+    private connectionTimeout: number | null = null;
+
+    constructor(
+        private readonly videoElement: HTMLVideoElement,
+        private readonly streamId: string,
+        private readonly dotnetCaller: DotNetObject
+    ) {
+        this.signaling = new SignalClient(dotnetCaller);
+        this.videoElement.autoplay = true;
+        this.videoElement.muted = true;
+        this.videoElement.playsInline = true;
+        this.videoElement.setAttribute("playsinline", "");
+    }
+
+    async connect(): Promise<void> {
+        try {
+            await this.signaling.connect();
+            await this.preparePeerConnection();
+            await this.signaling.joinStream(this.streamId);
+        } catch (error) {
+            console.error("StreamViewer: failed to connect", error);
+            await this.notifyDotNet("StreamError", (error as Error).message ?? "Connection failed");
+            throw error;
+        }
+    }
+
+    async handleStreamJoined(streamId: string, hostConnectionId: string): Promise<void> {
+        if (streamId !== this.streamId) {
+            return;
+        }
+
+        this.hostConnectionId = hostConnectionId;
+
+        if (this.pendingIceCandidates.length > 0) {
+            const queued = [...this.pendingIceCandidates];
+            this.pendingIceCandidates = [];
+            for (const candidate of queued) {
+                await this.handleIceCandidate(candidate.streamId, candidate.fromConnectionId, candidate.candidate);
+            }
+        }
+    }
+
+    async handleOffer(streamId: string, fromConnectionId: string, offer: string): Promise<void> {
+        if (streamId !== this.streamId) {
+            return;
+        }
+
+        const peer = this.peerConnection;
+        if (!peer) {
+            return;
+        }
+
+        try {
+            await peer.setRemoteDescription(JSON.parse(offer));
+            prioritizeH264(peer);
+            const answer = await peer.createAnswer();
+            await peer.setLocalDescription(answer);
+            await this.signaling.sendAnswer(fromConnectionId, answer);
+        } catch (error) {
+            console.error("StreamViewer: failed to handle offer", error);
+            await this.notifyDotNet("StreamError", "Unable to negotiate stream");
+        }
+    }
+
+    async handleAnswer(streamId: string, fromConnectionId: string, answer: string): Promise<void> {
+        if (streamId !== this.streamId || !this.peerConnection) {
+            return;
+        }
+
+        try {
+            await this.peerConnection.setRemoteDescription(JSON.parse(answer));
+        } catch (error) {
+            console.warn("StreamViewer: failed to apply answer", error);
+        }
+    }
+
+    async handleIceCandidate(streamId: string, fromConnectionId: string, candidate: string): Promise<void> {
+        if (streamId !== this.streamId) {
+            return;
+        }
+
+        const peer = this.peerConnection;
+        if (!peer) {
+            return;
+        }
+
+        if (!peer.remoteDescription) {
+            this.pendingIceCandidates.push({ streamId, fromConnectionId, candidate });
+            return;
+        }
+
+        try {
+            await peer.addIceCandidate(JSON.parse(candidate));
+        } catch (error) {
+            console.warn("StreamViewer: failed to add ICE candidate", error);
+        }
+    }
+
+    async dispose(): Promise<void> {
+        this.stopMonitoring();
+        if (this.connectionTimeout) {
+            clearTimeout(this.connectionTimeout);
+            this.connectionTimeout = null;
+        }
+
+        if (this.peerConnection) {
+            this.peerConnection.close();
+            this.peerConnection = null;
+        }
+
+        await this.signaling.leaveStream();
+        await this.signaling.disconnect();
+        this.pendingIceCandidates = [];
+        this.isConnected = false;
+        this.forceRelay = false;
+    }
+
+    private async preparePeerConnection(): Promise<void> {
+        const iceServers = await IceServerProvider.getServers();
+        
+        // decyzja czy wymusić relay
+        const transportPolicy: RTCIceTransportPolicy = this.forceRelay ? "relay" : "all";
+        console.log(`StreamViewer: Creating connection with policy: ${transportPolicy}`);
+
+        this.peerConnection = new PeerConnectionImpl({
+            iceServers,
+            iceTransportPolicy: transportPolicy,
+            bundlePolicy: "max-bundle",
+            rtcpMuxPolicy: "require",
+        });
+
+        this.peerConnection.ontrack = (event) => {
+            const stream = event.streams[0];
+            if (!stream) {
+                return;
+            }
+
+            console.log("StreamViewer: Track received via " + (this.forceRelay ? "RELAY" : "P2P/Mix"));
+
+            this.videoElement.srcObject = stream;
+            this.videoElement.style.display = "block";
+            
+            // Start odtwarzania
+            const playPromise = this.videoElement.play();
+            if (playPromise) {
+                playPromise
+                    .then(() => this.notifyDotNet("StreamConnected"))
+                    .catch(async (error) => {
+                        console.warn("StreamViewer: autoplay blocked", error);
+                        await this.notifyDotNet("StreamAutoplayBlocked");
+                    });
+            }
+            this.isConnected = true;
+
+            this.startMonitoringQuality();
+        };
+
+        this.peerConnection.onicecandidate = (event) => {
+            if (event.candidate && this.hostConnectionId) {
+                void this.signaling.sendIceCandidate(this.hostConnectionId, event.candidate);
+            }
+        };
+
+        this.peerConnection.oniceconnectionstatechange = () => {
+            if (!this.peerConnection) {
+                return;
+            }
+            console.log(`StreamViewer ICE state: ${this.peerConnection.iceConnectionState}`);
+
+            if (this.peerConnection.iceConnectionState === "failed") {
+                if (!this.forceRelay) {
+                    console.warn("StreamViewer: ICE Failed on P2P, switching to RELAY...");
+                    this.switchToRelay();
+                } else {
+                    this.peerConnection.restartIce();
+                }
+            } else if (this.peerConnection.iceConnectionState === "disconnected") {
+                 console.warn("StreamViewer: ICE connection disconnected");
+            }
+        };
+
+        this.peerConnection.onconnectionstatechange = () => {
+            if (!this.peerConnection) return;
+            if (this.peerConnection.connectionState === "failed") {
+                this.notifyDotNet("StreamError", "Connection lost");
+                this.isConnected = false;
+            }
+        };
+    }
+
+    private startMonitoringQuality() {
+        this.stopMonitoring();
+
+        let zeroFramesCount = 0;
+        let lastDecodedFrames = 0;
+
+        this.connectionTimeout = window.setTimeout(() => {
+            console.log("StreamViewer: Starting video quality monitoring...");
+            
+            this.monitoringInterval = window.setInterval(async () => {
+                if (!this.peerConnection || this.peerConnection.connectionState === 'closed') {
+                    this.stopMonitoring();
+                    return;
+                }
+
+                try {
+                    const stats = await this.peerConnection.getStats();
+                    let framesDecoded = 0;
+                    let bytesReceived = 0;
+
+                    stats.forEach(report => {
+                        if (report.type === 'inbound-rtp' && report.kind === 'video') {
+                            framesDecoded = report.framesDecoded || 0;
+                            bytesReceived = report.bytesReceived || 0;
+                        }
+                    });
+
+                    if (framesDecoded === lastDecodedFrames) {
+                        zeroFramesCount++;
+                        console.log(`StreamViewer Monitor: No new frames decoded. Strike ${zeroFramesCount}/3. Bytes: ${bytesReceived}`);
+                    } else {
+                        zeroFramesCount = 0;
+                        lastDecodedFrames = framesDecoded;
+                    }
+
+                    if (zeroFramesCount >= 3) {
+                        console.warn("StreamViewer: BLACK SCREEN DETECTED. Frames are stuck.");
+                        this.stopMonitoring();
+                        
+                        if (!this.forceRelay) {
+                            await this.switchToRelay();
+                        } else {
+                            console.error("StreamViewer: Relay is actively failing too. Network issue likely.");
+                            await this.notifyDotNet("StreamError", "Connection unstable even via Relay.");
+                        }
+                    }
+
+                } catch (e) {
+                    console.warn("StreamViewer: Error reading stats", e);
+                }
+            }, 2000); // Sprawdzaj co 2 sekundy
+
+        }, 3000); // Start po 3s od połączenia
+    }
+
+    private stopMonitoring() {
+        if (this.monitoringInterval) {
+            clearInterval(this.monitoringInterval);
+            this.monitoringInterval = null;
+        }
+        if (this.connectionTimeout) {
+            clearTimeout(this.connectionTimeout);
+            this.connectionTimeout = null;
+        }
+    }
+
+    private async switchToRelay(): Promise<void> {
+        console.log("StreamViewer: Switching to TURN RELAY mode...");
+        
+        this.forceRelay = true;
+        this.isConnected = false;
+
+        if (this.peerConnection) {
+            this.peerConnection.close();
+            this.peerConnection = null;
+        }
+        
+        await this.signaling.leaveStream();
+        await this.preparePeerConnection();
+        await this.signaling.joinStream(this.streamId);
+        
+        console.log("StreamViewer: Rejoined with Relay enforcement.");
+    }
+
+    private async notifyDotNet(method: string, ...args: any[]): Promise<void> {
+        try {
+            await this.dotnetCaller.invokeMethodAsync(method, ...args);
+        } catch (error) {
+            console.warn(`StreamViewer: failed to notify ${method}`, error);
+        }
+    }
+}
+
+export async function initializeLiveStreamingManager(
+    videoPreviewParentId?: string,
+    dotNetCaller?: DotNetObject
+): Promise<LiveStreamingManager> {
+    if (window.liveStreamingManager) {
+        // Re-append preview when returning to the page
+        if (videoPreviewParentId) {
+            window.liveStreamingManager.appendPreviews(videoPreviewParentId);
+        }
+        return window.liveStreamingManager;
+    }
+
+    if (!dotNetCaller) {
+        throw new Error("DotNet caller reference is required");
+    }
+
+    const manager = new LiveStreamingManager(dotNetCaller);
+    await manager.initialize();
+    if (videoPreviewParentId) {
+        manager.appendPreviews(videoPreviewParentId);
+    }
+    window.liveStreamingManager = manager;
+    return manager;
+}
+
+export async function initializeStreamViewer(
+    videoElementId: string,
+    streamId: string,
+    dotNetCaller: DotNetObject
+): Promise<StreamViewer> {
+    const element = document.getElementById(videoElementId);
+    if (!element) {
+        throw new Error(`Video element '${videoElementId}' not found`);
+    }
+
+    const viewer = new StreamViewer(element as HTMLVideoElement, streamId, dotNetCaller);
+    await viewer.connect();
+    return viewer;
+}
+
+window.initializeLiveStreamingManager = initializeLiveStreamingManager;
+window.initializeStreamViewer = initializeStreamViewer;
+
+export async function resumeStreamPlayback(videoElementId: string, unmute: boolean = false): Promise<boolean> {
+    const element = document.getElementById(videoElementId) as HTMLVideoElement | null;
+    if (!element) {
+        return false;
+    }
+
+    if (unmute) {
+        element.muted = false;
+    }
+
+    try {
+        await element.play();
+        return true;
+    } catch (error) {
+        console.warn("resumeStreamPlayback: playback blocked", error);
+        return false;
+    }
+}
+
+window.resumeStreamPlayback = resumeStreamPlayback;
+
+export async function stopStreamPlayback(videoElementId: string): Promise<boolean> {
+    const element = document.getElementById(videoElementId) as HTMLVideoElement | null;
+    if (!element) {
+        return false;
+    }
+
+    try {
+        element.pause();
+        return true;
+    } catch (error) {
+        console.warn("stopStreamPlayback: failed to pause", error);
+        return false;
+    }
+}
+
+window.stopStreamPlayback = stopStreamPlayback;
+
+export function setStreamVolume(videoElementId: string, volumePercent: number): void {
+    const element = document.getElementById(videoElementId) as HTMLVideoElement | null;
+    if (!element) {
+        return;
+    }
+
+    const clamped = Math.max(0, Math.min(100, volumePercent));
+    element.volume = clamped / 100;
+    if (clamped === 0) {
+        element.muted = true;
+    } else if (!element.paused) {
+        element.muted = false;
+    }
+}
+
+window.setStreamVolume = setStreamVolume;
